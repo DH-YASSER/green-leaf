@@ -1,0 +1,28 @@
+# General
+.DS_Store
+.idea/
+.vscode/
+*.log
+
+# Frontend-specific
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# Backend-specific (Laravel)
+backend/node_modules/
+backend/vendor/
+backend/bootstrap/cache/*
+backend/storage/*.key
+backend/storage/framework/cache/data/*
+backend/storage/framework/views/*
+backend/storage/framework/sessions/*
+backend/storage/framework/testing/*
+backend/.env
+backend/.env.backup
+backend/.env.production
+backend/public/storage
+backend/response.txt
+backend/dev.log
+backend/dev.pid
+backend/server.log
