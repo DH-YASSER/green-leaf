@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+@theme {
+  /* Green Leaf Premium Color System */
+  --color-brand-primary: #1e4620; /* Deep forest green */
+  --color-brand-secondary: #2d6a4f; /* Rich emerald green */
+  --color-brand-accent: #52b788; /* Fresh leaf green */
+  --color-brand-highlight: #d8f3dc; /* Soft mint green */
+  --color-brand-saffron: #f4c430; /* Golden yellow */
+  --color-brand-terracotta: #d05b2a; /* Rich terracotta orange */
+  --color-brand-bg: #f7f9f6; /* Crisp off-white organic background */
+
+  /* Backwards compatibility for existing markeat classes */
+  --color-markeat-terracotta: #d05b2a;
+  --color-markeat-saffron: #f4c430;
+  --color-markeat-olive-green: #2d6a4f;
+  --color-markeat-bg: #f7f9f6;
+
+  /* Premium UI Extensions */
+  --shadow-luxury: 0 10px 25px -5px rgba(0, 0, 0, 0.03), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+  --shadow-glow: 0 0 20px rgba(82, 183, 136, 0.15);
+}
+
+/* Base custom styles for premium look & feel */
+@layer base {
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--color-brand-bg);
+    color: #1a241c;
+    overflow-x: hidden;
+  }
+}
+
+/* Glassmorphism utility */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.glass-dark {
+  background: rgba(26, 36, 28, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #c2c9c4;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2d6a4f;
+}
+
+/* Gorgeous buttons and gradients */
+.btn-premium {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-premium::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: all 0.6s;
+}
+.btn-premium:hover::after {
+  left: 100%;
+}
+
+/* Animation utilities */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+.animate-pulse-slow {
+  animation: pulse-slow 4s ease-in-out infinite;
+}
