@@ -129,7 +129,7 @@ const FournisseurProducts = () => {
                 images: [],
               });
             }}
-            className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+            className="flex items-center px-4 py-2 bg-brand-primary text-white rounded-md hover:bg-brand-secondary"
           >
             <span className="mr-2">+</span> Add Product
           </button>
@@ -212,7 +212,7 @@ const FournisseurProducts = () => {
                             });
                             setShowEditModal(true);
                           }}
-                          className="px-3 py-1 bg-indigo-500 text-white rounded-md text-sm hover:bg-indigo-600"
+                          className="px-3 py-1 bg-brand-secondary text-white rounded-md text-sm hover:bg-brand-primary"
                         >
                           Edit
                         </button>
@@ -268,7 +268,7 @@ const FournisseurProducts = () => {
                     required
                     value={form.name}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-accent"
                   />
                 </div>
                 <div>
@@ -280,7 +280,7 @@ const FournisseurProducts = () => {
                     required
                     value={form.category}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-accent"
                   >
                     <option value="">Select a category</option>
                     <option value="legumes">Vegetables</option>
@@ -299,7 +299,7 @@ const FournisseurProducts = () => {
                     rows="3"
                     value={form.description}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-accent"
                   />
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -313,7 +313,7 @@ const FournisseurProducts = () => {
                       required
                       value={form.price}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-accent"
                     />
                   </div>
                   <div>
@@ -325,7 +325,7 @@ const FournisseurProducts = () => {
                       type="text"
                       value={form.unit}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-accent"
                     />
                   </div>
                 </div>
@@ -339,7 +339,7 @@ const FournisseurProducts = () => {
                       type="number"
                       value={form.min_order_qty}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-accent"
                     />
                   </div>
                   <div>
@@ -351,7 +351,7 @@ const FournisseurProducts = () => {
                       type="number"
                       value={form.stock}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-accent"
                     />
                   </div>
                 </div>
@@ -365,7 +365,7 @@ const FournisseurProducts = () => {
                       type="text"
                       value={form.delivery_zones}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-accent"
                     />
                   </div>
                   <div>
@@ -377,7 +377,7 @@ const FournisseurProducts = () => {
                       type="number"
                       value={form.delivery_delay}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-accent"
                     />
                   </div>
                 </div>
@@ -391,7 +391,7 @@ const FournisseurProducts = () => {
                     multiple
                     accept="image/*"
                     onChange={handleImageChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-accent"
                   />
                   <p className="mt-1 text-xs text-gray-500">
                     You can upload up to 5 images. (Note: actual upload handling is not implemented in this frontend code)
@@ -411,7 +411,7 @@ const FournisseurProducts = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
+                    className="px-4 py-2 bg-brand-primary text-white rounded-md hover:bg-brand-secondary disabled:opacity-50"
                   >
                     {editProductId ? 'Update' : 'Create'}
                   </button>

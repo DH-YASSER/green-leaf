@@ -62,7 +62,7 @@ const AdminOrders = () => {
                 id="status"
                 value={filters.status}
                 onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus-ring-indigo-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-accent"
               >
                 <option value="">All Status</option>
                 <option value="pending">Pending</option>
@@ -80,7 +80,7 @@ const AdminOrders = () => {
                 type="date"
                 value={filters.start_date}
                 onChange={(e) => setFilters(prev => ({ ...prev, start_date: e.target.value }))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus-ring-indigo-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-accent"
               />
             </div>
             <div>
@@ -92,7 +92,7 @@ const AdminOrders = () => {
                 type="date"
                 value={filters.end_date}
                 onChange={(e) => setFilters(prev => ({ ...prev, end_date: e.target.value }))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus-ring-indigo-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-accent"
               />
             </div>
             <div className="flex items-end">

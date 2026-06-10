@@ -57,7 +57,7 @@ const AdminLogin = () => {
               name="email"
               type="email"
               required
-              className="mt-1 block w-px min-w-0 flex-auto border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="mt-1 block w-px min-w-0 flex-auto border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-brand-accent focus:border-brand-primary sm:text-sm"
               value={form.email}
               onChange={handleChange}
               autoComplete="email"
@@ -71,7 +71,7 @@ const AdminLogin = () => {
               name="password"
               type="password"
               required
-              className="mt-1 block w-px min-w-0 flex-auto border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="mt-1 block w-px min-w-0 flex-auto border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-brand-accent focus:border-brand-primary sm:text-sm"
               value={form.password}
               onChange={handleChange}
               autoComplete="current-password"
@@ -86,7 +86,7 @@ const AdminLogin = () => {
             <button
               type="submit"
               disabled={loading}
-              className={`group w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50`}
+              className={`group w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-brand-primary hover:bg-brand-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent disabled:opacity-50`}
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
@@ -95,7 +95,7 @@ const AdminLogin = () => {
 
         <p className="mt-6 text-center text-sm text-gray-500">
           Return to{' '}
-          <Link to="/" className="font-medium text-indigo-600 hover:text-indigo-500">
+          <Link to="/" className="font-medium text-brand-secondary hover:text-brand-primary">
             home page
           </Link>
         </p>

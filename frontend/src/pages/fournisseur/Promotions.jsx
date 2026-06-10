@@ -114,7 +114,7 @@ const FournisseurPromotions = () => {
                 usage_limit: '',
               });
             }}
-            className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+            className="flex items-center px-4 py-2 bg-brand-primary text-white rounded-md hover:bg-brand-secondary"
           >
             <span className="mr-2">+</span> Create Promotion
           </button>
@@ -202,7 +202,7 @@ const FournisseurPromotions = () => {
                             });
                             setShowForm(true);
                           }}
-                          className="px-3 py-1 bg-indigo-500 text-white rounded-md text-sm hover:bg-indigo-600"
+                          className="px-3 py-1 bg-brand-secondary text-white rounded-md text-sm hover:bg-brand-primary"
                         >
                           Edit
                         </button>
@@ -251,7 +251,7 @@ const FournisseurPromotions = () => {
                     required
                     value={form.product_id}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus-ring-indigo-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-accent"
                   >
                     <option value="">Select a product</option>
                     {/* In a real app, we would fetch the list of products for this fournisseur */}
@@ -269,7 +269,7 @@ const FournisseurPromotions = () => {
                     required
                     value={form.promo_type}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus-ring-indigo-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-accent"
                   >
                     <option value="percentage">Percentage Discount</option>
                     <option value="fixed">Fixed Amount Discount</option>
@@ -287,7 +287,7 @@ const FournisseurPromotions = () => {
                     required
                     value={form.value}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus-ring-indigo-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-accent"
                   />
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -300,7 +300,7 @@ const FournisseurPromotions = () => {
                       type="number"
                       value={form.min_qty}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus-ring-indigo-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-accent"
                     />
                   </div>
                   <div>
@@ -312,7 +312,7 @@ const FournisseurPromotions = () => {
                       type="number"
                       value={form.usage_limit}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus-ring-indigo-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-accent"
                     />
                   </div>
                 </div>
@@ -326,7 +326,7 @@ const FournisseurPromotions = () => {
                       type="date"
                       value={form.start_date}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus-ring-indigo-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-accent"
                     />
                   </div>
                   <div>
@@ -338,7 +338,7 @@ const FournisseurPromotions = () => {
                       type="date"
                       value={form.end_date}
                       onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus-ring-indigo-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-accent"
                     />
                   </div>
                 </div>
@@ -356,7 +356,7 @@ const FournisseurPromotions = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
+                    className="px-4 py-2 bg-brand-primary text-white rounded-md hover:bg-brand-secondary disabled:opacity-50"
                   >
                     {editPromoId ? 'Update' : 'Create'}
                   </button>

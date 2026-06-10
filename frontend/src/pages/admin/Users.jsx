@@ -90,7 +90,7 @@ const AdminUsers = () => {
           <button
             onClick={() => setTab('all')}
             className={`px-4 py-2 text-sm font-medium ${tab === 'all'
-              ? 'bg-indigo-50 text-indigo-600'
+              ? 'bg-brand-highlight/30 text-brand-secondary'
               : 'text-gray-600 hover:bg-gray-50'}`}
           >
             All Users
@@ -98,7 +98,7 @@ const AdminUsers = () => {
           <button
             onClick={() => setTab('restaurant')}
             className={`px-4 py-2 text-sm font-medium ${tab === 'restaurant'
-              ? 'bg-indigo-50 text-indigo-600'
+              ? 'bg-brand-highlight/30 text-brand-secondary'
               : 'text-gray-600 hover:bg-gray-50'}`}
           >
             Restaurants
@@ -106,7 +106,7 @@ const AdminUsers = () => {
           <button
             onClick={() => setTab('fournisseur')}
             className={`px-4 py-2 text-sm font-medium ${tab === 'fournisseur'
-              ? 'bg-indigo-50 text-indigo-600'
+              ? 'bg-brand-highlight/30 text-brand-secondary'
               : 'text-gray-600 hover:bg-gray-50'}`}
           >
             Suppliers
@@ -114,7 +114,7 @@ const AdminUsers = () => {
           <button
             onClick={() => setTab('pending')}
             className={`px-4 py-2 text-sm font-medium ${tab === 'pending'
-              ? 'bg-indigo-50 text-indigo-600'
+              ? 'bg-brand-highlight/30 text-brand-secondary'
               : 'text-gray-600 hover:bg-gray-50'}`}
           >
             Pending Verification
@@ -237,7 +237,7 @@ const getRoleColor = (role) => {
     case 'fournisseur':
       return 'bg-green-100 text-green-800';
     case 'admin':
-      return 'bg-indigo-100 text-indigo-800';
+      return 'bg-brand-highlight/40 text-brand-primary';
     default:
       return 'bg-gray-100 text-gray-800';
   }

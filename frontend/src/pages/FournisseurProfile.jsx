@@ -48,7 +48,7 @@ const FournisseurProfile = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back link */}
         <div className="mb-6">
-          <a href="/browse" className="text-indigo-600 hover:text-indigo-500">
+          <a href="/browse" className="text-brand-secondary hover:text-brand-primary">
             ← Back to browse
           </a>
         </div>
@@ -78,7 +78,7 @@ const FournisseurProfile = () => {
             </div>
             <div className="md:mt-4 md:text-right">
               {/* Follow/Message button placeholder */}
-              <button className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+              <button className="px-4 py-2 bg-brand-primary text-white rounded-md hover:bg-brand-secondary">
                 Message
               </button>
             </div>
@@ -137,7 +137,7 @@ const FournisseurProfile = () => {
                         <RatingStars rating={review.rating} size="sm" />
                       </div>
                     </div>
-                    <button className="text-indigo-600 hover:text-indigo-500">
+                    <button className="text-brand-secondary hover:text-brand-primary">
                       Report
                     </button>
                   </div>

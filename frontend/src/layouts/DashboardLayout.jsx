@@ -22,7 +22,7 @@ const DashboardLayout = ({ children, title, navLinks }) => {
             <Link
               key={link.path}
               to={link.path}
-              className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${link.active ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-50'}`}
+              className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${link.active ? 'bg-brand-highlight/30 text-brand-secondary' : 'text-gray-600 hover:bg-gray-50'}`}
             >
               {link.icon && <span className="mr-3">{link.icon}</span>}
               <span>{link.label}</span>

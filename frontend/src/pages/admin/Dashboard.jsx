@@ -80,8 +80,8 @@ const AdminDashboard = () => {
           </div>
           {/* Total Orders */}
           <div className="bg-white rounded-xl shadow-md p-4 flex items-center space-x-4">
-            <div className="h-10 w-10 bg-indigo-50 rounded-lg flex items-center justify-center">
-              <span className="text-indigo-600 font-bold">📦</span>
+            <div className="h-10 w-10 bg-brand-highlight/30 rounded-lg flex items-center justify-center">
+              <span className="text-brand-secondary font-bold">📦</span>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Total Orders</p>

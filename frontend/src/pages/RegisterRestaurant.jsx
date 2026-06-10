@@ -101,7 +101,7 @@ const RegisterRestaurant = () => {
                   name="name"
                   type="text"
                   required
-                  className="mt-1 block w-px min-w-0 flex-auto border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="mt-1 block w-px min-w-0 flex-auto border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-brand-accent focus:border-brand-primary sm:text-sm"
                   value={form.name}
                   onChange={handleChange}
                   autoComplete="name"
@@ -115,7 +115,7 @@ const RegisterRestaurant = () => {
                   name="email"
                   type="email"
                   required
-                  className="mt-1 block w-px min-w-0 flex-auto border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="mt-1 block w-px min-w-0 flex-auto border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-brand-accent focus:border-brand-primary sm:text-sm"
                   value={form.email}
                   onChange={handleChange}
                   autoComplete="email"
@@ -129,7 +129,7 @@ const RegisterRestaurant = () => {
                   name="password"
                   type="password"
                   required
-                  className="mt-1 block w-px min-w-0 flex-auto border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="mt-1 block w-px min-w-0 flex-auto border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-brand-accent focus:border-brand-primary sm:text-sm"
                   value={form.password}
                   onChange={handleChange}
                   autoComplete="current-password"
@@ -140,7 +140,7 @@ const RegisterRestaurant = () => {
                   type="button"
                   onClick={handleNext}
                   disabled={loading}
-                  className={`group w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50`}
+                  className={`group w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-brand-primary hover:bg-brand-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent disabled:opacity-50`}
                 >
                   Next Step
                 </button>
@@ -159,7 +159,7 @@ const RegisterRestaurant = () => {
                   name="restaurant_name"
                   type="text"
                   required
-                  className="mt-1 block w-px min-w-0 flex-auto border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="mt-1 block w-px min-w-0 flex-auto border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-brand-accent focus:border-brand-primary sm:text-sm"
                   value={form.restaurant_name}
                   onChange={handleChange}
                 />
@@ -172,7 +172,7 @@ const RegisterRestaurant = () => {
                   name="phone"
                   type="tel"
                   required
-                  className="mt-1 block w-px min-w-0 flex-auto border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="mt-1 block w-px min-w-0 flex-auto border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-brand-accent focus:border-brand-primary sm:text-sm"
                   value={form.phone}
                   onChange={handleChange}
                 />
@@ -187,7 +187,7 @@ const RegisterRestaurant = () => {
                       name="city"
                       type="text"
                       required
-                      className="mt-1 block w-px min-w-0 flex-auto border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      className="mt-1 block w-px min-w-0 flex-auto border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-brand-accent focus:border-brand-primary sm:text-sm"
                       value={form.city}
                       onChange={handleChange}
                     />
@@ -201,7 +201,7 @@ const RegisterRestaurant = () => {
                       name="cuisine_type"
                       type="text"
                       required
-                      className="mt-1 block w-px min-w-0 flex-auto border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      className="mt-1 block w-px min-w-0 flex-auto border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-brand-accent focus:border-brand-primary sm:text-sm"
                       value={form.cuisine_type}
                       onChange={handleChange}
                     />
@@ -216,7 +216,7 @@ const RegisterRestaurant = () => {
                   name="address"
                   type="text"
                   required
-                  className="mt-1 block w-px min-w-0 flex-auto border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="mt-1 block w-px min-w-0 flex-auto border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-brand-accent focus:border-brand-primary sm:text-sm"
                   value={form.address}
                   onChange={handleChange}
                 />
@@ -229,7 +229,7 @@ const RegisterRestaurant = () => {
                   name="rc_patente"
                   type="text"
                   required
-                  className="mt-1 block w-px min-w-0 flex-auto border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="mt-1 block w-px min-w-0 flex-auto border border-gray-300 rounded-md shadow-sm px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-brand-accent focus:border-brand-primary sm:text-sm"
                   value={form.rc_patente}
                   onChange={handleChange}
                 />
@@ -245,7 +245,7 @@ const RegisterRestaurant = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`group w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50`}
+                  className={`group w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-brand-primary hover:bg-brand-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-accent disabled:opacity-50`}
                 >
                   Create Account
                 </button>
@@ -256,7 +256,7 @@ const RegisterRestaurant = () => {
 
         <p className="mt-6 text-center text-sm text-gray-500">
           Already have an account?{' '}
-          <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+          <Link to="/login" className="font-medium text-brand-secondary hover:text-brand-primary">
             Sign in
           </Link>
         </p>

@@ -336,33 +336,152 @@ export const handleMockRequest = async (config) => {
   // ----------------------------------------
   // MESSAGES ENDPOINTS
   // ----------------------------------------
-  if (path === '/messages') {
-    const messages = getStorageItem('gl_messages');
-    return { data: messages, status: 200 };
+  // ----------------------------------------
+  // MESSAGES ENDPOINTS
+  // ----------------------------------------
+  if (path === '/messages' && method === 'get') {
+    const messages = getStorageItem('gl_messages') || [];
+    const suppliers = getStorageItem('gl_fournisseurs') || [];
+    
+    // Parse current user from localStorage
+    const userStr = localStorage.getItem('user');
+    const currentUser = userStr ? JSON.parse(userStr) : { id: 'rest-1', name: 'Chef Youssef', company_name: 'Le Bistro Vert', role: 'restaurant' };
+    const currentUserId = currentUser.id;
+
+    // Group messages by contact
+    const conversationsMap = {};
+
+    messages.forEach(msg => {
+      const isSender = msg.sender_id === currentUserId;
+      const isRecipient = msg.recipient_id === currentUserId;
+
+      if (!isSender && !isRecipient) return; // not for this user
+
+      const contactId = isSender ? msg.recipient_id : msg.sender_id;
+      const contactName = isSender ? msg.recipient_name : msg.sender_name;
+
+      if (!conversationsMap[contactId]) {
+        let mappedName = contactName;
+        if (currentUser.role === 'restaurant') {
+          const sup = suppliers.find(s => s.id === contactId);
+          if (sup) mappedName = sup.company_name;
+        } else if (currentUser.role === 'fournisseur') {
+          if (contactId === 'rest-1') mappedName = 'Le Bistro Vert';
+        }
+
+        conversationsMap[contactId] = {
+          id: contactId,
+          contact_name: mappedName,
+          last_message_preview: '',
+          last_message_time: '',
+          unread_count: 0,
+          messages: []
+        };
+      }
+
+      conversationsMap[contactId].messages.push(msg);
+      
+      // Update unread count
+      if (isRecipient && !msg.read) {
+        conversationsMap[contactId].unread_count += 1;
+      }
+    });
+
+    const conversations = Object.values(conversationsMap).map(conv => {
+      conv.messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      const lastMsg = conv.messages[conv.messages.length - 1];
+      return {
+        id: conv.id,
+        contact_name: conv.contact_name,
+        last_message_preview: lastMsg ? lastMsg.content : '',
+        last_message_time: lastMsg ? lastMsg.timestamp : '',
+        unread_count: conv.unread_count
+      };
+    });
+
+    conversations.sort((a, b) => new Date(b.last_message_time) - new Date(a.last_message_time));
+    return { data: conversations, status: 200 };
   }
 
   if (path.startsWith('/messages/') && method === 'get') {
-    const conversationId = path.split('/').pop();
-    const messages = getStorageItem('gl_messages');
-    // Return messages belonging to f1/rest-1
-    return { data: messages, status: 200 };
+    const contactId = path.split('/').pop();
+    let messages = getStorageItem('gl_messages') || [];
+    
+    // Parse current user from localStorage
+    const userStr = localStorage.getItem('user');
+    const currentUser = userStr ? JSON.parse(userStr) : { id: 'rest-1', name: 'Chef Youssef', company_name: 'Le Bistro Vert', role: 'restaurant' };
+    const currentUserId = currentUser.id;
+
+    // Filter messages between current user and contact
+    const conversationMessages = messages.filter(msg => 
+      (msg.sender_id === currentUserId && msg.recipient_id === contactId) ||
+      (msg.sender_id === contactId && msg.recipient_id === currentUserId)
+    );
+
+    conversationMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+    // Mark received messages as read
+    let updatedAny = false;
+    messages = messages.map(msg => {
+      if (msg.sender_id === contactId && msg.recipient_id === currentUserId && !msg.read) {
+        updatedAny = true;
+        return { ...msg, read: true };
+      }
+      return msg;
+    });
+
+    if (updatedAny) {
+      setStorageItem('gl_messages', messages);
+    }
+
+    const mapped = conversationMessages.map(msg => ({
+      sender: msg.sender_id === currentUserId ? 'user' : 'other',
+      content: msg.content,
+      timestamp: msg.timestamp
+    }));
+
+    return { data: mapped, status: 200 };
   }
 
   if (path === '/messages' && method === 'post') {
-    const messages = getStorageItem('gl_messages');
+    const messages = getStorageItem('gl_messages') || [];
+    const suppliers = getStorageItem('gl_fournisseurs') || [];
+    
+    const userStr = localStorage.getItem('user');
+    const currentUser = userStr ? JSON.parse(userStr) : { id: 'rest-1', name: 'Chef Youssef', company_name: 'Le Bistro Vert', role: 'restaurant' };
+    const currentUserId = currentUser.id;
+
+    const recipientId = data.conversationId;
+    let recipientName = 'Recipient';
+
+    if (recipientId === 'rest-1') {
+      recipientName = 'Le Bistro Vert';
+    } else {
+      const sup = suppliers.find(s => s.id === recipientId);
+      if (sup) recipientName = sup.company_name;
+    }
+
     const newMsg = {
       id: `m-${Date.now()}`,
-      sender_id: data.sender_id || 'rest-1',
-      sender_name: data.sender_name || 'User',
-      recipient_id: data.recipient_id || 'f1',
-      recipient_name: data.recipient_name || 'Recipient',
+      sender_id: currentUserId,
+      sender_name: currentUser.role === 'restaurant' ? (currentUser.company_name || 'Le Bistro Vert') : (currentUser.name || 'Atlas Prime Maraîcher'),
+      recipient_id: recipientId,
+      recipient_name: recipientName,
       content: data.content,
       timestamp: new Date().toISOString(),
       read: false
     };
+
     messages.push(newMsg);
     setStorageItem('gl_messages', messages);
-    return { data: newMsg, status: 201 };
+
+    const mapped = {
+      sender: 'user',
+      content: newMsg.content,
+      timestamp: newMsg.timestamp
+    };
+
+    return { data: mapped, status: 201 };
   }
 
   // ----------------------------------------
