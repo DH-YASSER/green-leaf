@@ -9,8 +9,6 @@ import {
   DollarSign, 
   Utensils, 
   ChevronRight,
-  TrendingUp,
-  XCircle
 } from 'lucide-react';
 import { RevenueTrendChart, StatusDonutChart } from '../../components/DashboardCharts';
 
@@ -66,81 +64,84 @@ const RestaurantDashboard = () => {
     fetchDashboardData();
   }, []);
 
-  if (loading) return <div className="text-center py-12 text-brand-primary font-bold">Loading dashboard...</div>;
-  if (error) return <div className="text-center py-12 text-brand-terracotta font-bold">{error}</div>;
+  if (loading) {
+    return (
+      <DashboardLayout title="Dashboard" navLinks={[
+        { path: '/restaurant/dashboard', label: 'Dashboard', active: true },
+        { path: '/restaurant/orders', label: 'Orders', active: false },
+        { path: '/restaurant/messages', label: 'Messages', active: false },
+      ]}>
+        <div className="flex flex-col items-center justify-center min-h-[40vh] py-20 gap-4 reveal-item">
+          <div className="animate-spin h-8 w-8 border-2 border-brand-accent border-t-transparent"></div>
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Loading Dashboard...</span>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout title="Dashboard" navLinks={[
+        { path: '/restaurant/dashboard', label: 'Dashboard', active: true },
+        { path: '/restaurant/orders', label: 'Orders', active: false },
+        { path: '/restaurant/messages', label: 'Messages', active: false },
+      ]}>
+        <div className="text-center py-20 glass-card-dark reveal-item">
+          <p className="font-heading text-sm font-bold uppercase tracking-wide text-brand-accent">{error}</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
-    <DashboardLayout title="Restaurant Dashboard" navLinks={[
+    <DashboardLayout title="Dashboard" navLinks={[
       { path: '/restaurant/dashboard', label: 'Dashboard', active: true },
       { path: '/restaurant/orders', label: 'Orders', active: false },
       { path: '/restaurant/messages', label: 'Messages', active: false },
     ]}>
       <div className="space-y-8 pb-12">
-        {/* Welcome Card */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-brand-primary to-brand-secondary rounded-3xl p-6 text-white shadow-lg">
-          <div className="absolute right-0 bottom-0 translate-y-6 translate-x-6 w-48 h-48 bg-brand-accent/20 rounded-full blur-2xl pointer-events-none"></div>
-          <div className="flex items-center space-x-4 relative z-10">
-            <div className="h-12 w-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center">
-              <Utensils className="w-6 h-6 text-white" />
+        {/* Welcome Banner */}
+        <div className="relative overflow-hidden glass-card-dark p-8 reveal-item">
+          <div className="absolute right-0 bottom-0 w-80 h-80 bg-brand-accent/[0.03] rounded-full blur-[100px] pointer-events-none"></div>
+          <div className="flex items-center space-x-5 relative z-10">
+            <div className="h-12 w-12 bg-brand-accent/10 border border-brand-accent/20 flex items-center justify-center">
+              <Utensils className="w-5 h-5 text-brand-accent" />
             </div>
             <div>
-              <h2 className="text-xl font-black tracking-tight">Bonjour, Chef!</h2>
-              <p className="text-brand-highlight text-xs font-semibold uppercase tracking-wider mt-1">
-                Le Bistro Vert - Casablanca Sourcing Portal
+              <h2 className="font-heading text-lg font-bold uppercase tracking-wide text-white">Bonjour, Chef!</h2>
+              <p className="text-[10px] text-white/40 font-semibold uppercase tracking-widest mt-1">
+                Le Bistro Vert — Casablanca Sourcing Portal
               </p>
             </div>
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex items-center gap-4 hover:shadow-luxury transition-all duration-300">
-            <div className="h-12 w-12 bg-brand-highlight/30 text-brand-secondary rounded-2xl flex items-center justify-center">
-              <ShoppingBag className="w-6 h-6" />
+        {/* Stats Panels */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            { icon: ShoppingBag, label: 'Total Orders', value: stats.totalOrders, delay: 'delay-100' },
+            { icon: Clock, label: 'Pending Orders', value: stats.pendingOrders, delay: 'delay-200' },
+            { icon: CheckCircle2, label: 'Delivered Orders', value: stats.deliveredOrders, delay: 'delay-300' },
+            { icon: DollarSign, label: 'Total Expenses', value: `${stats.totalSpent} MAD`, delay: 'delay-400' },
+          ].map((stat, i) => (
+            <div key={i} className={`glass-card-dark p-6 flex items-center gap-5 reveal-item ${stat.delay}`}>
+              <div className="h-10 w-10 border border-brand-accent/20 bg-brand-accent/10 flex items-center justify-center text-brand-accent">
+                <stat.icon className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-[9px] font-bold text-white/40 uppercase tracking-[0.15em]">{stat.label}</p>
+                <p className="font-heading text-lg font-bold text-white mt-1">{stat.value}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-2xs font-black text-slate-400 uppercase tracking-widest">Total Orders</p>
-              <p className="text-2xl font-black text-brand-primary mt-0.5">{stats.totalOrders}</p>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex items-center gap-4 hover:shadow-luxury transition-all duration-300">
-            <div className="h-12 w-12 bg-amber-50 text-brand-saffron rounded-2xl flex items-center justify-center">
-              <Clock className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-2xs font-black text-slate-400 uppercase tracking-widest">Pending Orders</p>
-              <p className="text-2xl font-black text-brand-primary mt-0.5">{stats.pendingOrders}</p>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex items-center gap-4 hover:shadow-luxury transition-all duration-300">
-            <div className="h-12 w-12 bg-green-50 text-brand-secondary rounded-2xl flex items-center justify-center">
-              <CheckCircle2 className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-2xs font-black text-slate-400 uppercase tracking-widest">Delivered Orders</p>
-              <p className="text-2xl font-black text-brand-primary mt-0.5">{stats.deliveredOrders}</p>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex items-center gap-4 hover:shadow-luxury transition-all duration-300">
-            <div className="h-12 w-12 bg-brand-highlight/30 text-brand-secondary rounded-2xl flex items-center justify-center">
-              <DollarSign className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-2xs font-black text-slate-400 uppercase tracking-widest">Total Expenses</p>
-              <p className="text-2xl font-black text-brand-secondary mt-0.5">{stats.totalSpent} MAD</p>
-            </div>
-          </div>
+          ))}
         </div>
 
         {/* Charts Grid */}
         <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 glass-card-dark p-6 reveal-item delay-200">
             <RevenueTrendChart data={spendData} />
           </div>
-          <div>
+          <div className="glass-card-dark p-6 reveal-item delay-300">
             <StatusDonutChart data={{
               pending: stats.pendingOrders,
               confirmed: stats.totalOrders - stats.pendingOrders - stats.deliveredOrders,
@@ -149,44 +150,44 @@ const RestaurantDashboard = () => {
           </div>
         </div>
 
-        {/* Recent Orders Table */}
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
-          <div className="flex justify-between items-center mb-6">
+        {/* Recent Orders Panel */}
+        <div className="glass-card-dark p-8 reveal-item delay-400">
+          <div className="flex justify-between items-center mb-8">
             <div>
-              <h2 className="text-lg font-black text-brand-primary uppercase tracking-wider">Recent Orders / Commandes Récentes</h2>
-              <p className="text-xs text-slate-400 font-bold uppercase mt-0.5">Tracking status of ingredient requests</p>
+              <h2 className="font-heading text-xs font-bold uppercase tracking-[0.2em] text-white">Recent Orders</h2>
+              <p className="text-[10px] text-white/40 font-semibold uppercase tracking-wider mt-1">Sourcing requests overview</p>
             </div>
-            <Link to="/restaurant/orders" className="text-xs font-black uppercase text-brand-secondary hover:text-brand-primary flex items-center gap-1.5 transition-colors">
-              View All Orders
+            <Link to="/restaurant/orders" className="text-[11px] font-bold uppercase tracking-widest text-brand-accent hover:text-white flex items-center gap-1.5 transition-colors">
+              View All
               <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
           
           {recentOrders.length > 0 ? (
-            <div className="overflow-x-auto border border-slate-50 rounded-2xl">
-              <table className="min-w-full divide-y divide-slate-100 text-left">
-                <thead className="bg-slate-50 text-slate-400 text-3xs font-black uppercase tracking-widest">
+            <div className="overflow-x-auto border border-brand-border">
+              <table className="min-w-full divide-y divide-brand-border text-left">
+                <thead className="bg-white/[0.02] text-white/40 text-[10px] font-bold uppercase tracking-widest">
                   <tr>
-                    <th className="px-6 py-4">Fournisseur</th>
+                    <th className="px-6 py-4">Supplier</th>
                     <th className="px-6 py-4">Order Date</th>
                     <th className="px-6 py-4">Total Amount</th>
                     <th className="px-6 py-4 text-right">Status</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-slate-100 text-sm">
+                <tbody className="divide-y divide-brand-border text-[12px] text-white/80">
                   {recentOrders.map((order) => (
-                    <tr key={order.id} className="hover:bg-slate-50/50">
-                      <td className="px-6 py-4 font-bold text-slate-800">
+                    <tr key={order.id} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="px-6 py-4 font-bold text-white">
                         {order.fournisseur_name || 'Unknown Supplier'}
                       </td>
-                      <td className="px-6 py-4 text-xs font-medium text-slate-400">
+                      <td className="px-6 py-4 text-white/40">
                         {new Date(order.created_at).toLocaleDateString()}
                       </td>
-                      <td className="px-6 py-4 font-black text-brand-primary">
+                      <td className="px-6 py-4 font-bold text-brand-accent">
                         {order.total_amount} MAD
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <span className={`px-3 py-1 inline-flex text-2xs leading-5 font-black uppercase tracking-wider rounded-full border ${getStatusStyles(order.status)}`}>
+                        <span className={`px-2.5 py-0.5 inline-flex text-[10px] font-bold uppercase tracking-wider border ${getStatusStyles(order.status)}`}>
                           {order.status}
                         </span>
                       </td>
@@ -196,24 +197,24 @@ const RestaurantDashboard = () => {
               </table>
             </div>
           ) : (
-            <div className="text-center py-12 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-              <ShoppingBag className="w-8 h-8 text-slate-300 mx-auto mb-3" />
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">No recent orders found</p>
+            <div className="text-center py-12 bg-white/[0.02] border border-dashed border-brand-border">
+              <ShoppingBag className="w-6 h-6 text-white/20 mx-auto mb-3" />
+              <p className="text-[11px] font-bold text-white/40 uppercase tracking-widest">No recent orders found</p>
             </div>
           )}
         </div>
 
-        {/* Quick restock banner */}
-        <div className="relative overflow-hidden bg-brand-highlight/30 rounded-3xl p-6 border border-brand-accent/10 flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
-          <div>
-            <h3 className="font-black text-brand-primary text-base uppercase tracking-wide">Need to restock your pantry?</h3>
-            <p className="text-xs text-slate-500 font-semibold mt-1">Browse verified suppliers and place your next order in minutes.</p>
+        {/* Quick restocking CTA */}
+        <div className="relative overflow-hidden glass-card-dark p-8 flex flex-col sm:flex-row justify-between items-center gap-6 reveal-item delay-500">
+          <div className="text-center sm:text-left z-10">
+            <h3 className="font-heading text-sm font-bold uppercase tracking-wider text-white">Need to restock ingredients?</h3>
+            <p className="text-[12px] text-white/50 leading-relaxed mt-1">Browse verified suppliers and place your next order instantly.</p>
           </div>
           <Link
             to="/browse"
-            className="px-6 py-3 bg-brand-primary hover:bg-brand-secondary text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-md transition-all whitespace-nowrap cursor-pointer btn-premium"
+            className="btn-sharp px-6 py-3 bg-white text-brand-bg font-bold text-[11px] uppercase tracking-widest transition-all whitespace-nowrap z-10"
           >
-            Browse Moroccan Suppliers
+            Browse Suppliers
           </Link>
         </div>
       </div>
@@ -221,22 +222,21 @@ const RestaurantDashboard = () => {
   );
 };
 
-// Helper function to get status styles
 const getStatusStyles = (status) => {
   switch (status) {
     case 'pending':
-      return 'bg-amber-50 text-amber-700 border-amber-200';
+      return 'bg-transparent text-brand-accent border-brand-accent/50';
     case 'confirmed':
     case 'accepted':
-      return 'bg-blue-50 text-blue-700 border-blue-200';
+      return 'bg-white/10 text-white border-white/20';
     case 'delivered':
     case 'completed':
-      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      return 'bg-brand-accent/10 text-brand-accent border-brand-accent/20';
     case 'rejected':
     case 'cancelled':
-      return 'bg-rose-50 text-rose-700 border-rose-200';
+      return 'bg-white/10 text-white/50 border-white/20';
     default:
-      return 'bg-slate-50 text-slate-700 border-slate-200';
+      return 'bg-white/5 text-white/40 border-white/10';
   }
 };
 

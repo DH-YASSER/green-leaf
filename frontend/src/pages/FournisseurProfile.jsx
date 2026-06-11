@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import axios from '../api/axios';
 import FournisseurCard from '../components/FournisseurCard';
 import RatingStars from '../components/RatingStars';
-import VerifiedBadge from '../components/VerifiedBadge';
-import PromoTag from '../components/PromoTag';
+import { Leaf, Star } from 'lucide-react';
 
 const FournisseurProfile = () => {
   const { id } = useParams();
@@ -19,11 +18,8 @@ const FournisseurProfile = () => {
       setLoading(true);
       setError('');
       try {
-        // Fetch fournisseur details
         const fournisseurResponse = await axios.get(`/api/fournisseurs/${id}`);
-        // Fetch products for this fournisseur
         const productsResponse = await axios.get(`/api/fournisseurs/${id}/products`);
-        // Fetch reviews for this fournisseur
         const reviewsResponse = await axios.get(`/api/fournisseurs/${id}/reviews`);
 
         setFournisseur(fournisseurResponse.data);
@@ -39,66 +35,122 @@ const FournisseurProfile = () => {
     fetchData();
   }, [id]);
 
-  if (loading) return <div className="text-center py-12">Loading...</div>;
-  if (error) return <div className="text-center py-12 text-red-500">{error}</div>;
-  if (!fournisseur) return <div className="text-center py-12">Fournisseur not found</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-brand-bg text-brand-text flex flex-col items-center justify-center gap-4">
+        <div className="animate-spin h-8 w-8 border-2 border-brand-primary border-t-transparent"></div>
+        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/30">Loading Profile...</span>
+      </div>
+    );
+  }
+
+  if (error || !fournisseur) {
+    return (
+      <div className="min-h-screen bg-brand-bg text-brand-text flex flex-col items-center justify-center p-6">
+        <div className="bg-brand-surface border border-white/[0.06] p-10 text-center max-w-md w-full">
+          <p className="font-heading text-sm font-bold uppercase tracking-wide text-brand-terracotta mb-6">
+            {error || 'Fournisseur profile not found'}
+          </p>
+          <Link
+            to="/browse"
+            className="inline-flex px-6 py-3 bg-brand-primary text-brand-bg text-[11px] font-bold uppercase tracking-wider transition-colors hover:bg-brand-accent"
+          >
+            Return to Browse
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-bg-white min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Back link */}
-        <div className="mb-6">
-          <a href="/browse" className="text-brand-secondary hover:text-brand-primary">
-            ← Back to browse
-          </a>
-        </div>
-
-        {/* Fournisseur header */}
-        <div className="bg-white rounded-xl shadow-md p-6 mb-8">
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between">
-            <div className="mb-4 md:mb-0">
-              {/* Cover image placeholder */}
-              <div className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center mb-4">
-                <span className="text-gray-500">Cover Image</span>
+    <div className="min-h-screen bg-brand-bg text-brand-text pb-20">
+      {/* ═══════════════════════ NAVBAR ═══════════════════════ */}
+      <nav className="glass sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex justify-between items-center h-20">
+            <Link to="/" className="flex items-center gap-3 group">
+              <div className="h-8 w-8 rounded-lg bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center group-hover:bg-brand-primary/20 transition-colors">
+                <Leaf className="h-4.5 w-4.5 text-brand-primary" />
               </div>
-              <div className="flex items-center space-x-4">
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {fournisseur.company_name || fournisseur.name}
-                </h1>
-                <VerifiedBadge isVerified={fournisseur.is_verified} />
-                <div className="flex items-center space-x-2 text-sm text-gray-500">
-                  <span>📍 {fournisseur.city}</span>
-                  <span>·</span>
-                  <span>
-                    <RatingStars rating={fournisseur.avg_rating || 0} size="sm" />
-                    {fournisseur.avg_rating ? ` (${fournisseur.avg_rating})` : ''}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="md:mt-4 md:text-right">
-              {/* Follow/Message button placeholder */}
-              <button className="px-4 py-2 bg-brand-primary text-white rounded-md hover:bg-brand-secondary">
-                Message
-              </button>
+              <span className="font-heading text-base font-bold tracking-tight text-white uppercase">
+                Green<span className="text-brand-primary">Leaf</span>
+              </span>
+            </Link>
+            <div className="flex gap-6 items-center">
+              <Link to="/browse" className="text-[11px] font-semibold uppercase tracking-[0.15em] text-white/50 hover:text-white transition-colors">
+                Marketplace
+              </Link>
+              <Link to="/login" className="text-[11px] font-semibold uppercase tracking-[0.15em] text-white/50 hover:text-white transition-colors">
+                Dashboard
+              </Link>
             </div>
           </div>
+        </div>
+      </nav>
 
-          {/* Description */}
-          {fournisseur.description && (
-            <div className="mt-4 text-gray-600">
-              {fournisseur.description}
-            </div>
-          )}
+      {/* ═══════════════════════ MAIN PROFILE ═══════════════════════ */}
+      <div className="max-w-5xl mx-auto px-6 lg:px-8 py-12">
+        {/* Back navigation link */}
+        <div className="mb-8">
+          <Link
+            to="/browse"
+            className="text-[11px] font-bold uppercase tracking-widest text-brand-primary hover:text-brand-accent transition-colors flex items-center gap-1.5"
+          >
+            ← Back to browse
+          </Link>
         </div>
 
-        {/* Products grid */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Products
+        {/* Fournisseur Header Panel */}
+        <div className="bg-brand-surface border border-white/[0.06] p-8 sm:p-10 mb-12 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-brand-primary/[0.03] rounded-full blur-[100px] pointer-events-none"></div>
+
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 relative z-10">
+            <div>
+              <div className="flex flex-wrap items-center gap-3 mb-4">
+                <h1 className="font-heading text-2xl sm:text-3xl font-black uppercase text-white tracking-tight">
+                  {fournisseur.company_name || fournisseur.name || 'Premium Supplier'}
+                </h1>
+                {fournisseur.is_verified && (
+                  <span className="text-[9px] font-bold text-brand-primary bg-brand-primary/10 border border-brand-primary/20 px-2.5 py-0.5">
+                    VERIFIED SUPPLIER
+                  </span>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-white/40">
+                <span>📍 {fournisseur.city || 'Morocco'}</span>
+                <span className="text-white/10">•</span>
+                <div className="flex items-center gap-1">
+                  <RatingStars rating={fournisseur.avg_rating || 0} size="sm" />
+                  <span className="text-white/60 font-bold ml-1">({fournisseur.avg_rating || 0})</span>
+                </div>
+              </div>
+
+              {fournisseur.description && (
+                <p className="mt-6 text-[13px] text-white/50 leading-relaxed max-w-2xl">
+                  {fournisseur.description}
+                </p>
+              )}
+            </div>
+
+            <div className="shrink-0">
+              <Link
+                to="/login"
+                className="inline-flex bg-white/[0.02] border border-white/10 hover:border-brand-primary/40 text-white hover:text-brand-primary px-6 py-3 text-[11px] font-bold uppercase tracking-[0.15em] transition-colors"
+              >
+                Send Message
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Products Grid */}
+        <div className="mb-16">
+          <h2 className="font-heading text-lg font-bold uppercase tracking-[0.2em] text-white mb-8">
+            Available Catalog Products
           </h2>
           {products.length > 0 ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {products.map((product) => (
                 <FournisseurCard
                   key={product.id}
@@ -108,49 +160,56 @@ const FournisseurProfile = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
-              No products available
+            <div className="flex flex-col items-center justify-center py-24 px-4 bg-brand-surface border border-white/5 shadow-luxury">
+              <div className="w-16 h-16 mb-6 rounded-full bg-white/[0.02] flex items-center justify-center border border-white/5">
+                <Leaf className="w-6 h-6 text-zinc-600" />
+              </div>
+              <h3 className="font-heading text-sm font-bold uppercase tracking-widest text-zinc-400 mb-2">No Active Listings</h3>
+              <p className="text-[11px] text-zinc-600 uppercase tracking-wider text-center max-w-sm leading-relaxed">
+                This supplier is currently preparing their seasonal harvest. Check back soon for new inventory updates.
+              </p>
             </div>
           )}
         </div>
 
-        {/* Reviews section */}
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Reviews ({reviews.length})
+        {/* Reviews Section */}
+        <div className="bg-brand-surface border border-white/[0.06] p-8 sm:p-10">
+          <h2 className="font-heading text-lg font-bold uppercase tracking-[0.2em] text-white mb-8">
+            Reviews ({reviews?.length || 0})
           </h2>
           {reviews.length > 0 ? (
-            <div className="space-y-4">
-              {reviews.map((review) => (
-                <div key={review.id} className="border-t border-gray-200 pt-4 first:border-t-0">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex-1">
-                      <div className="flex items-center">
-                        <h3 className="font-medium text-gray-900">
-                          {review.user_name || 'Anonymous'}
-                        </h3>
-                        <span className="ml-2 text-sm text-gray-500">
-                          {review.date ? new Date(review.date).toLocaleDateString() : ''}
-                        </span>
-                      </div>
-                      <div className="mt-1">
-                        <RatingStars rating={review.rating} size="sm" />
-                      </div>
+            <div className="space-y-6">
+              {reviews.map((review, i) => (
+                <div
+                  key={review.id}
+                  className={`pt-6 first:pt-0 border-t border-white/[0.06] first:border-t-0`}
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h3 className="font-heading text-xs font-bold uppercase tracking-wider text-white">
+                        {review.user_name || 'Anonymous Purchaser'}
+                      </h3>
+                      <span className="text-[10px] text-white/20 uppercase tracking-widest block mt-0.5">
+                        {review.date ? new Date(review.date).toLocaleDateString() : ''}
+                      </span>
                     </div>
-                    <button className="text-brand-secondary hover:text-brand-primary">
-                      Report
-                    </button>
+                    <div>
+                      <RatingStars rating={review.rating} size="sm" />
+                    </div>
                   </div>
-                  <p className="text-gray-600">
+                  <p className="text-[13px] text-white/45 leading-relaxed">
                     {review.comment}
                   </p>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-8">
-              No reviews yet
-            </p>
+            <div className="flex flex-col items-center justify-center py-16 px-4 border-t border-white/5 mt-8">
+              <Star className="w-8 h-8 text-white/[0.03] fill-white/[0.03] mb-4" />
+              <p className="text-zinc-500 uppercase tracking-widest text-[10px] font-bold">
+                No verified purchase reviews yet
+              </p>
+            </div>
           )}
         </div>
       </div>

@@ -1,10 +1,27 @@
 import { create } from 'zustand';
 
+// Rehydrate from localStorage on startup
+const getStoredUser = () => {
+  try {
+    const user = localStorage.getItem('user');
+    return user ? JSON.parse(user) : null;
+  } catch {
+    return null;
+  }
+};
+
+const getStoredToken = () => localStorage.getItem('token') || null;
+const getStoredRole = () => localStorage.getItem('role') || null;
+
+const storedUser = getStoredUser();
+const storedToken = getStoredToken();
+const storedRole = getStoredRole();
+
 const useAuthStore = create((set) => ({
-  user: null,
-  token: null,
-  role: null,
-  isAuthenticated: false,
+  user: storedUser,
+  token: storedToken,
+  role: storedRole,
+  isAuthenticated: !!(storedToken && storedUser),
 
   login: (userData, token) => {
     set({
@@ -13,7 +30,7 @@ const useAuthStore = create((set) => ({
       role: userData.role,
       isAuthenticated: true,
     });
-    // Optionally store in localStorage for persistence
+    // Persist in localStorage
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
     localStorage.setItem('role', userData.role);
@@ -29,6 +46,8 @@ const useAuthStore = create((set) => ({
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('role');
+    // Redirect to home
+    window.location.href = '#/';
   },
 
   setUser: (userData) => {

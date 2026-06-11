@@ -6,25 +6,38 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        heading: ['Poppins', 'sans-serif'],
+        body: ['Inter', 'sans-serif'],
+      },
       colors: {
         brand: {
-          primary: '#1e4620',
-          secondary: '#2d6a4f',
-          accent: '#52b788',
-          highlight: '#d8f3dc',
-          saffron: '#f4c430',
-          terracotta: '#d05b2a',
-          bg: '#f7f9f6',
-        },
-        markeat: {
-          terracotta: '#d05b2a',
-          saffron: '#f4c430',
-          'olive-green': '#2d6a4f',
-          bg: '#f7f9f6',
+          bg: '#282828',         // Hex Pens Dark Scheme Background
+          surface: '#262524',    // Hex Pens Alt Dark
+          surface2: '#403f3d',   // Hex Pens Alt L-10
+          border: 'rgba(255, 255, 255, 0.2)', // Hex Pens border
+          text: '#ffffff',       // Hex Pens Text
+          muted: 'rgba(255, 255, 255, 0.6)', // Hex Pens Text muted
+          accent: '#f79420',     // Hex Pens Red/Orange
+          accentDark: '#f9ac51', // Hex Pens Red/Orange L-10
         }
       },
       backgroundImage: {
-        'zellige-pattern': "url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22><path d=%22M30 0 L0 30 L30 60 L60 30 Z%22 fill=%22%23ffffff%22 fill-opacity=%220.05%22/%22><path d=%22M0 30 L30 0 L60 30 L30 60 Z%22 fill=%22%23ffffff%22 fill-opacity=%220.03%22/%22></svg>')",
+        'hex-pattern': "radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 0)",
+      },
+      animation: {
+        'float': 'float 6s ease-in-out infinite',
+        'marquee': 'marquee 30s linear infinite',
+      },
+      keyframes: {
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-12px)' },
+        },
+        marquee: {
+          '0%': { transform: 'translateX(0%)' },
+          '100%': { transform: 'translateX(-50%)' },
+        }
       }
     },
   },

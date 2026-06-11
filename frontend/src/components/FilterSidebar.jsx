@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import RatingStars from './RatingStars';
 
 const FilterSidebar = ({ filters, onChange }) => {
-  const [open, setOpen] = useState(true); // Keep open by default on desktop for better UX
   const [priceRange, setPriceRange] = useState([filters.minPrice || 0, filters.maxPrice || 1000]);
   const [selectedCity, setSelectedCity] = useState(filters.city || '');
   const [selectedCategories, setSelectedCategories] = useState(filters.category || []);
@@ -34,7 +33,7 @@ const FilterSidebar = ({ filters, onChange }) => {
       maxPrice: priceRange[1],
       minRating: minRating,
       verifiedOnly: verifiedOnly,
-      page: 1, // Reset to first page
+      page: 1,
     });
   };
 
@@ -56,101 +55,121 @@ const FilterSidebar = ({ filters, onChange }) => {
   };
 
   return (
-    <div className="bg-white rounded-3xl p-6 shadow-luxury border border-slate-100 space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-black text-brand-primary">Filters / Filtres</h3>
+    <div className="bg-brand-surface border border-white/[0.06] p-6 space-y-6">
+      <div className="flex items-center justify-between pb-4 border-b border-white/[0.06]">
+        <h3 className="font-heading text-xs font-bold uppercase tracking-[0.2em] text-white">
+          Filters / Filtres
+        </h3>
         <button
           onClick={handleResetFilters}
-          className="text-xs font-black text-brand-terracotta hover:underline uppercase tracking-wider"
+          className="text-[10px] font-bold text-brand-terracotta hover:text-brand-terracotta/80 uppercase tracking-widest transition-colors"
         >
-          Reset
+          Reset All
         </button>
       </div>
 
-      <div className="border-t border-slate-100 pt-5">
-        <h4 className="text-xs font-black text-slate-400 mb-3 uppercase tracking-wider">Categories</h4>
-        <div className="space-y-2">
-          {categories.map((cat) => (
-            <div key={cat.value} className="flex items-center">
-              <input
-                type="checkbox"
-                id={`category-${cat.value}`}
-                checked={selectedCategories.includes(cat.value)}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setSelectedCategories([...selectedCategories, cat.value]);
-                  } else {
-                    setSelectedCategories(selectedCategories.filter(c => c !== cat.value));
-                  }
-                }}
-                className="h-4 w-4 text-brand-secondary focus:ring-brand-accent border-slate-200 rounded"
-              />
-              <label htmlFor={`category-${cat.value}`} className="ml-3 block text-sm font-bold text-slate-600">
-                {cat.label}
+      {/* Categories */}
+      <div className="space-y-3">
+        <h4 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.15em]">Categories</h4>
+        <div className="space-y-2.5">
+          {categories.map((cat) => {
+            const isChecked = selectedCategories.includes(cat.value);
+            return (
+              <label
+                key={cat.value}
+                className="flex items-center group cursor-pointer text-[12px] font-medium text-white/60 hover:text-white transition-colors"
+              >
+                <div className="relative flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedCategories([...selectedCategories, cat.value]);
+                      } else {
+                        setSelectedCategories(selectedCategories.filter((c) => c !== cat.value));
+                      }
+                    }}
+                    className="sr-only"
+                  />
+                  <div
+                    className={`w-4 h-4 border transition-all flex items-center justify-center ${
+                      isChecked
+                        ? 'border-brand-primary bg-brand-primary/10'
+                        : 'border-white/10 bg-transparent group-hover:border-white/20'
+                    }`}
+                  >
+                    {isChecked && (
+                      <div className="w-1.5 h-1.5 bg-brand-primary"></div>
+                    )}
+                  </div>
+                </div>
+                <span className="ml-3">{cat.label}</span>
               </label>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
-      <div className="border-t border-slate-100 pt-5">
-        <h4 className="text-xs font-black text-slate-400 mb-3 uppercase tracking-wider">Moroccan City / Ville</h4>
+      {/* Moroccan City */}
+      <div className="space-y-3 pt-4 border-t border-white/[0.06]">
+        <h4 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.15em]">City / Ville</h4>
         <select
           value={selectedCity}
           onChange={(e) => setSelectedCity(e.target.value)}
-          className="block w-full px-4 py-3 border border-slate-200 rounded-xl font-bold text-sm text-slate-700 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-brand-accent transition-all outline-none"
+          className="w-full px-4 py-3 bg-white/[0.02] border border-white/10 text-[12px] font-semibold text-white/80 focus:text-white focus:border-brand-primary focus:outline-none transition-all"
         >
-          <option value="">All Cities / Toutes les villes</option>
+          <option value="" className="bg-brand-surface text-white/60">All Cities / Toutes les villes</option>
           {cities.map((city) => (
-            <option key={city.value} value={city.value}>
+            <option key={city.value} value={city.value} className="bg-brand-surface text-white">
               {city.label}
             </option>
           ))}
         </select>
       </div>
 
-      <div className="border-t border-slate-100 pt-5">
-        <h4 className="text-xs font-black text-slate-400 mb-3 uppercase tracking-wider">Price Range (MAD)</h4>
-        <div className="space-y-4">
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Min</span>
-              <input
-                type="number"
-                value={priceRange[0]}
-                onChange={(e) => setPriceRange([parseInt(e.target.value) || 0, priceRange[1]])}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-sm font-bold text-slate-700"
-              />
-            </div>
-            <div className="flex-1">
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Max</span>
-              <input
-                type="number"
-                value={priceRange[1]}
-                onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value) || 0])}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-sm font-bold text-slate-700"
-              />
-            </div>
+      {/* Price Range */}
+      <div className="space-y-3 pt-4 border-t border-white/[0.06]">
+        <h4 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.15em]">Price Range (MAD)</h4>
+        <div className="flex gap-3">
+          <div className="flex-1">
+            <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest block mb-1">Min</span>
+            <input
+              type="number"
+              value={priceRange[0]}
+              onChange={(e) => setPriceRange([parseInt(e.target.value) || 0, priceRange[1]])}
+              className="w-full px-3 py-2 bg-white/[0.02] border border-white/10 text-[12px] font-bold text-white focus:border-brand-primary focus:outline-none transition-all"
+            />
+          </div>
+          <div className="flex-1">
+            <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest block mb-1">Max</span>
+            <input
+              type="number"
+              value={priceRange[1]}
+              onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value) || 0])}
+              className="w-full px-3 py-2 bg-white/[0.02] border border-white/10 text-[12px] font-bold text-white focus:border-brand-primary focus:outline-none transition-all"
+            />
           </div>
         </div>
       </div>
 
-      <div className="border-t border-slate-100 pt-5">
-        <h4 className="text-xs font-black text-slate-400 mb-3 uppercase tracking-wider">Minimum Rating</h4>
-        <div className="flex items-center space-x-2 mb-3">
+      {/* Minimum Rating */}
+      <div className="space-y-3 pt-4 border-t border-white/[0.06]">
+        <h4 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.15em]">Minimum Rating</h4>
+        <div className="flex items-center space-x-2 mb-2">
           <RatingStars rating={minRating} size="sm" />
-          <span className="text-xs font-bold text-slate-500">
-            {minRating} Stars and up
-          </span>
+          <span className="text-[11px] font-semibold text-white/40">{minRating} Stars +</span>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-1.5">
           {[1, 2, 3, 4, 5].map((star) => (
             <button
               key={star}
               type="button"
               onClick={() => setMinRating(star)}
-              className={`flex-1 py-1 rounded-lg text-xs font-black transition-all ${
-                minRating === star ? 'bg-brand-primary text-white' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+              className={`flex-1 py-1.5 text-[11px] font-bold transition-all border ${
+                minRating === star
+                  ? 'bg-brand-primary/10 border-brand-primary text-brand-primary'
+                  : 'bg-transparent border-white/10 text-white/40 hover:border-white/20 hover:text-white/70'
               }`}
             >
               {star}★
@@ -159,26 +178,38 @@ const FilterSidebar = ({ filters, onChange }) => {
         </div>
       </div>
 
-      <div className="border-t border-slate-100 pt-5">
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="verified-only"
-            checked={verifiedOnly}
-            onChange={(e) => setVerifiedOnly(e.target.checked)}
-            className="h-4 w-4 text-brand-secondary focus:ring-brand-accent border-slate-200 rounded"
-          />
-          <label htmlFor="verified-only" className="ml-3 block text-sm font-bold text-slate-600">
-            Verified Suppliers Only
-          </label>
-        </div>
+      {/* Verified Only */}
+      <div className="pt-4 border-t border-white/[0.06]">
+        <label className="flex items-center group cursor-pointer text-[12px] font-medium text-white/60 hover:text-white transition-colors">
+          <div className="relative flex items-center">
+            <input
+              type="checkbox"
+              checked={verifiedOnly}
+              onChange={(e) => setVerifiedOnly(e.target.checked)}
+              className="sr-only"
+            />
+            <div
+              className={`w-4 h-4 border transition-all flex items-center justify-center ${
+                verifiedOnly
+                  ? 'border-brand-primary bg-brand-primary/10'
+                  : 'border-white/10 bg-transparent group-hover:border-white/20'
+              }`}
+            >
+              {verifiedOnly && (
+                <div className="w-1.5 h-1.5 bg-brand-primary"></div>
+              )}
+            </div>
+          </div>
+          <span className="ml-3">Verified Suppliers Only</span>
+        </label>
       </div>
 
+      {/* Apply Button */}
       <button
         onClick={handleApplyFilters}
-        className="w-full bg-brand-primary hover:bg-brand-secondary text-white py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all btn-premium shadow-md"
+        className="w-full bg-brand-primary text-brand-bg py-3.5 text-[11px] font-bold uppercase tracking-[0.15em] transition-all btn-premium hover:bg-brand-accent"
       >
-        Apply Filters / Filtrer
+        Apply Filters
       </button>
     </div>
   );

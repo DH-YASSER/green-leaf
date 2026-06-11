@@ -33,7 +33,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register/:role" element={<Register />} />
         <Route path="/browse" element={<Browse />} />
-        <Route path="/fournisseur/:id" element={<FournisseurProfile />} />
+        <Route path="/supplier/:id" element={<FournisseurProfile />} />
 
         {/* Restaurant routes (role: restaurant) */}
         <Route
@@ -66,12 +66,12 @@ function App() {
         />
 
         {/* Admin routes (role: admin) */}
+        <Route path="/admin/login" element={<AdminLogin />} />
         <Route
           path="/admin/*"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <Routes>
-                <Route path="login" element={<AdminLogin />} />
                 <Route path="dashboard" element={<AdminDashboard />} />
                 <Route path="users" element={<AdminUsers />} />
                 <Route path="orders" element={<AdminOrders />} />

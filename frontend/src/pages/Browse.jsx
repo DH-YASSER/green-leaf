@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom';
 import axios from '../api/axios';
 import FournisseurCard from '../components/FournisseurCard';
 import FilterSidebar from '../components/FilterSidebar';
-import RatingStars from '../components/RatingStars';
-import { Leaf } from 'lucide-react';
+import { Leaf, SlidersHorizontal, Grid, ArrowLeft } from 'lucide-react';
 
 const Browse = () => {
   const [products, setProducts] = useState([]);
@@ -22,7 +21,7 @@ const Browse = () => {
     verifiedOnly: false,
     sortBy: 'top-rated', // top-rated, price-asc, price-desc, newest
     page: 1,
-    limit: 10,
+    limit: 9, // 3-column layout friendly
   });
 
   const fetchProducts = async () => {
@@ -38,7 +37,7 @@ const Browse = () => {
       setProducts(response.data.products || []);
       setFournisseurs(response.data.fournisseurs || []);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch products / Échec du chargement');
+      setError(err.response?.data?.message || 'Failed to fetch products from marketplace.');
     } finally {
       setLoading(false);
     }
@@ -52,84 +51,107 @@ const Browse = () => {
     setFilters(prev => ({
       ...prev,
       ...newFilters,
-      page: 1, // Reset to first page
+      page: 1, // Reset to page 1
     }));
   };
 
   return (
-    <div className="min-h-screen bg-brand-bg text-slate-800">
-      {/* Header navbar for subpages */}
-      <nav className="glass border-b border-brand-primary/10 shadow-sm px-6 py-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 group">
-          <div className="h-8 w-8 rounded-lg bg-brand-primary flex items-center justify-center text-white">
-            <Leaf className="w-5 h-5" />
+    <div className="min-h-screen bg-brand-bg text-brand-text dot-grid selection:bg-brand-primary/30 selection:text-white">
+      {/* ═══════════════════════ NAVBAR ═══════════════════════ */}
+      <nav className="glass-nav-dark fixed top-0 left-0 right-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex justify-between items-center h-20">
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-3 group">
+              <div className="h-9 w-9 bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center group-hover:bg-brand-primary/20 transition-colors">
+                <Leaf className="h-4.5 w-4.5 text-brand-primary" />
+              </div>
+              <span className="font-heading text-base font-bold tracking-[0.1em] text-white">
+                GREEN<span className="text-brand-primary">LEAF</span>
+              </span>
+            </Link>
+
+            <div className="flex gap-8 items-center">
+              <Link to="/" className="text-[11px] font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-white transition-colors">
+                Home
+              </Link>
+              <Link to="/login" className="text-[11px] font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-white transition-colors">
+                Dashboard
+              </Link>
+            </div>
           </div>
-          <span className="text-lg font-black text-brand-primary">GreenLeaf</span>
-        </Link>
-        <div className="flex gap-4">
-          <Link to="/" className="text-xs font-black uppercase text-brand-primary/80 hover:text-brand-primary tracking-wider">Home / Accueil</Link>
-          <Link to="/login" className="text-xs font-black uppercase text-brand-primary/80 hover:text-brand-primary tracking-wider">Dashboard</Link>
         </div>
       </nav>
 
-      {/* Hero Zellige Section */}
-      <header className="bg-brand-primary relative overflow-hidden py-16 text-white border-b border-brand-primary/20">
-        <div 
-          className="absolute inset-0 pointer-events-none opacity-10"
-          style={{
-            backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'><path d='M30 0 L0 30 L30 60 L60 30 Z' fill='%23ffffff'/><path d='M0 30 L30 0 L60 30 L30 60 Z' fill='%23ffffff'/></svg>")`,
-            backgroundRepeat: 'repeat'
-          }}
-        ></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <h1 className="text-3xl sm:text-4xl font-black mb-3">
-            Moroccan Sourcing Marketplace
+      {/* ═══════════════════════ HERO HEADER ═══════════════════════ */}
+      <header className="relative bg-brand-surface/40 border-b border-white/5 pt-36 pb-20 overflow-hidden">
+        {/* Glow */}
+        <div className="absolute top-1/2 left-1/4 w-[500px] h-[500px] bg-brand-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
+
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+          <div className="flex items-center gap-2 mb-3">
+            <Link to="/" className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500 hover:text-white flex items-center gap-1 transition-colors">
+              <ArrowLeft className="w-3.5 h-3.5" /> Back to Home
+            </Link>
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-[0.25em] text-brand-primary mb-3 block">
+            B2B Marketplace Portal
+          </span>
+          <h1 className="font-heading text-4xl sm:text-5xl font-black uppercase text-white tracking-tight mb-4">
+            PRODUCE CATALOGUE
           </h1>
-          <p className="text-brand-highlight/90 text-sm font-semibold max-w-xl">
-            Achetez directement auprès des agriculteurs et distributeurs marocains. Comparez les prix et commandez en gros.
+          <p className="text-zinc-400 text-[13px] sm:text-sm max-w-lg leading-relaxed">
+            Purchase directly from verified Moroccan growers, cooperatives, and spice mills. Refine by region, price range, and category.
           </p>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      {/* ═══════════════════════ CATALOG MAIN CONTENT ═══════════════════════ */}
+      <main className="max-w-7xl mx-auto px-6 lg:px-8 py-16">
         {loading ? (
-          <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4">
-            <div className="animate-spin h-10 w-10 border-4 border-brand-accent border-t-transparent rounded-full"></div>
-            <span className="text-xs font-black uppercase text-slate-400 tracking-wider">Loading Marketplace / Chargement...</span>
+          <div className="flex flex-col items-center justify-center min-h-[45vh] gap-6">
+            <div className="animate-spin h-7 w-7 border-2 border-brand-primary border-t-transparent"></div>
+            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">Loading Marketplace Inventory...</span>
           </div>
         ) : error ? (
-          <div className="text-center py-12 text-brand-terracotta">
-            <p className="font-bold mb-4">{error}</p>
+          <div className="text-center py-24 border border-white/5 bg-brand-surface max-w-xl mx-auto p-8 shadow-luxury">
+            <p className="font-bold text-white/70 uppercase tracking-wide mb-6 text-sm">{error}</p>
             <button
               onClick={fetchProducts}
-              className="px-6 py-3 bg-brand-primary text-white rounded-xl hover:bg-brand-secondary transition-colors font-bold text-xs uppercase tracking-wider"
+              className="px-8 py-4 bg-brand-primary text-brand-bg text-[10px] font-black uppercase tracking-[0.25em] hover:bg-brand-secondary transition-colors btn-sharp"
             >
-              Retry / Réessayer
+              Retry Connection
             </button>
           </div>
         ) : (
           <>
-            <div className="flex justify-between items-center mb-8">
-              <span className="text-brand-primary text-sm font-black uppercase tracking-wider bg-brand-accent/10 px-4 py-2 rounded-xl">
-                Showing {products.length} products
-              </span>
-              <div className="flex space-x-3">
+            {/* Header controls bar */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10 pb-6 border-b border-white/5">
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-primary bg-brand-primary/10 border border-brand-primary/20 px-4 py-2">
+                  Items Found: {products.length}
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-4 w-full sm:w-auto">
+                <SlidersHorizontal className="w-4.5 h-4.5 text-zinc-500 hidden sm:block" />
                 <select
                   value={filters.sortBy}
                   onChange={(e) => handleFilterChange({ sortBy: e.target.value, page: 1 })}
-                  className="px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-accent"
+                  className="px-4 py-3 bg-brand-surface border border-white/10 text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-300 focus:text-white focus:border-brand-primary focus:outline-none transition-all rounded-none w-full sm:w-auto"
                 >
-                  <option value="top-rated">Top Rated / Mieux notés</option>
-                  <option value="price-asc">Price: Low to High</option>
-                  <option value="price-desc">Price: High to Low</option>
-                  <option value="newest">Newest First</option>
+                  <option value="top-rated">Sort: Top Rated First</option>
+                  <option value="price-asc">Sort: Price: Low to High</option>
+                  <option value="price-desc">Sort: Price: High to Low</option>
+                  <option value="newest">Sort: Newest Uploads</option>
                 </select>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-              {/* Sidebar filters */}
+            {/* Grid Layout: Sidebar Filter & Products */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+              
+              {/* Sidebar Filters */}
               <aside className="lg:col-span-3">
                 <FilterSidebar
                   filters={filters}
@@ -137,7 +159,7 @@ const Browse = () => {
                 />
               </aside>
 
-              {/* Products grid */}
+              {/* Products Grid */}
               <section className="lg:col-span-9">
                 {products.length > 0 ? (
                   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -150,53 +172,52 @@ const Browse = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="bg-white rounded-3xl p-12 text-center shadow-luxury border border-slate-100">
-                    <div className="w-16 h-16 mx-auto mb-6 bg-slate-50 flex items-center justify-center rounded-full">
-                      <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                  <div className="bg-brand-surface border border-white/5 p-20 text-center shadow-luxury">
+                    <div className="w-12 h-12 mx-auto mb-6 flex items-center justify-center bg-white/[0.02] border border-white/5">
+                      <Grid className="w-5 h-5 text-zinc-600" />
                     </div>
-                    <p className="text-slate-800 text-lg font-black mb-2">
-                      No products found
+                    <p className="text-white font-heading text-sm font-bold uppercase tracking-wider mb-3">
+                      No Products Found
                     </p>
-                    <p className="text-slate-400 text-xs font-bold max-w-sm mx-auto uppercase tracking-wider leading-relaxed">
-                      Try adjusting your search criteria or select different categories.
+                    <p className="text-zinc-500 text-xs leading-relaxed max-w-xs mx-auto">
+                      Try broadening your filters, categories, or price ranges to find suppliers.
                     </p>
                   </div>
                 )}
 
                 {/* Pagination */}
                 {products.length > 0 && (
-                  <div className="mt-12 flex justify-center items-center gap-4">
+                  <div className="mt-16 flex justify-center items-center gap-6">
                     <button
                       onClick={() => handleFilterChange({ page: Math.max(1, filters.page - 1) })}
                       disabled={filters.page <= 1}
-                      className="px-4 py-2 border border-slate-200 rounded-xl text-xs font-black uppercase tracking-wider bg-white disabled:opacity-50"
+                      className="px-6 py-3 border border-white/10 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-white disabled:opacity-20 disabled:pointer-events-none transition-colors btn-sharp bg-white/[0.01]"
                     >
-                      Prev
+                      Previous Page
                     </button>
-                    <span className="text-xs font-black text-brand-primary">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary bg-brand-primary/10 px-4 py-2 border border-brand-primary/20">
                       Page {filters.page}
                     </span>
                     <button
                       onClick={() => handleFilterChange({ page: filters.page + 1 })}
                       disabled={products.length < filters.limit}
-                      className="px-4 py-2 border border-slate-200 rounded-xl text-xs font-black uppercase tracking-wider bg-white disabled:opacity-50"
+                      className="px-6 py-3 border border-white/10 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-white disabled:opacity-20 disabled:pointer-events-none transition-colors btn-sharp bg-white/[0.01]"
                     >
-                      Next
+                      Next Page
                     </button>
                   </div>
                 )}
               </section>
+
             </div>
           </>
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-100 py-10 mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">
-          <p>© 2026 Green Leaf Morocco — B2B Direct Sourcing Portal</p>
+      {/* ═══════════════════════ FOOTER ═══════════════════════ */}
+      <footer className="border-t border-white/5 py-16 bg-brand-bg relative z-10">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center text-[10px] font-bold text-zinc-600 uppercase tracking-[0.25em]">
+          <p>© 2026 GREENLEAF MOROCCO — B2B DIRECT SOURCING PORTAL</p>
         </div>
       </footer>
     </div>

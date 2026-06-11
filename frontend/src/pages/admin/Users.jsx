@@ -21,7 +21,6 @@ const AdminUsers = () => {
         } else if (tab === 'pending') {
           params.verified = false;
         }
-        // For 'all', we don't need any filter
         const response = await axios.get('/api/admin/users', { params });
         setUsers(response.data || []);
       } catch (err) {
@@ -37,7 +36,6 @@ const AdminUsers = () => {
   const handleVerify = async (id) => {
     try {
       await axios.patch(`/api/admin/users/${id}/verify`);
-      // Refetch users
       const response = await axios.get('/api/admin/users', {
         params: tab === 'pending' ? { verified: false } : {}
       });
@@ -50,7 +48,6 @@ const AdminUsers = () => {
   const handleBan = async (id) => {
     try {
       await axios.patch(`/api/admin/users/${id}/ban`);
-      // Refetch users
       const response = await axios.get('/api/admin/users', {
         params: tab === 'pending' ? { verified: false } : {}
       });
@@ -63,7 +60,6 @@ const AdminUsers = () => {
   const handleUnban = async (id) => {
     try {
       await axios.patch(`/api/admin/users/${id}/unban`);
-      // Refetch users
       const response = await axios.get('/api/admin/users', {
         params: tab === 'pending' ? { verified: false } : {}
       });
@@ -73,8 +69,38 @@ const AdminUsers = () => {
     }
   };
 
-  if (loading) return <div className="text-center py-12">Loading...</div>;
-  if (error) return <div className="text-center py-12 text-red-500">{error}</div>;
+  if (loading) {
+    return (
+      <DashboardLayout title="User Management" navLinks={[
+        { path: '/admin/dashboard', label: 'Dashboard', active: false },
+        { path: '/admin/users', label: 'Users', active: true },
+        { path: '/admin/orders', label: 'Orders', active: false },
+        { path: '/admin/promotions', label: 'Promotions', active: false },
+        { path: '/admin/logs', label: 'Logs', active: false },
+      ]}>
+        <div className="flex flex-col items-center justify-center min-h-[40vh] py-20 gap-4 reveal-item">
+          <div className="animate-spin h-8 w-8 border-2 border-brand-accent border-t-transparent"></div>
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Loading users...</span>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout title="User Management" navLinks={[
+        { path: '/admin/dashboard', label: 'Dashboard', active: false },
+        { path: '/admin/users', label: 'Users', active: true },
+        { path: '/admin/orders', label: 'Orders', active: false },
+        { path: '/admin/promotions', label: 'Promotions', active: false },
+        { path: '/admin/logs', label: 'Logs', active: false },
+      ]}>
+        <div className="text-center py-20 glass-card-dark reveal-item">
+          <p className="font-heading text-sm font-bold uppercase tracking-wide text-brand-accent">{error}</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout title="User Management" navLinks={[
@@ -84,112 +110,83 @@ const AdminUsers = () => {
       { path: '/admin/promotions', label: 'Promotions', active: false },
       { path: '/admin/logs', label: 'Logs', active: false },
     ]}>
-      <div className="space-y-6">
+      <div className="space-y-6 pb-12">
         {/* Tabs */}
-        <div className="flex space-x-2">
-          <button
-            onClick={() => setTab('all')}
-            className={`px-4 py-2 text-sm font-medium ${tab === 'all'
-              ? 'bg-brand-highlight/30 text-brand-secondary'
-              : 'text-gray-600 hover:bg-gray-50'}`}
-          >
-            All Users
-          </button>
-          <button
-            onClick={() => setTab('restaurant')}
-            className={`px-4 py-2 text-sm font-medium ${tab === 'restaurant'
-              ? 'bg-brand-highlight/30 text-brand-secondary'
-              : 'text-gray-600 hover:bg-gray-50'}`}
-          >
-            Restaurants
-          </button>
-          <button
-            onClick={() => setTab('fournisseur')}
-            className={`px-4 py-2 text-sm font-medium ${tab === 'fournisseur'
-              ? 'bg-brand-highlight/30 text-brand-secondary'
-              : 'text-gray-600 hover:bg-gray-50'}`}
-          >
-            Suppliers
-          </button>
-          <button
-            onClick={() => setTab('pending')}
-            className={`px-4 py-2 text-sm font-medium ${tab === 'pending'
-              ? 'bg-brand-highlight/30 text-brand-secondary'
-              : 'text-gray-600 hover:bg-gray-50'}`}
-          >
-            Pending Verification
-          </button>
+        <div className="flex space-x-2 border-b border-brand-border pb-px reveal-item delay-100">
+          {[
+            { id: 'all', label: 'All Users' },
+            { id: 'restaurant', label: 'Restaurants' },
+            { id: 'fournisseur', label: 'Suppliers' },
+            { id: 'pending', label: 'Pending Verification' },
+          ].map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-all ${
+                tab === t.id
+                  ? 'bg-brand-accent/10 border-t border-x border-brand-accent/20 text-brand-accent'
+                  : 'bg-transparent border-t border-x border-transparent text-white/40 hover:text-white/80 hover:bg-white/[0.05]'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
 
         {/* Users Table */}
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    City
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Role
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Verified
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {users.length > 0 ? (
-                  users.map((user, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+        <div className="glass-card-dark p-8 reveal-item delay-200">
+          {users.length > 0 ? (
+            <div className="overflow-x-auto border border-brand-border">
+              <table className="min-w-full divide-y divide-brand-border text-left">
+                <thead className="bg-white/[0.02] text-white/40 text-[10px] font-bold uppercase tracking-widest">
+                  <tr>
+                    <th className="px-6 py-4">Name</th>
+                    <th className="px-6 py-4">Email</th>
+                    <th className="px-6 py-4">City</th>
+                    <th className="px-6 py-4">Role</th>
+                    <th className="px-6 py-4">Verified</th>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-brand-border text-[12px] text-white/80">
+                  {users.map((user, index) => (
+                    <tr key={index} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="px-6 py-4 font-bold text-white text-left">
                         {user.name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 text-white/60 text-left font-semibold">
                         {user.email}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 text-white/60 text-left font-semibold">
                         {user.city || 'N/A'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleColor(user.role)}`}>
+                      <td className="px-6 py-4 text-left">
+                        <span className={`px-2 py-0.5 inline-flex text-[10px] font-bold uppercase tracking-wider ${getRoleColor(user.role)}`}>
                           {user.role}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <td className="px-6 py-4 text-left">
                         {user.is_verified ? (
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                          <span className="px-2 py-0.5 inline-flex text-[10px] font-bold uppercase tracking-wider bg-brand-accent/10 text-brand-accent border border-brand-accent/20">
                             ✓ Verified
                           </span>
                         ) : (
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                          <span className="px-2 py-0.5 inline-flex text-[10px] font-bold uppercase tracking-wider bg-white/10 text-white/80 border border-white/20">
                             ✗ Unverified
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(user.status)}`}>
+                      <td className="px-6 py-4 text-left">
+                        <span className={`px-2 py-0.5 inline-flex text-[10px] font-bold uppercase tracking-wider ${getStatusColor(user.status)}`}>
                           {user.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm flex space-x-2">
-                        {/* Show Verify button only if not verified and not banned? */}
+                      <td className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
                         {!user.is_verified && user.status !== 'banned' && (
                           <button
                             onClick={() => handleVerify(user.id)}
-                            className="px-3 py-1 bg-green-500 text-white rounded-md text-sm hover:bg-green-600"
+                            className="btn-sharp px-3 py-1.5 text-[10px]"
                           >
                             Verify
                           </button>
@@ -197,7 +194,7 @@ const AdminUsers = () => {
                         {user.status !== 'banned' && (
                           <button
                             onClick={() => handleBan(user.id)}
-                            className="px-3 py-1 bg-red-500 text-white rounded-md text-sm hover:bg-red-600"
+                            className="btn-sharp-outline px-3 py-1.5 text-[10px]"
                           >
                             Ban
                           </button>
@@ -205,54 +202,51 @@ const AdminUsers = () => {
                         {user.status === 'banned' && (
                           <button
                             onClick={() => handleUnban(user.id)}
-                            className="px-3 py-1 bg-gray-500 text-white rounded-md text-sm hover:bg-gray-600"
+                            className="btn-sharp-outline px-3 py-1.5 text-[10px] border-white/20 text-white/50"
                           >
                             Unban
                           </button>
                         )}
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
-                      No users found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-white/[0.02] border border-dashed border-brand-border">
+              <p className="text-[11px] font-bold text-white/40 uppercase tracking-widest">No users found</p>
+            </div>
+          )}
         </div>
       </div>
     </DashboardLayout>
   );
 };
 
-// Helper functions for role and status colors
 const getRoleColor = (role) => {
   switch (role) {
     case 'restaurant':
-      return 'bg-blue-100 text-blue-800';
+      return 'bg-white/10 text-white border border-white/20';
     case 'fournisseur':
-      return 'bg-green-100 text-green-800';
+      return 'bg-brand-accent/10 text-brand-accent border border-brand-accent/20';
     case 'admin':
-      return 'bg-brand-highlight/40 text-brand-primary';
+      return 'bg-white/20 text-white border border-white/30';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-white/5 text-white/40 border border-white/10';
   }
 };
 
 const getStatusColor = (status) => {
   switch (status) {
     case 'active':
-      return 'bg-green-100 text-green-800';
+      return 'bg-brand-accent/10 text-brand-accent border border-brand-accent/20';
     case 'banned':
-      return 'bg-red-100 text-red-800';
+      return 'bg-white/10 text-white/50 border border-white/20';
     case 'pending':
-      return 'bg-yellow-100 text-yellow-800';
+      return 'bg-transparent text-brand-accent border border-brand-accent/50';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-white/5 text-white/40 border border-white/10';
   }
 };
 

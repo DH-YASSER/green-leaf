@@ -30,7 +30,6 @@ export const RevenueTrendChart = ({ data = [] }) => {
   // Generate SVG path for line
   const linePath = points.reduce((acc, p, i) => {
     if (i === 0) return `M ${p.x} ${p.y}`;
-    // Use bezier curves for smoothing
     const prev = points[i - 1];
     const cpX1 = prev.x + (p.x - prev.x) / 2;
     const cpY1 = prev.y;
@@ -45,14 +44,14 @@ export const RevenueTrendChart = ({ data = [] }) => {
     : '';
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 relative overflow-hidden">
-      <div className="flex justify-between items-center mb-4">
+    <div className="bg-brand-surface border border-white/[0.04] p-6 relative overflow-hidden">
+      <div className="flex justify-between items-center mb-6">
         <div>
-          <h4 className="text-sm font-black text-brand-primary uppercase tracking-wider">Revenue Trend / Évolution</h4>
-          <p className="text-xs text-slate-400 font-bold uppercase mt-0.5">Weekly revenue overview (MAD)</p>
+          <h4 className="font-heading text-xs font-bold uppercase tracking-[0.2em] text-white">Revenue Trend</h4>
+          <p className="text-[10px] text-white/30 font-semibold uppercase tracking-wider mt-1">Weekly statistics (MAD)</p>
         </div>
-        <div className="flex items-center gap-1.5 text-xs font-bold text-brand-accent bg-brand-highlight/20 px-2 py-0.5 rounded-full border border-brand-accent/10">
-          <span className="w-1.5 h-1.5 bg-brand-accent rounded-full animate-pulse"></span>
+        <div className="flex items-center gap-1.5 text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-2.5 py-1 border border-brand-primary/20">
+          <span className="w-1.5 h-1.5 bg-brand-primary rounded-full animate-pulse"></span>
           Live Stats
         </div>
       </div>
@@ -61,8 +60,8 @@ export const RevenueTrendChart = ({ data = [] }) => {
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible">
           <defs>
             <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--color-brand-accent)" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="var(--color-brand-accent)" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="var(--color-brand-primary)" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="var(--color-brand-primary)" stopOpacity="0.0" />
             </linearGradient>
             <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%" stopColor="var(--color-brand-secondary)" />
@@ -75,13 +74,13 @@ export const RevenueTrendChart = ({ data = [] }) => {
             const y = paddingY + r * (height - paddingY * 2);
             const val = Math.round(maxVal * (1 - r));
             return (
-              <g key={i} className="opacity-40">
+              <g key={i} className="opacity-25">
                 <line 
                   x1={paddingX} 
                   y1={y} 
                   x2={width - paddingX} 
                   y2={y} 
-                  stroke="#e2e8f0" 
+                  stroke="rgba(255, 255, 255, 0.1)" 
                   strokeWidth="1" 
                   strokeDasharray="4 4" 
                 />
@@ -89,7 +88,7 @@ export const RevenueTrendChart = ({ data = [] }) => {
                   x={paddingX - 10} 
                   y={y + 4} 
                   textAnchor="end" 
-                  className="text-[10px] font-bold fill-slate-400"
+                  className="text-[10px] font-bold fill-white/50"
                 >
                   {val}
                 </text>
@@ -108,7 +107,7 @@ export const RevenueTrendChart = ({ data = [] }) => {
               d={linePath} 
               fill="none" 
               stroke="url(#lineGrad)" 
-              strokeWidth="3.5" 
+              strokeWidth="3" 
               strokeLinecap="round"
               className="transition-all duration-700 ease-out"
             />
@@ -117,41 +116,40 @@ export const RevenueTrendChart = ({ data = [] }) => {
           {/* Data Points */}
           {points.map((p, i) => (
             <g key={i} className="group cursor-pointer">
-              {/* Pulsing ring on hover */}
               <circle 
                 cx={p.x} 
                 cy={p.y} 
                 r="8" 
                 fill="var(--color-brand-accent)" 
-                className="opacity-0 group-hover:opacity-20 transition-all duration-300 transform scale-150"
+                className="opacity-0 group-hover:opacity-10 transition-all duration-300 transform scale-150"
               />
-              {/* Point circle */}
               <circle 
                 cx={p.x} 
                 cy={p.y} 
                 r="4.5" 
                 fill="#ffffff" 
-                stroke="var(--color-brand-secondary)" 
-                strokeWidth="3" 
+                stroke="var(--color-brand-primary)" 
+                strokeWidth="2.5" 
                 className="transition-all duration-300"
               />
               {/* Tooltip value */}
               <g className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
                 <rect 
                   x={p.x - 35} 
-                  y={p.y - 30} 
+                  y={p.y - 32} 
                   width="70" 
                   height="22" 
-                  rx="6" 
-                  fill="var(--color-brand-primary)" 
+                  fill="#0a0a0a"
+                  stroke="rgba(255,255,255,0.1)"
+                  strokeWidth="1"
                 />
                 <text 
                   x={p.x} 
-                  y={p.y - 15} 
+                  y={p.y - 17} 
                   textAnchor="middle" 
                   className="text-[10px] font-bold fill-white"
                 >
-                  {p.value} MAD
+                  {p.value} DH
                 </text>
               </g>
             </g>
@@ -164,7 +162,7 @@ export const RevenueTrendChart = ({ data = [] }) => {
               x={p.x} 
               y={height - 8} 
               textAnchor="middle" 
-              className="text-[10px] font-black fill-slate-400 uppercase tracking-wider"
+              className="text-[9px] font-bold fill-white/40 uppercase tracking-widest"
             >
               {p.label}
             </text>
@@ -190,32 +188,31 @@ export const CategoryBarChart = ({ data = [] }) => {
   const maxVal = Math.max(...chartData.map(d => d.value), 1);
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
-      <h4 className="text-sm font-black text-brand-primary uppercase tracking-wider mb-1">Categories / Distribution</h4>
-      <p className="text-xs text-slate-400 font-bold uppercase mb-6">Volume distribution by category (%)</p>
+    <div className="bg-brand-surface border border-white/[0.04] p-6">
+      <h4 className="font-heading text-xs font-bold uppercase tracking-[0.2em] text-white mb-1">Categories</h4>
+      <p className="text-[10px] text-white/30 font-semibold uppercase tracking-wider mb-6">Volume distribution (%)</p>
 
       <div className="space-y-4">
         {chartData.map((d, i) => {
           const percentage = Math.round((d.value / maxVal) * 100);
           
-          // Get specific branding color classes per category
           const getBarColor = (label) => {
             const l = label.toLowerCase();
             if (l.includes('meat') || l.includes('vian')) return 'bg-brand-terracotta';
             if (l.includes('spice') || l.includes('epice')) return 'bg-brand-saffron';
             if (l.includes('bev') || l.includes('boiss')) return 'bg-brand-accent';
-            return 'bg-brand-secondary';
+            return 'bg-brand-primary';
           };
 
           return (
             <div key={i} className="space-y-1">
-              <div className="flex justify-between text-xs font-bold text-slate-700">
+              <div className="flex justify-between text-[11px] font-semibold text-white/60">
                 <span>{d.label}</span>
-                <span className="font-black text-brand-primary">{d.value}%</span>
+                <span className="font-bold text-white">{d.value}%</span>
               </div>
-              <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+              <div className="w-full h-2 bg-white/[0.04] border border-white/[0.02] overflow-hidden">
                 <div 
-                  className={`h-full rounded-full transition-all duration-1000 ease-out ${getBarColor(d.label)}`}
+                  className={`h-full transition-all duration-1000 ease-out ${getBarColor(d.label)}`}
                   style={{ width: `${percentage}%` }}
                 ></div>
               </div>
@@ -250,12 +247,12 @@ export const StatusDonutChart = ({ data = {} }) => {
   const strokePending = (pPending / 100) * circumference;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex flex-col items-center">
-      <h4 className="text-sm font-black text-brand-primary uppercase tracking-wider mb-1 self-start w-full">Order Statuses</h4>
-      <p className="text-xs text-slate-400 font-bold uppercase mb-4 self-start">Breakdown of all requests</p>
+    <div className="bg-brand-surface border border-white/[0.04] p-6 flex flex-col items-center">
+      <h4 className="font-heading text-xs font-bold uppercase tracking-[0.2em] text-white mb-1 self-start w-full">Order Statuses</h4>
+      <p className="text-[10px] text-white/30 font-semibold uppercase tracking-wider mb-6 self-start">Breakdown of requests</p>
 
       {total > 0 ? (
-        <div className="flex items-center justify-between w-full mt-2">
+        <div className="flex flex-col items-center gap-6 w-full mt-2">
           {/* SVG Donut */}
           <div className="relative w-28 h-28 flex-shrink-0">
             <svg width="100%" height="100%" viewBox="0 0 160 160" className="-rotate-90">
@@ -264,24 +261,24 @@ export const StatusDonutChart = ({ data = {} }) => {
                 cy="80"
                 r={radius}
                 fill="transparent"
-                stroke="#e2e8f0"
-                strokeWidth="16"
+                stroke="rgba(255, 255, 255, 0.04)"
+                strokeWidth="14"
               />
-              {/* Delivered (Green) */}
+              {/* Delivered */}
               {pDelivered > 0 && (
                 <circle
                   cx="80"
                   cy="80"
                   r={radius}
                   fill="transparent"
-                  stroke="var(--color-brand-secondary)"
-                  strokeWidth="16"
+                  stroke="var(--color-brand-primary)"
+                  strokeWidth="14"
                   strokeDasharray={`${strokeDelivered} ${circumference}`}
                   strokeDashoffset={0}
                   className="transition-all duration-1000"
                 />
               )}
-              {/* Confirmed (Blue/Accent) */}
+              {/* Confirmed */}
               {pConfirmed > 0 && (
                 <circle
                   cx="80"
@@ -289,13 +286,13 @@ export const StatusDonutChart = ({ data = {} }) => {
                   r={radius}
                   fill="transparent"
                   stroke="var(--color-brand-accent)"
-                  strokeWidth="16"
+                  strokeWidth="14"
                   strokeDasharray={`${strokeConfirmed} ${circumference}`}
                   strokeDashoffset={-strokeDelivered}
                   className="transition-all duration-1000"
                 />
               )}
-              {/* Pending (Yellow/Saffron) */}
+              {/* Pending */}
               {pPending > 0 && (
                 <circle
                   cx="80"
@@ -303,7 +300,7 @@ export const StatusDonutChart = ({ data = {} }) => {
                   r={radius}
                   fill="transparent"
                   stroke="var(--color-brand-saffron)"
-                  strokeWidth="16"
+                  strokeWidth="14"
                   strokeDasharray={`${strokePending} ${circumference}`}
                   strokeDashoffset={-(strokeDelivered + strokeConfirmed)}
                   className="transition-all duration-1000"
@@ -311,31 +308,30 @@ export const StatusDonutChart = ({ data = {} }) => {
               )}
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-lg font-black text-brand-primary">{total}</span>
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Orders</span>
+              <span className="font-heading text-lg font-bold text-white">{total}</span>
+              <span className="text-[9px] text-white/30 font-bold uppercase tracking-wider">Orders</span>
             </div>
           </div>
 
           {/* Legends */}
-          <div className="ml-4 space-y-2 text-xs font-bold text-slate-600 flex-1">
+          <div className="space-y-2 text-[11px] font-semibold text-white/50 w-full pt-4 border-t border-white/[0.04]">
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 bg-brand-secondary rounded-full"></span> Delivered</span>
-              <span className="font-black text-brand-primary">{delivered}</span>
+              <span className="flex items-center gap-2"><span className="w-2 h-2 bg-brand-primary"></span> Delivered</span>
+              <span className="font-bold text-white">{delivered}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 bg-brand-accent rounded-full"></span> Confirmed</span>
-              <span className="font-black text-brand-primary">{confirmed}</span>
+              <span className="flex items-center gap-2"><span className="w-2 h-2 bg-brand-accent"></span> Confirmed</span>
+              <span className="font-bold text-white">{confirmed}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 bg-brand-saffron rounded-full"></span> Pending</span>
-              <span className="font-black text-brand-primary">{pending}</span>
+              <span className="flex items-center gap-2"><span className="w-2 h-2 bg-brand-saffron"></span> Pending</span>
+              <span className="font-bold text-white">{pending}</span>
             </div>
           </div>
         </div>
       ) : (
-        <div className="py-10 text-xs font-bold text-slate-400">No order status data</div>
+        <div className="py-10 text-[11px] font-semibold text-white/30 uppercase tracking-widest">No order stats</div>
       )}
     </div>
   );
 };
-
