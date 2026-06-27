@@ -1,6 +1,19 @@
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="0" y="0" width="15" height="15" rx="2" fill="#2BEE4B"/>
-  <rect x="17" y="0" width="15" height="15" fill="#333333"/>
-  <rect x="0" y="17" width="15" height="15" fill="#333333"/>
-  <rect x="17" y="17" width="15" height="15" rx="2" fill="#121613"/>
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- top-left: #50DE68, sharp corner = bottom-right -->
+  <path d="M28,0 C28,0 0,0 0,28 L0,28 L28,28 Z" fill="#50DE68"/>
+  <path d="M0,0 Q28,0 28,28 Q28,0 0,0 Z" fill="#50DE68"/>
+  <rect x="0" y="0" width="28" height="28" rx="14" fill="#50DE68"/>
+  <rect x="14" y="14" width="14" height="14" fill="#50DE68"/>
+
+  <!-- top-right: rgb(32,80,46), sharp corner = bottom-left -->
+  <rect x="36" y="0" width="28" height="28" rx="14" fill="rgb(32,80,46)"/>
+  <rect x="36" y="14" width="14" height="14" fill="rgb(32,80,46)"/>
+
+  <!-- bottom-left: rgb(0,220,50), sharp corner = top-right -->
+  <rect x="0" y="36" width="28" height="28" rx="14" fill="rgb(0,220,50)"/>
+  <rect x="14" y="36" width="14" height="14" fill="rgb(0,220,50)"/>
+
+  <!-- bottom-right: rgb(32,182,32), sharp corner = top-left -->
+  <rect x="36" y="36" width="28" height="28" rx="14" fill="rgb(32,182,32)"/>
+  <rect x="36" y="36" width="14" height="14" fill="rgb(32,182,32)"/>
 </svg>
