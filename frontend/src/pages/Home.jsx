@@ -261,10 +261,10 @@ const IMGS = {
 
   // about — decorative corner shots
 
-  aboutTL: '/about-tl.jpg',
-  aboutBL: '/about-bl.jpg',
-  aboutTR: '/about-tr.jpg',
-  aboutBR: '/about-br.jpg',
+  aboutTL: import.meta.env.BASE_URL + 'about-tl.jpg',
+  aboutBL: import.meta.env.BASE_URL + 'about-bl.jpg',
+  aboutTR: import.meta.env.BASE_URL + 'about-tr.jpg',
+  aboutBR: import.meta.env.BASE_URL + 'about-br.jpg',
 
   categories: [
     [veggies, fruits],
