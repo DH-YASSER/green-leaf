@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<body>
+<canvas id="c" width="64" height="64"></canvas>
+<a id="dl" download="favicon.png">Download</a>
+<script>
+const c = document.getElementById('c');
+const ctx = c.getContext('2d');
+const size = 64;
+const cell = Math.floor(size * 0.44); // ~28px
+const gap  = Math.max(1, Math.floor(size * 0.06)); // ~4px
+const r    = cell; // full pill = half of cell width
+
+function roundedRect(ctx, x, y, w, h, tl, tr, br, bl) {
+  ctx.beginPath();
+  ctx.moveTo(x + tl, y);
+  ctx.lineTo(x + w - tr, y);
+  ctx.arcTo(x + w, y,     x + w, y + tr,   tr);
+  ctx.lineTo(x + w, y + h - br);
+  ctx.arcTo(x + w, y + h, x + w - br, y + h, br);
+  ctx.lineTo(x + bl, y + h);
+  ctx.arcTo(x, y + h,     x, y + h - bl,   bl);
+  ctx.lineTo(x, y + tl);
+  ctx.arcTo(x, y,         x + tl, y,        tl);
+  ctx.closePath();
+}
+
+// sharp corner = 0, the one pointing to the center
+const squares = [
+  { x: 0,          y: 0,          color: '#50DE68',        tl: r, tr: r, br: 0, bl: r },  // sharp: bottom-right
+  { x: cell + gap, y: 0,          color: 'rgb(32,80,46)',  tl: r, tr: r, br: r, bl: 0 },  // sharp: bottom-left
+  { x: 0,          y: cell + gap, color: 'rgb(0,220,50)',  tl: r, tr: 0, br: r, bl: r },  // sharp: top-right
+  { x: cell + gap, y: cell + gap, color: 'rgb(32,182,32)', tl: 0, tr: r, br: r, bl: r },  // sharp: top-left
+];
+
+squares.forEach(({ x, y, color, tl, tr, br, bl }) => {
+  ctx.fillStyle = color;
+  roundedRect(ctx, x, y, cell, cell, tl, tr, br, bl);
+  ctx.fill();
+});
+
+document.getElementById('dl').href = c.toDataURL('image/png');
+document.getElementById('dl').click();
+</script>
+</body>
+</html>
