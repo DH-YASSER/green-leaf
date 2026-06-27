@@ -1,0 +1,62 @@
+Created At: 2026-06-16T20:20:34Z
+Completed At: 2026-06-16T20:20:35Z
+File Path: `file:///C:/Users/HP/Desktop/markeat/frontend/src/pages/fournisseur/FournisseurApp.jsx`
+Total Lines: 1410
+Total Bytes: 89238
+Showing lines 130 to 220
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+130:       info: { title:'Information', businessName:'Business name', contactName:'Contact name', email:'Email', phone:'Phone', region:'Region', address:'Address', zones:'Delivery zones', bio:'About your business', save:'Save changes', saving:'Saving...', saved:'✓ Saved', changePic:'Change photo' },
+131:       security: { title:'Account Security', current:'Current password', newPwd:'New password', confirm:'Confirm', save:'Update password', saving:'Updating...', saved:'✓ Password updated' },
+132:       notifs: { title:'Notifications', save:'Save preferences', saving:'Saving...', items:[
+133:         { key:'new_orders', label:'New Orders', sub:'Alert when a restaurant places an order' },
+134:         { key:'messages', label:'New Messages', sub:'Alert when a buyer sends you a message' },
+135:         { key:'promotions', label:'Promo Expiry', sub:'Reminder before a promotion ends' },
+136:         { key:'weekly_report', label:'Weekly Report', sub:'Summary of your sales every Monday' },
+137:       ]},
+138:     },
+139:   },
+140: };
+141: 
+142: const REGIONS = ['Casablanca-Settat','Souss-Massa','Marrakech-Safi','Fès-Meknès','Tanger-Tétouan-Al Hoceïma','Rabat-Salé-Kénitra','Oriental','Béni Mellal-Khénifra','Drâa-Tafilalet','Guelmim-Oued Noun'];
+143: 
+144: // ─── GLOBAL STYLES ────────────────────────────────────────────────────────
+145: const GS = ({ theme }) => (
+146:   <style>{`
+147:     @import url('https://fonts
+<truncated 2082 bytes>
+t:500; text-decoration:none;
+187:     }
+188:     .gl-btn-p:hover { opacity:0.86; }
+189:     .gl-btn-p:disabled { opacity:0.45; cursor:not-allowed; }
+190: 
+191:     .gl-btn-g {
+192:       font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.18em;
+193:       text-transform:uppercase; background:transparent; color:var(--silver);
+194:       border:1px solid var(--silverMd); cursor:pointer; padding:11px 22px;
+195:       display:inline-flex; align-items:center; gap:8px; transition:all 0.18s; text-decoration:none;
+196:     }
+197:     .gl-btn-g:hover { border-color:var(--silver); color:var(--text); }
+198: 
+199:     .gl-btn-danger {
+200:       font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.18em;
+201:       text-transform:uppercase; background:transparent; color:var(--danger);
+202:       border:1px solid var(--dangerLo); cursor:pointer; padding:11px 22px;
+203:       display:inline-flex; align-items:center; gap:8px; transition:all 0.18s;
+204:     }
+205:     .gl-btn-danger:hover { border-color:var(--danger); }
+206: 
+207:     .gl-icon-btn {
+208:       background:none; border:1px solid var(--border); cursor:pointer;
+209:       padding:7px 13px; display:inline-flex; align-items:center; gap:6px;
+210:       transition:all 0.18s; color:var(--silver);
+211:       font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase;
+212:     }
+213:     .gl-icon-btn:hover { border-color:var(--sulu); background:var(--suluLo); color:var(--text); }
+214: 
+215:     /* INPUTS */
+216:     .gl-input {
+217:       width:100%; padding:11px 14px; background:var(--inputBg); border:1px solid var(--border);
+218:       color:var(--text); font-family:'DM Mono',monospace; font-size:11px; letter-spacing:0.06em;
+219:       outline:none; transition:border-color 0.18s;
+220:     }
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

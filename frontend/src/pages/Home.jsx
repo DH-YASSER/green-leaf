@@ -1,756 +1,1487 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState, useRef, useCallback, Suspense, lazy } from 'react';
+import { useAppStore } from '../store/appStore';
+import ScrollFloat from '../components/ScrollFloat';
+import Lenis from 'lenis';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import ScrollStack, { ScrollStackItem } from '../components/ScrollStack';
+
+let hasShownPreloaderThisSession = false;
+const THEMES = {
+
+  dark: {
+    // ─── GRANULAR COMPONENT-LEVEL VARIABLES ─────────────────────────────────
+    // Global Page Styles
+    '--page-bg': '#0B0C0C',
+    '--page-text': '#FFFFFF',
+    '--text-muted': 'rgba(255,255,255,0.70)',
+    '--text-low': 'rgba(255,255,255,0.40)',
+    '--page-border': 'rgba(255, 255, 255, 0.08)',
+    '--accent-color': '#81C784',   // green reserved for key actions
+    '--accent-gold': '#E8B86D',
+
+    // Navbar
+    '--nav-bg': 'rgba(11,12,12,0.96)',
+    '--nav-border': 'rgba(255, 255, 255, 0.08)',
+    '--nav-link': 'rgba(255,255,255,0.70)',
+    '--nav-link-hover': '#FFFFFF',
+    '--nav-active': '#81C784',   // key action: active state
+
+    // Sidebar
+    '--sidebar-bg': '#161717',
+    '--sidebar-border': 'rgba(255, 255, 255, 0.08)',
+    '--sidebar-link': 'rgba(255,255,255,0.70)',
+    '--sidebar-link-hover': '#FFFFFF',
+    '--sidebar-active-bg': 'rgba(255, 255, 255, 0.08)',
+    '--sidebar-active-text': '#81C784',   // key action: active state
+
+    // Buttons
+    '--btn-primary-bg': '#81C784',   // key action: primary CTA
+    '--btn-primary-text': '#000000',
+    '--btn-primary-hover': '0.88',
+    '--btn-secondary-bg': 'transparent',
+    '--btn-secondary-text': '#C7CCC9',
+    '--btn-secondary-border': 'rgba(199, 204, 201, 0.30)',
+    '--btn-icon-border': 'rgba(255, 255, 255, 0.08)',
+    '--btn-icon-text': '#C7CCC9',
+    '--btn-icon-hover-bg': 'rgba(255, 255, 255, 0.08)',
+
+    // Cards & Panels
+    '--card-bg': '#161717',
+    '--card-border': 'rgba(255, 255, 255, 0.08)',
+    '--card-title': '#FFFFFF',
+    '--card-body': 'rgba(255,255,255,0.70)',
+    '--card-hover-bg': 'rgba(255, 255, 255, 0.04)',
+
+    // Inputs
+    '--input-bg': 'transparent',
+    '--input-border': 'rgba(255, 255, 255, 0.08)',
+    '--input-text': '#FFFFFF',
+    '--input-placeholder': 'rgba(199, 204, 201, 0.45)',
+    '--input-focus-border': '#81C784',   // key action: focus state
+
+    // Chat
+    '--chat-bubble-self': 'rgba(255, 255, 255, 0.10)',
+    '--chat-bubble-other': '#161717',
+    '--chat-text-self': '#FFFFFF',
+    '--chat-text-other': 'rgba(255,255,255,0.70)',
+
+    // Auth Page
+    '--auth-panel-bg': '#161717',
+
+    // Status / Badges
+    '--status-pending-bg': 'rgba(245,158,11,0.08)',
+    '--status-pending-text': 'rgba(245,158,11,0.85)',
+    '--status-success-bg': 'rgba(129,199,132,0.10)',
+    '--status-success-text': '#81C784',
+    '--status-failed-bg': 'rgba(239,100,100,0.10)',
+    '--status-failed-text': 'rgba(239,100,100,0.85)',
+    '--status-info-bg': 'rgba(147,197,253,0.08)',
+    '--status-info-text': 'rgba(147,197,253,0.85)',
+
+    // ─── BACKWARD COMPATIBLE GLOBAL ALIASES ─────────────────────────────────
+    '--bg': '#0B0C0C',
+    '--bg2': '#161717',
+    '--bg3': '#000000',
+    '--bg4': '#1E2020',
+    '--bg5': '#252727',
+    '--text': '#FFFFFF',
+    '--textMid': 'rgba(255,255,255,0.70)',
+    '--textLow': 'rgba(255,255,255,0.40)',
+    '--sulu': '#81C784',
+    '--suluLo': 'rgba(129, 199, 132, 0.10)',
+    '--suluMd': 'rgba(129, 199, 132, 0.22)',
+    '--silver': '#C7CCC9',
+    '--silverLo': 'rgba(199, 204, 201, 0.10)',
+    '--silverMd': 'rgba(199, 204, 201, 0.30)',
+    '--border': 'rgba(255, 255, 255, 0.08)',
+    '--border2': 'rgba(255, 255, 255, 0.14)',
+    '--navBg': 'rgba(11,12,12,0.96)',
+    '--inputBg': 'transparent',
+    '--danger': 'rgba(239,100,100,0.85)',
+    '--dangerLo': 'rgba(239,100,100,0.10)',
+    '--heroFilter': 'brightness(0.18) saturate(0.45)',
+    '--imgFilter': 'brightness(0.55) saturate(0.7)',
+    '--accent2': '#E8B86D',
+    '--amber': 'rgba(245,158,11,0.85)',
+    '--amberLo': 'rgba(245,158,11,0.08)',
+    '--blue': 'rgba(147,197,253,0.85)',
+    '--blueLo': 'rgba(147,197,253,0.08)',
+  },
+  light: {
+    // ─── GRANULAR COMPONENT-LEVEL VARIABLES ─────────────────────────────────
+    // Global Page Styles
+    '--page-bg': '#FAFAF9',
+    '--page-text': '#241f1f',
+    '--text-muted': '#54594F',
+    '--text-low': '#84897F',
+    '--page-border': 'rgba(31, 36, 33, 0.08)',
+    '--accent-color': '#4C7846',   // green reserved for key actions
+    '--accent-gold': '#E8B86D',
+
+    // Navbar
+    '--nav-bg': 'rgba(250,250,249,0.96)',
+    '--nav-border': 'rgba(31, 36, 33, 0.08)',
+    '--nav-link': '#54594F',
+    '--nav-link-hover': '#1F2421',
+    '--nav-active': '#4C7846',   // key action: active state
+
+    // Sidebar
+    '--sidebar-bg': '#FFFFFF',
+    '--sidebar-border': 'rgba(31, 36, 33, 0.08)',
+    '--sidebar-link': '#54594F',
+    '--sidebar-link-hover': '#241f1f',
+    '--sidebar-active-bg': 'rgba(31, 36, 33, 0.06)',
+    '--sidebar-active-text': '#4C7846',   // key action: active state
+
+    // Buttons
+    '--btn-primary-bg': '#4C7846',   // key action: primary CTA
+    '--btn-primary-text': '#FFFFFF',
+    '--btn-primary-hover': '0.88',
+    '--btn-secondary-bg': 'transparent',
+    '--btn-secondary-text': '#3D4339',
+    '--btn-secondary-border': 'rgba(61, 67, 57, 0.30)',
+    '--btn-icon-border': 'rgba(31, 36, 33, 0.10)',
+    '--btn-icon-text': '#3D4339',
+    '--btn-icon-hover-bg': 'rgba(31, 36, 33, 0.06)',
+
+    // Cards & Panels
+    '--card-bg': '#FFFFFF',
+    '--card-border': 'rgba(31, 36, 33, 0.10)',
+    '--card-title': '#241f1f',
+    '--card-body': '#54594F',
+    '--card-hover-bg': 'rgba(31, 36, 33, 0.03)',
+
+    // Inputs
+    '--input-bg': '#FFFFFF',
+    '--input-border': 'rgba(31, 36, 33, 0.18)',
+    '--input-text': '#241f1f',
+    '--input-placeholder': 'rgba(61, 67, 57, 0.45)',
+    '--input-focus-border': '#4C7846',   // key action: focus state
+
+    // Chat
+    '--chat-bubble-self': 'rgba(31, 36, 33, 0.06)',
+    '--chat-bubble-other': '#F1F1EF',
+    '--chat-text-self': '#241f1f',
+    '--chat-text-other': '#54594F',
+
+    // Auth Page
+    '--auth-panel-bg': '#FFFFFF',
+
+    // Status / Badges
+    '--status-pending-bg': 'rgba(180,120,0,0.07)',
+    '--status-pending-text': 'rgba(180,120,0,0.85)',
+    '--status-success-bg': 'rgba(76,120,70,0.08)',
+    '--status-success-text': '#4C7846',
+    '--status-failed-bg': 'rgba(200,50,50,0.08)',
+    '--status-failed-text': 'rgba(200,50,50,0.85)',
+    '--status-info-bg': 'rgba(37,99,235,0.07)',
+    '--status-info-text': 'rgba(37,99,235,0.85)',
+
+    // ─── BACKWARD COMPATIBLE GLOBAL ALIASES ─────────────────────────────────
+    '--bg': '#FAFAF9',
+    '--bg2': '#FFFFFF',
+    '--bg3': '#E7E8E4',
+    '--bg4': '#FFFFFF',
+    '--bg5': '#F1F1EF',
+    '--text': '#241f1f',
+    '--textMid': '#54594F',
+    '--textLow': 'rgba(31, 36, 33, 0.40)',
+    '--sulu': '#4C7846',
+    '--suluLo': 'rgba(76, 120, 70, 0.08)',
+    '--suluMd': 'rgba(76, 120, 70, 0.18)',
+    '--silver': '#3D4339',
+    '--silverLo': 'rgba(31, 36, 33, 0.06)',
+    '--silverMd': 'rgba(31, 36, 33, 0.18)',
+    '--border': 'rgba(31, 36, 33, 0.08)',
+    '--border2': 'rgba(31, 36, 33, 0.15)',
+    '--navBg': 'rgba(250,250,249,0.96)',
+    '--inputBg': '#FFFFFF',
+    '--danger': 'rgba(200,50,50,0.85)',
+    '--dangerLo': 'rgba(200,50,50,0.08)',
+    '--heroFilter': 'brightness(0.30) saturate(0.55)',
+    '--imgFilter': 'brightness(0.75) saturate(0.85)',
+    '--accent2': '#E8B86D',
+    '--amber': 'rgba(180,120,0,0.85)',
+    '--amberLo': 'rgba(180,120,0,0.07)',
+    '--blue': 'rgba(37,99,235,0.85)',
+    '--blueLo': 'rgba(37,99,235,0.07)',
+  }
+};
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
+import Logo from '../components/Logo';
+import axios from '../api/axios';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import ctaBg from '../assets/image.webp';
+import ctaBgLight from '../assets/bg-20260520-111942.jpg';
+import ctaBgDark from '../assets/bg-20260520-113543.jpg';
 import {
-  Truck,
-  ShoppingBasket,
-  Users,
-  CheckCircle,
-  ArrowRight,
-  Leaf,
-  Beef,
-  Droplets,
-  Sparkles,
-  ShieldCheck,
-  TrendingUp,
-  MessageSquare,
-  ChevronRight,
-  Star,
-  Layers,
-  ArrowUpRight,
-  Calendar,
+  ArrowRight, Sun, Moon, Globe, ChevronDown, Plus, CheckCircle,
+  Search, ShoppingCart, Truck, ListPlus, Wallet,
+  Leaf, MessageCircle, FileText, ShieldCheck, X,
 } from 'lucide-react';
 
-import heroLeaf from '../assets/hero_leaf.png';
-import supplierImg from '../assets/supplier.png';
-import restaurantImg from '../assets/restaurant.png';
+/* ───────────────────────────────────────────────────────────────────────────
+   IMAGES — produce / farm / supplier photography
+   ─────────────────────────────────────────────────────────────────────────── */
+const IMGS = {
+  // hero background is now the Spline 3D scene (set scene URL in HeroSection)
 
-/* ── Number counter component ── */
-const CountStat = ({ value, suffix = '', label }) => {
-  const numRef = useRef(null);
-  const counted = useRef(false);
-  
-  useEffect(() => {
-    const el = numRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !counted.current) {
-          counted.current = true;
-          let start = 0;
-          const end = parseInt(value);
-          const duration = 1500;
-          const step = (end / duration) * 16;
-          const tick = () => {
-            start += step;
-            if (start >= end) { el.textContent = end + suffix; return; }
-            el.textContent = Math.floor(start) + suffix;
-            requestAnimationFrame(tick);
-          };
-          tick();
-          observer.unobserve(el);
-        }
-      },
-      { threshold: 0.2 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [value, suffix]);
+  // marquee — scrolling produce / market photography
+  marquee: [
+    '/src/assets/marquee-1.jpg',
+    '/src/assets/marquee-2.jpg',
+    '/src/assets/marquee-3.jpg',
+    '/src/assets/marquee-4.jpg',
+    '/src/assets/marquee-5.jpg',
+    '/src/assets/marquee-6.jpg',
+    '/src/assets/marquee-7.jpg',
+    '/src/assets/marquee-8.jpg',
+    '/src/assets/marquee-9.jpg',   
+    '/src/assets/marquee-10.jpg', 
+    '/src/assets/marquee-11.jpg',  
+    '/src/assets/marquee-12.jpg', 
+    '/src/assets/marquee-13.jpg', 
+    '/src/assets/marquee-14.jpg'
+  ],
 
-  return (
-    <div className="text-center p-6 border-r border-white/5 last:border-0 md:border-r">
-      <span ref={numRef} className="block text-4xl sm:text-5xl font-heading font-black text-white tracking-tight">
-        0{suffix}
-      </span>
-      <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-zinc-400 mt-3 block">
-        {label}
-      </span>
-    </div>
-  );
+  // about — decorative corner shots
+
+  aboutTL: '/about-tl.jpg',
+  aboutBL: '/about-bl.jpg',
+  aboutTR: '/about-tr.jpg',
+  aboutBR: '/about-br.jpg',
+
+  categories: [
+    ['/src/assets/veggies.jpg', '/src/assets/fruits.jpg'],
+    ['/src/assets/meat.jpg', '/src/assets/chicken.jpg'],
+    ['/src/assets/spices.jpg', '/src/assets/herbs.jpg'],
+    ['/src/assets/nuts.jpg', '/src/assets/beans.jpg'],
+    ['/src/assets/drinks.jpg'],
+  ],
+
+  food: 'https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg?auto=compress&cs=tinysrgb&w=1200&h=700&fit=crop',
 };
 
-const Home = () => {
-  const [activeProcessTab, setActiveProcessTab] = useState('restaurant');
+/* ───────────────────────────────────────────────────────────────────────────
+   COPY
+   ─────────────────────────────────────────────────────────────────────────── */
+const T = {
+  fr: {
+    nav: { about: 'À propos', how: 'Fonctionnement', suppliers: 'Fournisseurs', join: 'Rejoindre →', login: 'Connexion', dashboard: 'Mon Espace' },
+    hero: {
+      h1: 'De la terre', h2: 'à votre', h3: 'cuisine.',
+      sub: 'GreenLeaf connecte restaurants marocains et coopératives agricoles — sans intermédiaires, sans commissions.',
+      cta1: 'Je suis un restaurant', cta2: 'Je suis fournisseur', scroll: 'Défiler',
+    },
+    about: {
+      h1: 'À propos de', h2: 'GreenLeaf',
+      body: "Depuis 2024, nous donnons aux restaurants marocains un accès direct aux meilleures coopératives et fermes du pays. Zéro commission, paiement sécurisé, livraison garantie en 24h. Nous croyons qu'un bon plat commence par un bon producteur, payé justement.",
+      cta: 'Voir comment ça marche',
+    },
+    services: {
+      eyebrow: 'Le parcours', h1: 'Comment ', h2: '',
+      items: [
+        { name: 'Parcourez', body: "Recherchez dans les inventaires en direct de fermes et coopératives vérifiées partout au Maroc." },
+        { name: 'Commandez', body: "Chat intégré, négociation, confirmation logistique — en moins de 5 minutes depuis l'app." },
+        { name: 'Recevez', body: "Suivi temps réel. Paiement escrow libéré à réception. Facture générée automatiquement." },
+        { name: 'Listez', body: "Les fournisseurs uploadent produits, prix et stocks — visibles instantanément par les restaurants actifs." },
+        { name: 'Encaissez', body: "Fonds versés automatiquement à confirmation de livraison. Export comptable disponible." },
+      ],
+    },
+    categories: {
+      h1: 'Ce que vous', h2: 'trouverez ici.',
+      items: [
+        { num: '01', title: 'Légumes & Fruits', desc: 'Produits frais de saison en direct des fermes.' },
+        { num: '02', title: 'Viandes & Volailles', desc: 'Viandes locales de première qualité, tracées et certifiées.' },
+        { num: '03', title: 'Épices & Herbes', desc: 'Saveurs authentiques du terroir marocain.' },
+        { num: '04', title: 'Épicerie Sèche', desc: 'Céréales, farines, légumineuses et huiles.' },
+        { num: '05', title: 'Boissons', desc: 'Jus frais, thés, cafés et sirops artisanaux.' },
+      ],
+    },
+    faq: {
+      eyebrow: 'Questions fréquentes', h1: 'On est là,', h2: 'à chaque étape.',
+      sub: "Des questions sur les paiements, délais ou fournisseurs ? Notre équipe est disponible 7j/7.",
+      cta: "Centre d'aide",
+      items: [
+        { q: 'La livraison est-elle garantie en 24h ?', a: "Oui. Commandes avant 14h = livraison le lendemain matin. Engagement contractuel du fournisseur." },
+        { q: 'Comment fonctionne le paiement escrow ?', a: "Votre paiement est bloqué jusqu'à confirmation de réception. Aucun risque de perte." },
+        { q: 'Comment les fournisseurs sont-ils vérifiés ?', a: "Contrôle docs légaux + visite terrain + 30 jours d'essai avec suivi qualité continu." },
+        { q: "Y a-t-il des frais d'abonnement ou de commission ?", a: "Zéro commission, zéro abonnement. GreenLeaf est 100% gratuit pour tous." },
+        { q: 'Puis-je commander chez plusieurs fournisseurs à la fois ?', a: "Oui. Un seul panier, plusieurs fournisseurs. Facturation séparée, suivi centralisé." },
+      ],
+    },
+    finalCta: {
+      l1: 'Approvisionnez', l2: 'mieux, dès', l3: "aujourd'hui.",
+      cta1: 'Inscrire mon restaurant', cta2: 'Inscrire mon exploitation',
+    },
+    email: { title: 'Restez connecté', sub: 'Nouveaux fournisseurs, tendances prix et offres exclusives.', cta: "S'inscrire", done: 'Inscrit · Merci !' },
+    footer: {
+      desc: 'Première marketplace  du Maroc connectant restaurants et coopératives agricoles.',
+      copy: '© 2026 GreenLeaf Maroc',
+      cols: [
+        { title: 'Régions', links: ['Casablanca-Settat', 'Souss-Massa', 'Marrakech-Safi', 'Fès-Meknès', 'Tanger-Tétouan'] },
+        { title: 'Société', links: ['À propos', 'Support', 'Conditions', 'Confidentialité'] },
+      ],
+      demo: 'Accès démo ·',
+    },
+  },
+  en: {
+    nav: { about: 'About', how: 'How it works', suppliers: 'Suppliers', join: 'Join →', login: 'Sign in', dashboard: 'Dashboard' },
+    hero: {
+      h1: 'From the soil', h2: 'to your', h3: 'kitchen.',
+      sub: 'GreenLeaf connects Moroccan restaurants directly to farming cooperatives — no middlemen, no commissions.',
+      cta1: "I'm a restaurant", cta2: "I'm a supplier", scroll: 'Scroll',
+    },
+    about: {
+      h1: 'About', h2: 'GreenLeaf',
+      body: "Since 2024 we've given Moroccan restaurants direct access to the country's best cooperatives and farms. Zero commission, secure payment, guaranteed 24h delivery. We believe a great dish starts with a producer who's paid fairly.",
+      cta: 'See how it works',
+    },
+    services: {
+      eyebrow: 'The journey', h1: 'How ', h2: '',
+      items: [
+        { name: 'Browse', body: "Search live inventories from verified farms and cooperatives all across Morocco." },
+        { name: 'Order', body: "Built-in chat, negotiation, logistics confirmation — under 5 minutes from the app." },
+        { name: 'Receive', body: "Real-time tracking. Escrow payment released on receipt. Invoice auto-generated." },
+        { name: 'List', body: "Suppliers upload products, prices and stock — instantly visible to active restaurants." },
+        { name: 'Get paid', body: "Funds auto-deposited on delivery confirmation. Accounting export available." },
+      ],
+    },
+    categories: {
+      h1: 'What you can', h2: 'find here.',
+      items: [
+        { num: '01', title: 'Vegetables & Fruits', desc: 'Fresh seasonal produce direct from farms.' },
+        { num: '02', title: 'Meat & Poultry', desc: 'Premium local meats, tracked and certified.' },
+        { num: '03', title: 'Spices & Herbs', desc: 'Authentic flavors from the Moroccan terroir.' },
+        { num: '04', title: 'Dry Goods', desc: 'Grains, flours, legumes and oils.' },
+        { num: '05', title: 'Drinks', desc: 'Fresh juices, teas, coffees and artisanal syrups.' },
+      ],
+    },
+    faq: {
+      eyebrow: 'Frequently asked questions', h1: "We're here,", h2: 'every step.',
+      sub: 'Questions about payment security, delivery times or suppliers? Our team is available 7 days a week.',
+      cta: 'Help centre',
+      items: [
+        { q: 'Is 24h delivery really guaranteed?', a: 'Yes. Orders before 2pm = next morning delivery. Contractual commitment from every supplier.' },
+        { q: 'How does escrow payment work?', a: 'Payment is held until you confirm receipt. Zero risk of loss.' },
+        { q: 'How are suppliers verified?', a: 'Legal docs check + field visit + 30-day trial with ongoing quality monitoring.' },
+        { q: 'Are there subscription fees or commissions?', a: 'Zero commission, zero subscription. GreenLeaf is 100% free for everyone.' },
+        { q: 'Can I order from multiple suppliers at once?', a: 'Yes. One cart, multiple suppliers. Separate invoicing, centralised tracking.' },
+      ],
+    },
+    finalCta: {
+      l1: 'Source smarter,', l2: 'starting', l3: 'today.',
+      cta1: 'Register my restaurant', cta2: 'Register my farm',
+    },
+    email: { title: 'Stay connected', sub: 'New suppliers, price trends and exclusive offers.', cta: 'Subscribe', done: 'Subscribed · Thank you!' },
+    footer: {
+      desc: 'First marketplace in Morocco connecting restaurants and regional farming cooperatives.',
+      copy: '© 2026 GreenLeaf Morocco',
+      cols: [
+        { title: 'Regions', links: ['Casablanca-Settat', 'Souss-Massa', 'Marrakech-Safi', 'Fès-Meknès', 'Tanger-Tétouan'] },
+        { title: 'Company', links: ['About', 'Support', 'Terms', 'Privacy'] },
+      ],
+      demo: 'Demo access ·',
+    },
+  },
+};
 
-  // Hook up Awwwards-style scroll reveal observer
+/* ───────────────────────────────────────────────────────────────────────────
+   FOOTER "COMPANY" INFO CARDS — content + slug↔icon mapping
+   ─────────────────────────────────────────────────────────────────────────── */
+const FOOTER_INFO_SLUGS = ['about', 'support', 'terms', 'privacy'];
+
+const LEGAL_CONTENT = {
+  about: {
+    fr: { title: 'À propos', body: "Depuis 2024, nous donnons aux restaurants marocains un accès direct aux meilleures coopératives et fermes du pays. Zéro commission, paiement sécurisé, livraison garantie en 24h." },
+    en: { title: 'About', body: "Since 2024 we've given Moroccan restaurants direct access to the country's best cooperatives and farms. Zero commission, secure payment, guaranteed 24h delivery." },
+  },
+  support: {
+    fr: { title: 'Support', body: "Des questions sur les paiements, délais ou fournisseurs ? Notre équipe est disponible 7j/7. Contactez-nous à support@greenleaf.ma." },
+    en: { title: 'Support', body: "Questions about payments, delivery times or suppliers? Our team is available 7 days a week. Contact us at support@greenleaf.ma." },
+  },
+  terms: {
+    fr: { title: 'Conditions générales', body: "En utilisant GreenLeaf, vous acceptez nos conditions d'utilisation, incluant nos politiques de paiement escrow, de livraison et de résolution des litiges." },
+    en: { title: 'Terms of Service', body: "By using GreenLeaf, you agree to our terms of use, including our escrow payment, delivery, and dispute resolution policies." },
+  },
+  privacy: {
+    fr: { title: 'Confidentialité', body: "Nous protégeons vos données personnelles conformément à la loi marocaine 09-08. Vos informations ne sont jamais vendues à des tiers." },
+    en: { title: 'Privacy Policy', body: "We protect your personal data in compliance with Moroccan law 09-08. Your information is never sold to third parties." },
+  },
+};
+
+const INFO_ICONS = {
+  about: Leaf,
+  support: MessageCircle,
+  terms: FileText,
+  privacy: ShieldCheck,
+};
+
+/* ───────────────────────────────────────────────────────────────────────────
+   GLOBAL STYLES
+   ─────────────────────────────────────────────────────────────────────────── */
+const GlobalStyles = ({ theme }) => (
+  <style>{`
+    @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    :root {
+      ${Object.entries(THEMES[theme]).map(([k, v]) => `${k}: ${v};`).join('\n      ')}
+    }
+
+    html {
+  scroll-behavior: smooth;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+}
+    body { background: var(--page-bg); color: var(--page-text); transition: background 0.3s, color 0.3s; -webkit-font-smoothing: antialiased; }
+
+    .gl-hero-heading {
+      background: linear-gradient(180deg, var(--silver) 0%, var(--sulu) 100%);
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .gl-nav-link { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.20em; text-transform:uppercase; color:var(--nav-link); text-decoration:none; transition:color .2s; text-shadow:0 1px 6px rgba(0,0,0,.5); }
+    .gl-nav-link:hover { color:var(--nav-link-hover); }
+
+    .gl-icon-btn { background:rgba(0,0,0,.32); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.18); cursor:pointer; padding:7px 14px; display:inline-flex; align-items:center; gap:6px; transition:border-color .2s,background .2s; border-radius:20px; color:rgba(255,255,255,0.85); font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; }
+.gl-icon-btn:hover { border-color:var(--sulu); background:rgba(0,0,0,.5); color:#FFF; }
+
+    .gl-btn-p { font-family:'DM Mono',monospace; font-size:11px; letter-spacing:.18em; text-transform:uppercase; text-decoration:none; background:var(--btn-primary-bg); color:var(--btn-primary-text); border:none; cursor:pointer; padding:15px 32px; display:inline-flex; align-items:center; gap:10px; transition:opacity .2s,transform .15s; font-weight:500; }
+    .gl-btn-p:hover { opacity:var(--btn-primary-hover); transform:translateY(-1px); }
+
+    .gl-btn-g { font-family:'DM Mono',monospace; font-size:11px; letter-spacing:.18em; text-transform:uppercase; text-decoration:none; background:rgba(0,0,0,.42); backdrop-filter:blur(10px); color:#F2F4F1; border:1px solid rgba(255,255,255,.32); cursor:pointer; padding:15px 32px; display:inline-flex; align-items:center; gap:10px; transition:border-color .2s,color .2s,background .2s,transform .15s; }
+    .gl-btn-g:hover { border-color:var(--accent-color); color:#FFF; background:rgba(0,0,0,.58); transform:translateY(-1px); }
+
+    .gl-faq-row { border-bottom:1px solid var(--page-border); }
+    .gl-faq-btn { width:100%; text-align:left; background:none; border:none; padding:22px 0; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:20px; }
+    .gl-faq-answer { padding-bottom:22px; }
+    .gl-faq-icon { transition:transform .24s ease; flex-shrink:0; }
+    .gl-faq-icon.open { transform:rotate(45deg); }
+
+    .gl-input { width:100%; background:var(--input-bg, rgba(255,255,255,.06)); border:1px solid var(--input-border, rgba(255,255,255,.12)); outline:none; padding:13px 18px; font-family:'DM Mono',monospace; font-size:11px; color:var(--input-text, var(--page-text)); letter-spacing:.10em; transition:border-color .2s; }
+    .gl-input::placeholder { color:var(--input-placeholder, rgba(176,184,180,.45)); }
+    .gl-input:focus { border-color:var(--accent-color); }
+
+    .gl-marquee-row { display:flex; gap:12px; will-change:transform; }
+    .gl-marquee-tile { width:300px; height:200px; border-radius:18px; overflow:hidden; flex-shrink:0; }
+    .gl-marquee-tile img { width:100%; height:100%; object-fit:cover; display:block; }
+
+    .gl-about-deco img { transition: transform .4s ease; }
+    .gl-about-deco:hover img { transform: scale(1.06) rotate(-2deg); }
+
+    .gl-service-row { border-bottom:1px solid rgba(12,12,12,.15); padding:32px 0; display:flex; align-items:center; gap:32px; transition: padding-left .25s ease, background .25s ease; }
+    .gl-service-row:hover { padding-left: 14px; background: rgba(12,12,12,.03); }
+    .gl-service-num { font-family:'DM Serif Display',serif; font-size:clamp(2.4rem,7vw,5rem); color:#0C0C0C; line-height:1; flex-shrink:0; width:110px; }
+
+    @keyframes scanline { 0% { transform:translateY(-100%); } 100% { transform:translateY(100vh); } }
+    @keyframes modalIn { 0% { opacity:0; transform:scale(.88) translateY(28px); filter:blur(6px); } 60% { opacity:1; transform:scale(1.015) translateY(-3px); filter:blur(0); } 100% { opacity:1; transform:scale(1) translateY(0); } }
+    @keyframes fadeInUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes logoExpand { 0% { transform:translate(-50%,-50%) scale(1); opacity:1; } 45% { transform:translate(-50%,-50%) scale(9); opacity:1; } 75% { transform:translate(-50%,-50%) scale(22); opacity:1; } 100% { transform:translate(-50%,-50%) scale(44); opacity:0; } }
+    @keyframes bgReveal { 0% { opacity:0; } 28% { opacity:1; } 100% { opacity:1; } }
+    @keyframes glowPulse { 0%,100% { filter:drop-shadow(0 0 0 rgba(168,224,99,0)); } 50% { filter:drop-shadow(0 0 44px rgba(168,224,99,.9)); } }
+    @keyframes scrollHint { 0%,100% { transform:translateY(0); opacity:.3; } 50% { transform:translateY(8px); opacity:.8; } }
+    .gl-scrollhint { animation: scrollHint 2.4s ease infinite; }
+
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+
+    @media (max-width: 768px) {
+      .gl-footer-grid { grid-template-columns: 1fr 1fr !important; }
+      .gl-hero-btns { flex-direction:column !important; align-items:stretch !important; }
+      .gl-hero-btns a, .gl-hero-btns button { justify-content:center !important; }
+      .gl-faq-grid { grid-template-columns: 1fr !important; }
+      .gl-about-deco { display:none !important; }
+      .gl-service-row { gap:16px !important; }
+    }
+      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  `}</style>
+);
+
+
+const Preloader = ({ ready, onComplete }) => {
+  const [progress, setProgress] = useState(0);
+  const readyRef = useRef(ready);
+
+  useEffect(() => { readyRef.current = ready; }, [ready]);
+
   useEffect(() => {
-    const items = document.querySelectorAll('.reveal-item');
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('reveal-visible');
-          } else {
-            entry.target.classList.remove('reveal-visible');
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        const cap = readyRef.current ? 100 : 90; // crawls to 90%, waits for real assets, then finishes
+        if (prev >= cap) {
+          if (cap === 100) {
+            clearInterval(interval);
+            setTimeout(onComplete, 400);
           }
-        });
-      },
-      {
-        threshold: 0.08,
-        rootMargin: '0px 0px -40px 0px',
-      }
-    );
-    
-    items.forEach((item) => observer.observe(item));
-    return () => observer.disconnect();
+          return prev;
+        }
+        return Math.min(cap, prev + Math.floor(Math.random() * 8) + 3);
+      });
+    }, 100);
+    return () => clearInterval(interval);
+  }, [onComplete]);
+
+  return (
+    <motion.div
+      initial={{ y: 0 }}
+      exit={{ y: '-100vh', transition: { duration: 1.2, ease: [0.76, 0, 0.24, 1] } }}
+      style={{
+        position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+        background: '#121613', zIndex: 9999, display: 'flex', alignItems: 'flex-end',
+        padding: '4vw', borderBottom: '1px solid rgba(255,255,255,0.08)'
+      }}
+    >
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');`}</style>
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', width: '100%' }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <motion.div animate={{ height: [15, 30, 10, 25, 15] }} transition={{ repeat: Infinity, duration: 1.2 }} style={{ width: 4, background: '#2BEE4B' }} />
+          <motion.div animate={{ height: [25, 10, 35, 15, 25] }} transition={{ repeat: Infinity, duration: 1.4 }} style={{ width: 4, background: '#2BEE4B' }} />
+          <motion.div animate={{ height: [10, 25, 15, 30, 10] }} transition={{ repeat: Infinity, duration: 1.1 }} style={{ width: 4, background: '#2BEE4B' }} />
+        </div>
+        <div style={{ fontSize: 'clamp(100px, 15vw, 200px)', fontFamily: '"Playfair Display", serif', color: '#FAFFFA', lineHeight: 0.8, letterSpacing: '-0.04em' }}>
+          {progress}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+/* ───────────────────────────────────────────────────────────────────────────
+   REUSABLE PRIMITIVES
+   ─────────────────────────────────────────────────────────────────────────── */
+const FadeIn = ({ children, delay = 0, duration = 0.8, x = 0, y = 40, scale = 1, ...rest }) => (
+  <motion.div
+    initial={{ opacity: 0, x, y, scale }}
+    whileInView={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+    viewport={{ once: true, margin: '-80px', amount: 0.25 }}
+    transition={{ delay, duration, ease: [0.25, 0.1, 0.25, 1] }}
+    {...rest}
+  >
+    {children}
+  </motion.div>
+);
+
+// Logo component is imported from components/Logo
+
+
+
+const Eyebrow = ({ children, center = false, style = {} }) => (
+  <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: 'var(--silver)', letterSpacing: '0.28em', textTransform: 'uppercase', marginBottom: 18, textAlign: center ? 'center' : 'left', ...style }}>
+    {children}
+  </p>
+);
+
+const Accent = ({ children }) => <em className="gl-hero-heading" style={{ fontStyle: 'italic' }}>{children}</em>;
+const ThemeToggle = ({ theme, onToggle, lang }) => (
+  <motion.button
+    whileHover={{ scale: 1.05 }}
+    whileTap={{ scale: 0.95 }}
+    onClick={onToggle}
+    aria-label={theme === 'dark' ? 'Switch to day mode' : 'Switch to night mode'}
+    style={{
+      position: 'relative', width: 52, height: 26, padding: 0, flexShrink: 0,
+      border: '1px solid rgba(255,255,255,0.18)', borderRadius: 14,
+      background: 'rgba(0,0,0,0.32)', backdropFilter: 'blur(8px)',
+      cursor: 'pointer', overflow: 'visible',
+    }}
+  >
+    <motion.div
+      animate={{ x: theme === 'dark' ? 26 : 0 }}
+      transition={{ type: 'spring', stiffness: 380, damping: 34 }}
+      style={{
+        position: 'absolute', top: 2, left: 2,
+        width: 20, height: 20, borderRadius: '50%',
+        background: 'var(--sulu)', color: '#0c1410',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}
+    >
+      <AnimatePresence mode="wait">
+        {theme === 'dark' ? (
+          <motion.span key="moon"
+            initial={{ rotate: -90, opacity: 0, scale: 0.6 }}
+            animate={{ rotate: 0, opacity: 1, scale: 1 }}
+            exit={{ rotate: 90, opacity: 0, scale: 0.6 }}
+            transition={{ duration: 0.2 }}
+            style={{ display: 'flex' }}
+          >
+            <Moon size={11} />
+          </motion.span>
+        ) : (
+          <motion.span key="sun"
+            initial={{ rotate: -90, opacity: 0, scale: 0.6 }}
+            animate={{ rotate: 0, opacity: 1, scale: 1 }}
+            exit={{ rotate: 90, opacity: 0, scale: 0.6 }}
+            transition={{ duration: 0.2 }}
+            style={{ display: 'flex' }}
+          >
+            <Sun size={11} />
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  </motion.button>
+);
+/* ───────────────────────────────────────────────────────────────────────────
+   NAVBAR
+   ─────────────────────────────────────────────────────────────────────────── */
+const Navbar = ({ theme, onTheme, lang, onLang, t, onLogoClick }) => {
+  const [scrolled, setScrolled] = useState(false);
+  const { isAuthenticated, user } = useAuthStore();
+  const role = user?.role?.toLowerCase() || '';
+  const navigate = useNavigate();
+
+  const getDashboardPath = useCallback(() => {
+    if (role === 'admin') return '/gl/c0ns0le';
+    if (role === 'fournisseur') return '/fournisseur/dashboard';
+    return '/restaurant/dashboard';
+  }, [role]);
+
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', fn, { passive: true });
+    return () => window.removeEventListener('scroll', fn);
   }, []);
 
   return (
-    <div className="min-h-screen bg-brand-bg text-brand-text selection:bg-brand-primary/30 selection:text-white">
-      
-      {/* ═══════════════════════ NAVBAR ═══════════════════════ */}
-      <nav className="glass-nav-dark fixed top-0 left-0 right-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            {/* Logo */}
-            <Link to="/" className="flex items-center gap-3 group">
-              <div className="h-9 w-9 rounded-none bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center group-hover:bg-brand-primary/20 transition-colors duration-300">
-                <Leaf className="h-4 w-4 text-brand-primary" />
-              </div>
-              <span className="font-heading text-base font-bold tracking-[0.1em] text-white">
-                GREEN<span className="text-brand-primary">LEAF</span>
-              </span>
-            </Link>
+    <nav role="navigation" aria-label="Navigation principale" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, background: scrolled ? 'var(--nav-bg)' : 'transparent', backdropFilter: scrolled ? 'blur(20px)' : 'none', borderBottom: scrolled ? '1px solid var(--nav-border)' : 'none', transition: 'all 0.35s ease' }}>
+      <div style={{ maxWidth: 1320, margin: '0 auto', padding: '0 32px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', height: 70 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
 
-            {/* Nav links */}
-            <div className="hidden md:flex items-center gap-10">
-              <Link
-                to="/browse"
-                className="text-[11px] font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-white transition-colors duration-300"
-              >
-                Catalogue
-              </Link>
-              <a
-                href="#process"
-                className="text-[11px] font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-white transition-colors duration-300"
-              >
-                Process
-              </a>
-              <a
-                href="#categories"
-                className="text-[11px] font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-white transition-colors duration-300"
-              >
-                Categories
-              </a>
-            </div>
-
-            {/* Auth buttons */}
-            <div className="flex items-center gap-4">
-              <Link
-                to="/login"
-                className="text-[11px] font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-white transition-colors px-4 py-2"
-              >
-                Login
-              </Link>
-              <Link
-                to="/register/restaurant"
-                className="bg-brand-primary hover:bg-brand-secondary text-brand-bg px-6 py-3 text-[10px] font-bold uppercase tracking-[0.2em] transition-all btn-sharp"
-              >
-                Join Now
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* ═══════════════════════ HERO SECTION (Dark Premium) ═══════════════════════ */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-        {/* Background glow orbs */}
-        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-brand-primary/5 rounded-full blur-[140px] pointer-events-none"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-brand-saffron/3 rounded-full blur-[120px] pointer-events-none"></div>
-
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10 py-20 w-full">
-          <div className="grid lg:grid-cols-12 gap-16 items-center">
-            
-            {/* Left text */}
-            <div className="lg:col-span-7 flex flex-col justify-center reveal-item">
-              <div>
-                <span className="inline-flex items-center gap-4 text-[11px] font-bold uppercase tracking-[0.2em] text-brand-primary mb-8">
-                  <span className="w-12 h-px bg-brand-primary"></span>
-                  Premium B2B Sourcing
-                </span>
-              </div>
-
-              <h1 className="font-heading text-5xl sm:text-6xl lg:text-7xl font-black uppercase leading-[0.95] tracking-tight mb-8">
-                <span className="text-white block">Sourcing</span>
-                <span className="text-white block">Fresh.</span>
-                <span className="text-gradient block">Directly.</span>
-              </h1>
-
-              <p className="text-[14px] sm:text-base text-zinc-400 font-normal leading-relaxed max-w-lg mb-10">
-                Skip the distributors. Connect your restaurant kitchen directly with verified Moroccan farms and agricultural cooperatives. Secure, automated, and delivered in 24 hours.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link
-                  to="/register/restaurant"
-                  className="group inline-flex items-center justify-center gap-3 bg-brand-primary text-brand-bg px-8 py-4.5 text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-brand-secondary transition-all btn-sharp"
+            <ThemeToggle theme={theme} onToggle={onTheme} lang={lang} />
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="gl-icon-btn"
+              onClick={onLang}
+              style={{ borderRadius: 20 }}
+            >
+              <Globe size={12} aria-hidden />
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.span
+                  key={lang}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.2 }}
+                  style={{ display: 'inline-block' }}
                 >
-                  Start Ordering
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
-                <Link
-                  to="/register/fournisseur"
-                  className="inline-flex items-center justify-center gap-3 border border-white/10 text-zinc-300 hover:text-white hover:border-white/30 px-8 py-4.5 text-[11px] font-bold uppercase tracking-[0.2em] transition-all btn-sharp bg-white/[0.01]"
-                >
-                  Become a Supplier
-                </Link>
-              </div>
-            </div>
-
-            {/* Right side - Stacked Product Cards Showcase */}
-            <div className="lg:col-span-5 flex justify-center reveal-item delay-200">
-              <div className="relative w-full max-w-[420px]">
-                {/* Glow behind cards */}
-                <div className="absolute inset-0 bg-brand-primary/10 blur-[80px] rounded-full scale-75"></div>
-                
-                {/* Card Stack */}
-                <div className="relative space-y-4">
-                  {/* Product Card 1 */}
-                  <div className="bg-brand-surface/80 border border-white/10 p-4 shadow-luxury backdrop-blur-sm flex gap-4 items-center animate-float">
-                    <div className="w-20 h-20 shrink-0 border border-white/5 overflow-hidden zoom-container">
-                      <img 
-                        src="https://images.unsplash.com/photo-1597362925123-77861d3fbac7?q=80&w=200&auto=format&fit=crop" 
-                        alt="Fresh Moroccan vegetables" 
-                        className="w-full h-full object-cover zoom-image" 
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[8px] font-black text-brand-primary uppercase tracking-[0.2em] bg-brand-primary/10 border border-brand-primary/20 px-2 py-0.5">Vegetables</span>
-                        <span className="text-[9px] font-bold text-brand-saffron flex items-center gap-0.5">
-                          <Star className="w-3 h-3 fill-brand-saffron" /> 4.8
-                        </span>
-                      </div>
-                      <p className="font-heading text-xs font-bold uppercase tracking-wide text-white truncate">Tomates Côtelées Extra</p>
-                      <p className="text-[10px] text-zinc-400 mt-0.5">Atlas Prime · Casablanca</p>
-                      <p className="text-[11px] font-bold text-brand-primary mt-1">8.50 MAD / Kg</p>
-                    </div>
-                  </div>
-
-                  {/* Product Card 2 */}
-                  <div className="bg-brand-surface/80 border border-white/10 p-4 shadow-luxury backdrop-blur-sm flex gap-4 items-center animate-float" style={{ animationDelay: '1s' }}>
-                    <div className="w-20 h-20 shrink-0 border border-white/5 overflow-hidden zoom-container">
-                      <img 
-                        src="https://images.unsplash.com/photo-1615485290382-441e4d049cb5?q=80&w=200&auto=format&fit=crop" 
-                        alt="Premium Saffron spice" 
-                        className="w-full h-full object-cover zoom-image" 
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[8px] font-black text-brand-saffron uppercase tracking-[0.2em] bg-brand-saffron/10 border border-brand-saffron/20 px-2 py-0.5">Spices</span>
-                        <span className="text-[9px] font-bold text-brand-saffron flex items-center gap-0.5">
-                          <Star className="w-3 h-3 fill-brand-saffron" /> 4.9
-                        </span>
-                      </div>
-                      <p className="font-heading text-xs font-bold uppercase tracking-wide text-white truncate">Safran Pur de Taliouine</p>
-                      <p className="text-[10px] text-zinc-400 mt-0.5">Épices Fassi · Fes</p>
-                      <p className="text-[11px] font-bold text-brand-primary mt-1">32.00 MAD / Gram</p>
-                    </div>
-                  </div>
-
-                  {/* Product Card 3 */}
-                  <div className="bg-brand-surface/80 border border-white/10 p-4 shadow-luxury backdrop-blur-sm flex gap-4 items-center animate-float" style={{ animationDelay: '2s' }}>
-                    <div className="w-20 h-20 shrink-0 border border-white/5 overflow-hidden zoom-container">
-                      <img 
-                        src="https://images.unsplash.com/photo-1603048588665-791ca8aea617?q=80&w=200&auto=format&fit=crop" 
-                        alt="Premium butchery meats" 
-                        className="w-full h-full object-cover zoom-image" 
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[8px] font-black text-rose-400 uppercase tracking-[0.2em] bg-rose-400/10 border border-rose-400/20 px-2 py-0.5">Meats</span>
-                        <span className="text-[9px] font-bold text-brand-saffron flex items-center gap-0.5">
-                          <Star className="w-3 h-3 fill-brand-saffron" /> 4.6
-                        </span>
-                      </div>
-                      <p className="font-heading text-xs font-bold uppercase tracking-wide text-white truncate">Bœuf Haché Premium</p>
-                      <p className="text-[10px] text-zinc-400 mt-0.5">Boucherie Gourmet · Rabat</p>
-                      <p className="text-[11px] font-bold text-brand-primary mt-1">85.00 MAD / Kg</p>
-                    </div>
-                  </div>
-
-                  {/* Browse CTA overlay at bottom */}
-                  <Link 
-                    to="/browse"
-                    className="block w-full py-3 text-center bg-white/[0.03] border border-white/10 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-300 hover:text-white hover:border-brand-primary/30 transition-all btn-sharp"
-                  >
-                    Browse All 350+ Suppliers →
-                  </Link>
-                </div>
-              </div>
-            </div>
-            
-          </div>
-        </div>
-
-        {/* Bottom edge border */}
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-white/5"></div>
-      </section>
-
-      {/* ═══════════════════════ INFINITE SCROLLING TICKER ═══════════════════════ */}
-      <section className="bg-brand-surface border-b border-white/5 py-6 overflow-hidden">
-        <div className="animate-marquee whitespace-nowrap flex gap-16 text-[10px] font-bold uppercase tracking-[0.3em] text-brand-primary">
-          <span>* MOROCCO'S FINEST AGRICULTURAL HUB</span>
-          <span>* DIRECT FARM TO KITCHEN</span>
-          <span>* 100% VERIFIED REGIONAL SUPPLIERS</span>
-          <span>* 24-HOUR FRESHNESS GUARANTEE</span>
-          <span>* ZERO MIDDLEMAN COMMISSIONS</span>
-          <span>* DIRECT ESCROW DH PAYMENTS</span>
-          
-          <span>* MOROCCO'S FINEST AGRICULTURAL HUB</span>
-          <span>* DIRECT FARM TO KITCHEN</span>
-          <span>* 100% VERIFIED REGIONAL SUPPLIERS</span>
-          <span>* 24-HOUR FRESHNESS GUARANTEE</span>
-          <span>* ZERO MIDDLEMAN COMMISSIONS</span>
-          <span>* DIRECT ESCROW DH PAYMENTS</span>
-        </div>
-      </section>
-
-      {/* ═══════════════════════ PRODUCER SECTION (Light Theme Contrast) ═══════════════════════ */}
-      <section className="py-32 bg-white text-zinc-900 relative">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="grid lg:grid-cols-12 gap-16 items-center">
-            
-            {/* Left Column: Image */}
-            <div className="lg:col-span-5 order-2 lg:order-1 reveal-item">
-              <div className="relative border border-zinc-200 p-3 bg-zinc-50 shadow-luxury-light">
-                <div className="zoom-container aspect-[4/5] bg-zinc-100 border border-zinc-200">
-                  <img 
-                    src={supplierImg} 
-                    alt="Fresh organic ingredients on slate" 
-                    className="w-full h-full object-cover zoom-image"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: Copy */}
-            <div className="lg:col-span-7 order-1 lg:order-2 flex flex-col justify-center reveal-item delay-200">
-              <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-brand-primary mb-4 block">
-                FOR MOROCCAN SUPPLIERS
-              </span>
-              <h2 className="font-heading text-4xl sm:text-5xl font-black uppercase text-zinc-900 tracking-tight mb-8 leading-tight">
-                EXPAND YOUR MARKET.<br/>SELL AT YOUR PRICE.
-              </h2>
-              <p className="text-[14px] sm:text-[15px] text-zinc-600 leading-relaxed mb-10 max-w-xl">
-                Tired of wholesale middlemen squeezing your margins? List your crops, vegetables, meats, or spices directly. Set your prices, specify your minimum order volumes, and choose your delivery areas. We handle invoicing and payment escrow so you get paid immediately.
-              </p>
-
-              <div className="grid md:grid-cols-2 gap-8 mb-12 border-t border-zinc-200 pt-8">
-                <div>
-                  <h4 className="font-heading text-[12px] font-bold uppercase tracking-wider text-zinc-900 mb-2">Direct Channel</h4>
-                  <p className="text-[12px] text-zinc-500 leading-relaxed">No intermediary costs. Keep 100% of your listed product prices.</p>
-                </div>
-                <div>
-                  <h4 className="font-heading text-[12px] font-bold uppercase tracking-wider text-zinc-900 mb-2">Instant Invoicing</h4>
-                  <p className="text-[12px] text-zinc-500 leading-relaxed">Generate official commercial receipts automatically with every order.</p>
-                </div>
-              </div>
-
-              <div>
-                <Link
-                  to="/register/fournisseur"
-                  className="inline-flex items-center justify-center gap-3 bg-zinc-900 hover:bg-zinc-800 text-white px-8 py-4 text-[11px] font-bold uppercase tracking-[0.2em] transition-all btn-sharp"
-                >
-                  Create Supplier Account
-                  <ArrowUpRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════ RESTAURANT SECTION (Dark Theme Alt Contrast) ═══════════════════════ */}
-      <section className="py-32 bg-brand-surface text-white relative border-y border-white/5">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="grid lg:grid-cols-12 gap-16 items-center">
-            
-            {/* Left Column: Copy */}
-            <div className="lg:col-span-7 flex flex-col justify-center reveal-item">
-              <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-brand-primary mb-4 block">
-                FOR CHEFS & RESTAURANTS
-              </span>
-              <h2 className="font-heading text-4xl sm:text-5xl font-black uppercase text-white tracking-tight mb-8 leading-tight">
-                UNCOMPROMISING FRESHNESS.<br/>WHOLESALE PRICING.
-              </h2>
-              <p className="text-[14px] sm:text-[15px] text-zinc-400 leading-relaxed mb-10 max-w-xl">
-                Browse hundreds of local producers across Morocco's key agricultural regions. Filter products by category, origin, minimum order, or vendor rating. Discuss specific logistics requirements via in-app chat, verify quality upon arrival, and track order progress in real-time.
-              </p>
-
-              <div className="grid md:grid-cols-2 gap-8 mb-12 border-t border-white/5 pt-8">
-                <div>
-                  <h4 className="font-heading text-[12px] font-bold uppercase tracking-wider text-white mb-2">Detailed Catalogue</h4>
-                  <p className="text-[12px] text-zinc-400 leading-relaxed">Browse live inventories, check batch photos, and compare regional prices.</p>
-                </div>
-                <div>
-                  <h4 className="font-heading text-[12px] font-bold uppercase tracking-wider text-white mb-2">Secure Transactions</h4>
-                  <p className="text-[12px] text-zinc-400 leading-relaxed">Payments are held securely in escrow until order receipt is confirmed.</p>
-                </div>
-              </div>
-
-              <div>
-                <Link
-                  to="/browse"
-                  className="inline-flex items-center justify-center gap-3 bg-brand-primary hover:bg-brand-secondary text-brand-bg px-8 py-4 text-[11px] font-bold uppercase tracking-[0.2em] transition-all btn-sharp"
-                >
-                  Explore Catalog
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </div>
-                    <div className="lg:col-span-5 reveal-item delay-200">
-              <div className="relative border border-white/10 p-3 bg-brand-bg/50 shadow-luxury">
-                <div className="zoom-container aspect-[4/5] bg-zinc-900 border border-white/5">
-                  <img 
-                    src={restaurantImg} 
-                    alt="Chef plating food in kitchen" 
-                    className="w-full h-full object-cover zoom-image"
-                  />
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-
-
-      {/* ═══════════════════════ HOW IT WORKS / PROCESS (Light Theme) ═══════════════════════ */}
-      <section id="process" className="py-32 bg-zinc-50 text-zinc-900 relative">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-24 reveal-item">
-            <div>
-              <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-brand-primary mb-4 block">
-                PLATFORM WORKFLOW
-              </span>
-              <h2 className="font-heading text-4xl sm:text-5xl font-black uppercase text-zinc-900 tracking-tight">
-                HOW GREENLEAF WORKS
-              </h2>
-            </div>
-            
-            {/* Custom Tab Selector */}
-            <div className="flex bg-zinc-200/60 p-1 border border-zinc-200 mt-8 md:mt-0">
-              <button
-                onClick={() => setActiveProcessTab('restaurant')}
-                className={`px-5 py-2.5 text-[10px] font-bold uppercase tracking-[0.2em] transition-all ${
-                  activeProcessTab === 'restaurant'
-                    ? 'bg-white text-zinc-900 shadow-sm'
-                    : 'text-zinc-500 hover:text-zinc-900'
-                }`}
-              >
-                For Restaurants
-              </button>
-              <button
-                onClick={() => setActiveProcessTab('supplier')}
-                className={`px-5 py-2.5 text-[10px] font-bold uppercase tracking-[0.2em] transition-all ${
-                  activeProcessTab === 'supplier'
-                    ? 'bg-white text-zinc-900 shadow-sm'
-                    : 'text-zinc-500 hover:text-zinc-900'
-                }`}
-              >
-                For Suppliers
-              </button>
-            </div>
+                  {lang === 'fr' ? 'EN' : 'FR'}
+                </motion.span>
+              </AnimatePresence>
+            </motion.button>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-12 reveal-item delay-200">
-            {activeProcessTab === 'restaurant' ? (
-              <>
-                {/* Restaurant Step 1 */}
-                <div className="bg-white border border-zinc-200 p-8 shadow-sm">
-                  <div className="flex justify-between items-start mb-10">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 font-mono">01 / SELECT</span>
-                    <div className="w-10 h-10 bg-brand-primary/10 text-brand-primary flex items-center justify-center">
-                      <ShoppingBasket className="w-5 h-5" />
-                    </div>
-                  </div>
-                  <h3 className="font-heading text-base font-bold uppercase tracking-wider text-zinc-900 mb-4">Browse Catalogues</h3>
-                  <p className="text-[12px] text-zinc-500 leading-relaxed">Search live inventories from verified farms. Add items to your cart, and review min order thresholds.</p>
-                </div>
-                {/* Restaurant Step 2 */}
-                <div className="bg-white border border-zinc-200 p-8 shadow-sm">
-                  <div className="flex justify-between items-start mb-10">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 font-mono">02 / INTERACT</span>
-                    <div className="w-10 h-10 bg-brand-primary/10 text-brand-primary flex items-center justify-center">
-                      <MessageSquare className="w-5 h-5" />
-                    </div>
-                  </div>
-                  <h3 className="font-heading text-base font-bold uppercase tracking-wider text-zinc-900 mb-4">Direct Chat & Order</h3>
-                  <p className="text-[12px] text-zinc-500 leading-relaxed">Discuss batch qualities or shipping arrangements in real-time, submit your purchase order directly.</p>
-                </div>
-                {/* Restaurant Step 3 */}
-                <div className="bg-white border border-zinc-200 p-8 shadow-sm">
-                  <div className="flex justify-between items-start mb-10">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 font-mono">03 / CONFIRM & INVOICE</span>
-                    <div className="w-10 h-10 bg-brand-primary/10 text-brand-primary flex items-center justify-center">
-                      <CheckCircle className="w-5 h-5" />
-                    </div>
-                  </div>
-                  <h3 className="font-heading text-base font-bold uppercase tracking-wider text-zinc-900 mb-4">Escrow Release</h3>
-                  <p className="text-[12px] text-zinc-500 leading-relaxed">Once delivered and checked, confirm receipt to release payment. Instantly print a professional PDF invoice.</p>
-                </div>
-              </>
+          <button onClick={onLogoClick} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} aria-label="GreenLeaf — retour à l'accueil">
+            <Logo textColor={scrolled ? 'var(--text)' : '#ffffff'} leafColor={scrolled ? 'var(--sulu)' : '#50DE68'} subtextColor={scrolled ? 'var(--silver)' : 'rgba(255,255,255,0.7)'} />
+          </button>
+
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'flex-end' }}>
+            {isAuthenticated ? (
+              <Link to={getDashboardPath()} className="gl-nav-link" style={{ color: 'var(--sulu)' }}>{t.nav.dashboard}</Link>
             ) : (
               <>
-                {/* Supplier Step 1 */}
-                <div className="bg-white border border-zinc-200 p-8 shadow-sm">
-                  <div className="flex justify-between items-start mb-10">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 font-mono">01 / LIST PRODUCTS</span>
-                    <div className="w-10 h-10 bg-zinc-100 text-zinc-900 flex items-center justify-center">
-                      <Layers className="w-5 h-5" />
-                    </div>
-                  </div>
-                  <h3 className="font-heading text-base font-bold uppercase tracking-wider text-zinc-900 mb-4">Upload Inventory</h3>
-                  <p className="text-[12px] text-zinc-500 leading-relaxed">Add details, prices per kg, stock quantities, and high-quality harvest images to your profile.</p>
-                </div>
-                {/* Supplier Step 2 */}
-                <div className="bg-white border border-zinc-200 p-8 shadow-sm">
-                  <div className="flex justify-between items-start mb-10">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 font-mono">02 / PROCESS ORDERS</span>
-                    <div className="w-10 h-10 bg-zinc-100 text-zinc-900 flex items-center justify-center">
-                      <Calendar className="w-5 h-5" />
-                    </div>
-                  </div>
-                  <h3 className="font-heading text-base font-bold uppercase tracking-wider text-zinc-900 mb-4">Manage Statuses</h3>
-                  <p className="text-[12px] text-zinc-500 leading-relaxed">Receive instant order notifications. Accept or reject, dispatch with local logistics, and update status.</p>
-                </div>
-                {/* Supplier Step 3 */}
-                <div className="bg-white border border-zinc-200 p-8 shadow-sm">
-                  <div className="flex justify-between items-start mb-10">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 font-mono">03 / SECURE PAYOUTS</span>
-                    <div className="w-10 h-10 bg-zinc-100 text-zinc-900 flex items-center justify-center">
-                      <TrendingUp className="w-5 h-5" />
-                    </div>
-                  </div>
-                  <h3 className="font-heading text-base font-bold uppercase tracking-wider text-zinc-900 mb-4">Withdraw Revenue</h3>
-                  <p className="text-[12px] text-zinc-500 leading-relaxed">Funds are automatically deposited in your wallet once delivery is complete. Export statements easily.</p>
-                </div>
+
+                <button
+                  onClick={() => navigate('/login')}
+                  className="gl-nav-link"
+                  style={{ color: scrolled ? 'var(--nav-link)' : 'rgba(255,255,255,0.85)', background: 'none', border: 'none', cursor: 'pointer', textShadow: scrolled ? 'none' : '0 1px 6px rgba(0,0,0,0.5)' }}
+                >
+                  {t.nav.login}
+                </button>
+                <button
+                  onClick={() => navigate('/register/restaurant')}
+                  className="gl-btn-p"
+                  style={{ padding: '10px 20px', fontSize: 10, background: 'var(--sulu)', color: '#0c1410' }}
+                >
+                  {t.nav.join}
+                </button>
               </>
             )}
           </div>
-          
         </div>
-      </section>
+      </div>
+    </nav>
+  );
+};
 
-      {/* ═══════════════════════ CATEGORIES SECTION (Dark Theme) ═══════════════════════ */}
-      <section id="categories" className="py-32 bg-brand-bg relative dot-grid">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="text-center mb-24 reveal-item">
-            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-brand-primary mb-4 block">
-              SUPPLY RANGE
-            </span>
-            <h2 className="font-heading text-4xl sm:text-5xl font-black uppercase text-white tracking-tight">
-              AGRICULTURAL CATEGORIES
-            </h2>
-          </div>
+/* ───────────────────────────────────────────────────────────────────────────
+   1. HERO — Spline 3D scene background, content overlaid on top
+   ─────────────────────────────────────────────────────────────────────────── */
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5 reveal-item delay-200">
-            {[
-              { icon: Leaf, title: 'Vegetables', desc: 'Fresh regional potatoes, carrots, onions, and select herbs' },
-              { icon: Beef, title: 'Meats', desc: 'Premium quality local halal beef, lamb, and poultry batches' },
-              { icon: Droplets, title: 'Beverages', desc: 'Moroccan mineral water, natural juices, and soda volumes' },
-              { icon: Sparkles, title: 'Spices', desc: 'Premium saffron of Taliouine, pure cumin, and local blends' },
-              { icon: ShoppingBasket, title: 'Dry Goods', desc: 'Coarse couscous grains, baking flour, and essential pulses' },
-            ].map(({ icon: Icon, title, desc }) => (
-              <Link
-                key={title}
-                to="/browse"
-                className="group bg-brand-surface border border-white/5 p-8 hover:border-brand-primary/30 transition-all duration-300 flex flex-col justify-between aspect-square"
-              >
-                <div className="w-12 h-12 flex items-center justify-center bg-brand-primary/10 text-brand-primary group-hover:bg-brand-primary/20 transition-colors">
-                  <Icon className="w-5.5 h-5.5" />
+const HeroSection = ({ t }) => {
+  const { theme } = useAppStore();
+  const isDark = theme === 'dark';
+  // remove isLoading and hasError states — not needed anymore
+
+  return (
+    <section style={{
+      height: '100vh',
+      minHeight: 700,
+      position: 'relative',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'flex-end',
+      overflow: 'hidden',
+      background: 'var(--bg)',
+      color: '#FFF' // Ensure text is visible during load
+    }}>
+
+
+
+      {/* 3. Background Image */}
+      <img
+        src={ctaBg}
+        alt=""
+        style={{
+          position: 'absolute', inset: 0, zIndex: 0,
+          width: '100%', height: '100%',
+          objectFit: 'cover',
+          objectPosition: 'center',
+          filter: isDark
+            ? 'brightness(0.5) saturate(0.8)'
+            : 'brightness(1.1) saturate(1.2)',
+          transition: 'filter 0.8s ease',
+        }}
+      />
+
+      {/* 4. Overlays (Darken for text readability) */}
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 1, pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 80% 60% at 50% 30%, rgba(168,224,99,0.15) 0%, transparent 70%)', zIndex: 1, pointerEvents: 'none' }} />
+
+      {/* 5. Content (Z-Index 2) */}
+      <div style={{ position: 'relative', zIndex: 2, padding: '120px 32px 0', textAlign: 'center' }}>
+        <FadeIn delay={0} y={-20}>
+          <span style={{ fontFamily: 'DM Mono,monospace', fontSize: 10, color: 'var(--silver)', letterSpacing: '0.30em', textTransform: 'uppercase' }}>{t.hero.eyebrow}</span>
+        </FadeIn>
+        <FadeIn delay={0.15} y={40}>
+          <h1 className="gl-hero-heading" style={{ fontFamily: 'DM Serif Display,Georgia,serif', fontWeight: 400, fontSize: 'clamp(48px, 9vw, 132px)', lineHeight: 0.92, textTransform: 'uppercase', letterSpacing: '0.02em', marginTop: 10 }}>
+            {t.hero.h1}<br />{t.hero.h2}<br />{t.hero.h3}
+          </h1>
+        </FadeIn>
+      </div>
+
+      <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', padding: '0 32px 56px', gap: 20, flexWrap: 'wrap' }}>
+        <FadeIn delay={0.35} y={20}>
+          <p style={{ fontFamily: 'DM Mono,monospace', fontSize: 'clamp(11px,1.4vw,15px)', color: 'var(--silver)', letterSpacing: '0.08em', lineHeight: 1.8, maxWidth: 280, textTransform: 'uppercase' }}>
+            {t.hero.sub}
+          </p>
+        </FadeIn>
+        <FadeIn delay={0.5} y={20} className="gl-hero-btns" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <Link to="/register/restaurant" className="gl-btn-p">{t.hero.cta1} <ArrowRight size={14} aria-hidden /></Link>
+          <Link to="/register/fournisseur" className="gl-btn-g">{t.hero.cta2}</Link>
+        </FadeIn>
+      </div>
+
+      <div className="gl-scrollhint" style={{ position: 'absolute', bottom: 14, left: '50%', transform: 'translateX(-50%)', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }} aria-hidden>
+        <span style={{ fontFamily: 'DM Mono,monospace', fontSize: 9, color: 'var(--silverLo)', letterSpacing: '0.28em', textTransform: 'uppercase' }}>{t.hero.scroll}</span>
+        <ChevronDown size={14} color="var(--silverLo)" />
+      </div>
+    </section>
+  );
+};
+
+
+/* ───────────────────────────────────────────────────────────────────────────
+   2. MARQUEE — two rows, scroll-linked, opposite directions
+   ─────────────────────────────────────────────────────────────────────────── */
+const MarqueeSection = () => {
+ const row1 = [...IMGS.marquee.slice(0, 7), ...IMGS.marquee.slice(0, 7), ...IMGS.marquee.slice(0, 7)];
+const row2 = [...IMGS.marquee.slice(7), ...IMGS.marquee.slice(7), ...IMGS.marquee.slice(7)];
+
+  return (
+    <section style={{ background: 'var(--bg)', padding: '60px 0', overflow: 'hidden' }} aria-label="Notre marché">
+      <style>{`
+        @keyframes marquee-left {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-33.333%); }
+        }
+        @keyframes marquee-right {
+          0%   { transform: translateX(-33.333%); }
+          100% { transform: translateX(0); }
+        }
+        .gl-marquee-track-left {
+          display: flex;
+          gap: 12px;
+          width: max-content;
+          animation: marquee-left 28s linear infinite;
+        }
+        .gl-marquee-track-right {
+          display: flex;
+          gap: 12px;
+          width: max-content;
+          animation: marquee-right 32s linear infinite;
+          margin-top: 12px;
+        }
+        .gl-marquee-track-left:hover,
+        .gl-marquee-track-right:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
+
+      <div style={{ overflow: 'hidden' }}>
+        <div className="gl-marquee-track-left">
+          {row1.map((src, i) => (
+            <div key={i} className="gl-marquee-tile">
+              <img src={src} alt="" loading="lazy" />
+            </div>
+          ))}
+        </div>
+        <div className="gl-marquee-track-right">
+          {row2.map((src, i) => (
+            <div key={i} className="gl-marquee-tile">
+              <img src={src} alt="" loading="lazy" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ───────────────────────────────────────────────────────────────────────────
+   3. ABOUT
+   ─────────────────────────────────────────────────────────────────────────── */
+const AboutSection = ({ t }) => (
+  <section id="about" style={{ background: 'var(--bg)', position: 'relative', minHeight: '90vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '120px 24px', overflow: 'hidden' }}>
+    <FadeIn delay={0.1} x={-80} duration={0.9} className="gl-about-deco" style={{ position: 'absolute', top: '6%', left: '4%' }}>
+      <img src={IMGS.aboutTL} alt="" loading="lazy" style={{ width: 150, height: 150, objectFit: 'cover', borderRadius: 20, filter: 'var(--imgFilter)' }} />
+    </FadeIn>
+    <FadeIn delay={0.25} x={-80} duration={0.9} className="gl-about-deco" style={{ position: 'absolute', bottom: '8%', left: '8%' }}>
+      <img src={IMGS.aboutBL} alt="" loading="lazy" style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 20, filter: 'var(--imgFilter)' }} />
+    </FadeIn>
+    <FadeIn delay={0.15} x={80} duration={0.9} className="gl-about-deco" style={{ position: 'absolute', top: '6%', right: '4%' }}>
+      <img src={IMGS.aboutTR} alt="" loading="lazy" style={{ width: 150, height: 150, objectFit: 'cover', borderRadius: 20, filter: 'var(--imgFilter)' }} />
+    </FadeIn>
+    <FadeIn delay={0.3} x={80} duration={0.9} className="gl-about-deco" style={{ position: 'absolute', bottom: '8%', right: '8%' }}>
+      <img src={IMGS.aboutBR} alt="" loading="lazy" style={{ width: 140, height: 140, objectFit: 'cover', borderRadius: 20, filter: 'var(--imgFilter)' }} />
+    </FadeIn>
+
+    <FadeIn delay={0} y={20}>
+      <Eyebrow center>{t.about.eyebrow}</Eyebrow>
+    </FadeIn>
+    <FadeIn delay={0.1} y={40}>
+      <h2 className="gl-hero-heading" style={{
+        fontFamily: 'DM Serif Display,serif', fontWeight: 400, fontSize: 'clamp(40px,8vw,100px)'
+        , textTransform: 'uppercase', lineHeight: 0.95, textAlign: 'center', marginBottom: 40
+      }}>
+        {t.about.h1}<br />{t.about.h2}
+      </h2>
+    </FadeIn>
+    <FadeIn delay={0.2} y={20}>
+      <p style={{ fontFamily: 'DM Mono,monospace', fontSize: 'clamp(13px,1.6vw,16px)', color: 'var(--textMid)', textAlign: 'center', lineHeight: 1.9, letterSpacing: '0.03em', maxWidth: 580 }}>
+        {t.about.body}
+      </p>
+    </FadeIn>
+  </section>
+);
+
+
+
+const SERVICE_ICONS = [Search, ShoppingCart, Truck, ListPlus, Wallet];
+
+const ServicesSection = ({ t }) => (
+  <section id="how" style={{ background: '#FFFFFF', borderRadius: '40px 40px 0 0', padding: '100px 24px' }} aria-label="Comment ça marche">
+    <div style={{
+      marginBottom: 70, fontFamily: 'DM Serif Display,serif', fontWeight: 400, fontSize: 'clamp(40px,7vw,90px)'
+      , color: '#0C0C0C', textTransform: 'uppercase', lineHeight: 0.95, textAlign: 'center'
+    }}>
+      <ScrollFloat animationDuration={2} ease="back.inOut(2)" scrollStart="center bottom+=50%" scrollEnd="bottom bottom-=40%" stagger={0.03}>
+        {`${t.services.h1} ${t.services.h2}`}
+      </ScrollFloat>
+    </div>
+    <div style={{ maxWidth: 880, margin: '0 auto' }}>
+      {t.services.items.map((s, i) => {
+        const Ic = SERVICE_ICONS[i % SERVICE_ICONS.length];
+        const fromLeft = i % 2 === 0;
+        return (
+          <FadeIn key={i} delay={i * 0.1} x={fromLeft ? -40 : 40} y={0}>
+            <div className="gl-service-row">
+              <span className="gl-service-num" style={{ color: '#1F8F4E' }}>{String(i + 1).padStart(2, '0')}</span>
+              <div style={{ width: 44, height: 44, borderRadius: '50%', border: '1.5px solid rgba(12,12,12,.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Ic size={18} color="#1F8F4E" strokeWidth={1.6} aria-hidden />
+              </div>
+              <div>
+                <div style={{ fontFamily: 'DM Mono,monospace', fontSize: 'clamp(14px,2.2vw,20px)', fontWeight: 500, color: '#0C0C0C', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>{s.name}</div>
+                <p style={{ fontFamily: 'DM Mono,monospace', fontSize: 'clamp(11px,1.5vw,13px)', color: '#0C0C0C', opacity: 0.6, lineHeight: 1.8, maxWidth: 520 }}>{s.body}</p>
+              </div>
+            </div>
+          </FadeIn>
+        );
+      })}
+    </div>
+  </section>
+);
+
+const CategoriesSection = ({ t, lang }) => (
+  <section id="suppliers" style={{
+    background: 'var(--bg)', borderRadius: '40px 40px 0 0', position: 'relative', zIndex: 10, padding: '80px 24px 0px', marginTop: -60
+  }}>
+    <div style={{ overflow: 'hidden' }}>
+      <h2 style={{
+        fontFamily: 'DM Serif Display,serif',
+        fontWeight: 400,
+        fontSize: 'clamp(28px,7vw,110px)',
+        textTransform: 'uppercase',
+        lineHeight: 0.95,
+        textAlign: 'center',
+        marginBottom: 60
+      }}>
+        <FadeIn delay={0.1} y={40}>
+          <span style={{ display: 'block', whiteSpace: 'nowrap', color: 'var(--text)' }}>{t.categories.h1}</span>
+        </FadeIn>
+        <FadeIn delay={0.22} y={40}>
+          <span className="gl-hero-heading" style={{ display: 'block', whiteSpace: 'nowrap' }}>{t.categories.h2}</span>
+        </FadeIn>
+      </h2>
+    </div>
+
+    <div style={{ maxWidth: 1000, margin: '0 auto' }}>
+      <ScrollStack key={lang} useWindowScroll={true} itemDistance={137} itemStackDistance={40} stackPosition="25%" scaleEndPosition="5%">
+        {t.categories.items.map((cat, i) => (
+          <ScrollStackItem key={i}>
+            <div style={{
+              borderRadius: 36,
+              border: '2px solid var(--border2)',
+              background: 'var(--bg2)',
+              padding: 'clamp(28px, 4vw, 40px) clamp(24px, 4vw, 48px)',
+              boxShadow: '0 30px 70px rgba(0,0,0,0.4)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 24,
+              height: 'clamp(380px, 55vh, 480px)',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              <div style={{ position: 'absolute', inset: 0, zIndex: 0, display: 'flex' }}>
+                {IMGS.categories[i].map((imgSrc, imgIdx, arr) => (
+                  <img key={imgIdx} src={imgSrc} alt="" loading="lazy" style={{ width: arr.length > 1 ? '50%' : '100%', height: '100%', objectFit: 'cover', filter: 'brightness(1)' }} />
+                ))}
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }} />
+              </div>
+              <div style={{ position: 'relative', zIndex: 1, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <span style={{ fontFamily: 'DM Serif Display,serif', fontSize: 'clamp(3rem, 7vw, 4.5rem)', color: 'var(--sulu)', lineHeight: 1 }}>{cat.num}</span>
                 </div>
                 <div>
-                  <h3 className="font-heading font-bold text-sm uppercase tracking-wider text-white mb-3 flex items-center justify-between">
-                    {title}
-                    <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity text-brand-primary" />
-                  </h3>
-                  <p className="text-[12px] text-zinc-400 leading-relaxed">{desc}</p>
+                  <h3 style={{ fontFamily: 'DM Serif Display,serif', fontSize: 'clamp(28px, 4.5vw, 48px)', color: '#FFF', textTransform: 'uppercase', marginBottom: 16 }}>{cat.title}</h3>
+                  <p style={{ fontFamily: 'DM Mono,monospace', fontSize: 'clamp(12px, 1.5vw, 15px)', color: 'rgba(255,255,255,0.7)', letterSpacing: '0.04em', maxWidth: 400, lineHeight: 1.6 }}>{cat.desc}</p>
                 </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════ CTA (Dark Premium) ═══════════════════════ */}
-      <section className="py-32 bg-brand-surface relative overflow-hidden border-t border-white/5">
-        <div className="absolute inset-0">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-primary/[0.04] rounded-full blur-[140px]"></div>
-        </div>
-
-        <div className="max-w-3xl mx-auto px-6 lg:px-8 text-center relative z-10 reveal-item">
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-brand-primary mb-6 block">
-              FAST ONBOARDING
-            </span>
-            <h2 className="font-heading text-4xl sm:text-5xl font-black uppercase text-white tracking-tight mb-8">
-              READY TO INTEGRATE YOUR SUPPLY CHAIN?
-            </h2>
-            <p className="text-zinc-400 text-[13px] sm:text-[14px] leading-relaxed mb-12 max-w-xl mx-auto">
-              Join hundreds of restaurant kitchens and regional producers already connected. Standardized billing, no commission, direct local pricing.
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/register/restaurant"
-              className="group inline-flex items-center justify-center gap-3 bg-brand-primary text-brand-bg px-8 py-4 text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-brand-secondary transition-all btn-sharp"
-            >
-              Register Restaurant
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link
-              to="/register/fournisseur"
-              className="inline-flex items-center justify-center gap-3 border border-white/10 text-zinc-300 hover:text-white hover:border-white/30 px-8 py-4 text-[11px] font-bold uppercase tracking-[0.2em] transition-all btn-sharp bg-white/[0.01]"
-            >
-              Register Supplier
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════ FOOTER ═══════════════════════ */}
-      <footer className="bg-brand-bg border-t border-white/5 pt-24 pb-12 relative z-10">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="grid gap-16 sm:grid-cols-2 lg:grid-cols-12 mb-20">
-            
-            {/* Brand (Col 1-4) */}
-            <div className="lg:col-span-4">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="h-8 w-8 bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center">
-                  <Leaf className="h-4 w-4 text-brand-primary" />
-                </div>
-                <span className="font-heading text-sm font-bold tracking-[0.1em] text-white uppercase">
-                  Green<span className="text-brand-primary">Leaf</span>
-                </span>
               </div>
-              <p className="text-[12px] text-zinc-400 leading-relaxed mb-8 max-w-sm">
-                Morocco's premier B2B marketplace connecting restaurants directly with agricultural cooperatives and wholesale suppliers.
-              </p>
-              
-              {/* Newsletter form with neon border feedback */}
-              <form onSubmit={(e) => e.preventDefault()} className="max-w-xs">
-                <span className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-3">Subscribe to updates</span>
-                <div className="flex border border-white/10 focus-within:border-brand-primary transition-colors">
-                  <input
-                    type="email"
-                    placeholder="EMAIL ADDRESS"
-                    className="bg-transparent border-0 px-4 py-3 text-[11px] font-bold tracking-wider text-white placeholder-zinc-600 focus:outline-none focus:ring-0 w-full"
-                  />
-                  <button type="submit" className="px-4 text-brand-primary hover:text-white transition-colors">
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </form>
             </div>
-
-            {/* Regions links (Col 5-6) */}
-            <div className="lg:col-span-2">
-              <h4 className="font-heading text-[10px] font-bold uppercase tracking-[0.25em] text-zinc-400 mb-6">
-                TOP REGIONS
-              </h4>
-              <ul className="space-y-3">
-                {[
-                  { to: '#', label: 'Casablanca-Settat' },
-                  { to: '#', label: 'Souss-Massa (Agadir)' },
-                  { to: '#', label: 'Marrakech-Safi' },
-                  { to: '#', label: 'Fès-Meknès' },
-                  { to: '#', label: 'Tanger-Tétouan' },
-                ].map(({ to, label }) => (
-                  <li key={label}>
-                    <Link to={to} className="text-[12px] text-zinc-400 hover:text-white transition-colors">
-                      {label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Categories links (Col 7-8) */}
-            <div className="lg:col-span-2">
-              <h4 className="font-heading text-[10px] font-bold uppercase tracking-[0.25em] text-zinc-400 mb-6">
-                CATEGORIES
-              </h4>
-              <ul className="space-y-3">
-                {[
-                  { to: '#', label: 'Fresh Vegetables' },
-                  { to: '#', label: 'Organic Fruits' },
-                  { to: '#', label: 'Prime Meats' },
-                  { to: '#', label: 'Spices & Herbs' },
-                  { to: '#', label: 'Dairy & Eggs' },
-                ].map(({ to, label }) => (
-                  <li key={label}>
-                    <Link to={to} className="text-[12px] text-zinc-400 hover:text-white transition-colors">
-                      {label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-
-            {/* Company Links (Col 9-10) */}
-            <div className="lg:col-span-2">
-              <h4 className="font-heading text-[10px] font-bold uppercase tracking-[0.25em] text-zinc-400 mb-6">
-                COMPANY
-              </h4>
-              <ul className="space-y-3">
-                {[
-                  { to: '#', label: 'About Us' },
-                  { to: '#', label: 'Contact Support' },
-                  { to: '#', label: 'Terms of Service' },
-                  { to: '#', label: 'Privacy Policy' },
-                ].map(({ to, label }) => (
-                  <li key={label}>
-                    <Link to={to} className="text-[12px] text-zinc-400 hover:text-white transition-colors">
-                      {label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Demo credentials (Col 11-12) */}
-            <div className="lg:col-span-2 bg-white/[0.02] border border-white/5 p-4">
-              <h4 className="font-heading text-[10px] font-bold uppercase tracking-[0.25em] text-brand-primary mb-6">
-                DEMO ACCESS DETAILS
-              </h4>
-              <ul className="space-y-3 text-[12px] text-zinc-400">
-                <li><span className="text-zinc-300 font-semibold">Restaurant:</span> restaurant@demo.com</li>
-                <li><span className="text-zinc-300 font-semibold">Supplier:</span> fournisseur@demo.com</li>
-                <li><span className="text-zinc-300 font-semibold">Admin:</span> admin@demo.com</li>
-                <li className="text-brand-primary text-[10px] uppercase tracking-[0.25em] font-bold pt-2 border-t border-white/5">
-                  Password: demo123
-                </li>
-              </ul>
-            </div>
-            
-          </div>
-
-          {/* Bottom Bar */}
-          <div className="h-px bg-white/5 mb-8"></div>
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p className="text-[10px] text-zinc-500 font-medium tracking-wide">
-              &copy; 2026 GREENLEAF MOROCCO. ALL RIGHTS RESERVED.
-            </p>
-            <Link
-              to="/admin/login"
-              className="text-[10px] text-zinc-400 hover:text-brand-primary transition-colors font-semibold uppercase tracking-[0.2em]"
-            >
-              Staff Portal Access
-            </Link>
-          </div>
-        </div>
-      </footer>
-      
+          </ScrollStackItem>
+        ))}
+      </ScrollStack>
     </div>
+  </section>
+);
+
+/* ───────────────────────────────────────────────────────────────────────────
+   FAQ  ·  FINAL CTA  ·  EMAIL  ·  FOOTER
+   ─────────────────────────────────────────────────────────────────────────── */
+const FAQ = ({ t }) => {
+  const [open, setOpen] = useState(null);
+  return (
+    <section style={{ background: 'var(--bg2)', padding: '96px 32px', border: 'none', position: 'relative' }} aria-label="Questions fréquentes">
+
+      {/* top fade */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: 200, pointerEvents: 'none', zIndex: 2,
+        background: 'linear-gradient(to bottom, var(--bg), transparent)'
+      }} />
+
+      {/* bottom fade */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0, height: 200, pointerEvents: 'none', zIndex: 2,
+        background: 'linear-gradient(to top, #000, transparent)'
+      }} />
+
+      <div style={{ position: 'relative', zIndex: 3, maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 76 }} className="gl-faq-grid">
+        <div>
+          <Eyebrow>{t.faq.eyebrow}</Eyebrow>
+          <h2 style={{ fontFamily: 'DM Serif Display,serif', fontWeight: 400, fontSize: 'clamp(28px,4vw,50px)', color: 'var(--text)', textTransform: 'uppercase', lineHeight: 1, marginBottom: 28 }}>
+            {t.faq.h1}<br /><Accent>{t.faq.h2}</Accent>
+          </h2>
+          <p style={{ fontFamily: 'DM Mono,monospace', fontSize: 11, color: 'var(--silver)', lineHeight: 1.9, letterSpacing: '0.07em', marginBottom: 36 }}>{t.faq.sub}</p>
+          <Link to="/support" className="gl-btn-g" style={{ fontSize: 10, padding: '12px 24px' }}>{t.faq.cta} <ArrowRight size={13} aria-hidden /></Link>
+        </div>
+        <div>
+          {t.faq.items.map((faq, i) => (
+            <div key={i} className="gl-faq-row">
+              <button className="gl-faq-btn" onClick={() => setOpen(open === i ? null : i)} aria-expanded={open === i} aria-controls={`faq-answer-${i}`} id={`faq-btn-${i}`}>
+                <span style={{ fontFamily: 'DM Serif Display,serif', fontSize: 17, color: open === i ? 'var(--blue)' : 'var(--textMid)', lineHeight: 1.3, transition: 'color 0.18s' }}>{faq.q}</span>
+                <Plus size={14} color="var(--silverMd)" className={`gl-faq-icon${open === i ? ' open' : ''}`} aria-hidden />
+              </button>
+              {open === i && (
+                <div id={`faq-answer-${i}`} role="region" aria-labelledby={`faq-btn-${i}`} className="gl-faq-answer">
+                  <p style={{ fontFamily: 'DM Mono,monospace', fontSize: 11, color: 'var(--silver)', lineHeight: 1.9, letterSpacing: '0.06em' }}>{faq.a}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ───────────────────────────────────────────────────────────────────────────
+   FINAL CTA
+   ─────────────────────────────────────────────────────────────────────────── */
+
+const FinalCTA = ({ t }) => {
+  const { theme } = useAppStore();
+  const isDark = theme === 'dark';
+
+  return (
+    <section style={{
+      position: 'relative',
+      minHeight: 540,
+      overflow: 'hidden',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: '#000',
+    }} aria-label="Inscription">
+
+      <style>{`
+        @keyframes tvFlicker {
+          0%,100% { opacity: 1; }
+          92%      { opacity: 1; }
+          93%      { opacity: 0.85; }
+          94%      { opacity: 1; }
+          96%      { opacity: 0.9; }
+          97%      { opacity: 1; }
+        }
+        @keyframes tvGlowPulse {
+          0%,100% { opacity: 0.55; transform: scale(1); }
+          50%      { opacity: 0.75; transform: scale(1.04); }
+        }
+      `}</style>
+
+
+
+      {/* ── ACTUAL IMAGE via img tag ── */}
+      <img
+        src={isDark ? ctaBgDark : ctaBgLight}
+        alt=""
+        style={{
+          position: 'absolute', inset: 0, zIndex: 0,
+          width: '100%', height: '100%',
+          objectFit: 'cover',
+          objectPosition: 'center',
+          filter: isDark
+            ? 'brightness(0.4) saturate(0.6)'
+            : 'brightness(0.85) saturate(1)',
+          transition: 'filter 0.8s ease',
+        }}
+      />
+
+      {/* ── CINEMATIC VIGNETTE ── */}
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 1,
+        background: `radial-gradient(ellipse 60% 55% at 50% 50%, 
+          transparent 0%, 
+          rgba(0,0,0,0.35) 40%, 
+          rgba(0,0,0,0.75) 70%, 
+          rgba(0,0,0,0.95) 100%)`,
+        pointerEvents: 'none',
+      }} />
+
+      {/* ── DARK MODE ONLY ── */}
+      {isDark && (
+        <>
+          <div style={{
+            position: 'absolute', inset: 0, zIndex: 1,
+            background: `radial-gradient(ellipse 60% 55% at 50% 50%, 
+              transparent 0%, 
+              rgba(0,0,0,0.4) 45%, 
+              rgba(0,0,0,0.82) 75%, 
+              rgba(0,0,0,0.97) 100%)`,
+            pointerEvents: 'none',
+          }} />
+
+          <div style={{
+            position: 'absolute',
+            top: '50%', left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '70%', height: '80%',
+            background: 'radial-gradient(ellipse, rgba(160,200,255,0.45) 0%, rgba(100,150,255,0.20) 40%, transparent 70%)',
+            filter: 'blur(35px)',
+            animation: 'tvGlowPulse 4s ease-in-out infinite',
+            zIndex: 2,
+            pointerEvents: 'none',
+            mixBlendMode: 'screen',
+          }} />
+
+          <div style={{
+            position: 'absolute',
+            top: '50%', left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '30%', height: '35%',
+            background: 'radial-gradient(ellipse, rgba(220,235,255,0.35) 0%, transparent 65%)',
+            filter: 'blur(20px)',
+            animation: 'tvGlowPulse 4s ease-in-out infinite 0.5s',
+            zIndex: 2,
+            pointerEvents: 'none',
+            mixBlendMode: 'screen',
+          }} />
+        </>
+      )}
+      {/* ── CONTENT ── */}
+      <div style={{
+        position: 'relative', zIndex: 3,
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        textAlign: 'center',
+        padding: '80px 32px',
+        width: '100%',
+      }}>
+        <Eyebrow center style={{ marginBottom: 22, color: isDark ? 'rgba(140,180,255,0.7)' : 'var(--silver)' }}>
+          {t.finalCta.eyebrow}
+        </Eyebrow>
+        <h2 style={{
+          fontFamily: 'DM Serif Display,serif',
+          fontSize: 'clamp(34px,6vw,78px)',
+          fontWeight: 400,
+          textTransform: 'uppercase',
+          lineHeight: 0.95,
+          letterSpacing: '0.04em',
+          marginBottom: 46,
+          color: isDark ? '#e8f0ff' : '#FFF',
+          textShadow: isDark ? '0 0 60px rgba(120,160,255,0.25), 0 2px 20px rgba(0,0,0,0.8)' : 'none',
+          transition: 'all 0.8s ease',
+        }}>
+          {t.finalCta.l1}<br /><Accent>{t.finalCta.l2}</Accent><br />{t.finalCta.l3}
+        </h2>
+        <div className="gl-hero-btns" style={{ display: 'flex', gap: 14, flexWrap: 'wrap', justifyContent: 'center' }}>
+          <Link to="/register/restaurant" className="gl-btn-p" style={{ padding: '10px 20px', fontSize: 10, background: 'var(--sulu)', color: '#0c1410' }}>
+            {t.nav.join}
+          </Link>
+          <Link to="/register/fournisseur" className="gl-btn-g">{t.finalCta.cta2}</Link>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const EmailSignup = ({ t }) => {
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState('idle');
+  const handleSubmit = (e) => { e.preventDefault(); if (!email) return; setStatus('loading'); setTimeout(() => setStatus('done'), 1200); };
+  return (
+    <section style={{ background: 'var(--bg)', padding: '76px 32px', borderTop: '1px solid var(--border)' }} aria-label="Newsletter">
+      <div style={{ maxWidth: 500, margin: '0 auto', textAlign: 'center' }}>
+        <h3 style={{ fontFamily: 'DM Serif Display,serif', fontSize: 30, fontWeight: 400, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>{t.email.title}</h3>
+        <p style={{ fontFamily: 'DM Mono,monospace', fontSize: 10, color: 'var(--silver)', letterSpacing: '0.11em', marginBottom: 28 }}>{t.email.sub}</p>
+        {status === 'done' ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '18px 24px', border: '1px solid var(--border)', background: 'var(--suluLo)' }}>
+            <CheckCircle size={16} color="var(--sulu)" aria-hidden />
+            <span style={{ fontFamily: 'DM Mono,monospace', fontSize: 10, color: 'var(--sulu)', letterSpacing: '0.14em', textTransform: 'uppercase' }}>{t.email.done}</span>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} style={{ display: 'flex', border: '1px solid var(--border)' }}>
+            <label htmlFor="email-signup" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)' }}>Email</label>
+            <input id="email-signup" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="EMAIL" required className="gl-input" style={{ flex: 1, border: 'none' }} />
+            <button type="submit" className="gl-btn-p" style={{ borderRadius: 0 }} disabled={status === 'loading'}>{status === 'loading' ? '...' : <>{t.email.cta} <ArrowRight size={13} aria-hidden /></>}</button>
+          </form>
+        )}
+      </div>
+    </section>
+  );
+};
+
+const Footer = ({ t, onOpenInfo }) => (
+  <footer style={{ background: 'var(--bg3)', borderTop: '1px solid var(--border)', padding: '60px 32px 28px' }}>
+    <div style={{ maxWidth: 1320, margin: '0 auto' }}>
+      <div className="gl-footer-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 44, paddingBottom: 44, borderBottom: '1px solid var(--border)', marginBottom: 28 }}>
+        <div>
+          <div style={{ marginBottom: 18 }}><Logo /></div>
+          <p style={{ fontFamily: 'DM Mono,monospace', fontSize: 10, color: 'var(--silver)', lineHeight: 1.9, letterSpacing: '0.07em', maxWidth: 260, marginBottom: 8 }}>{t.footer.desc}</p>
+          <p style={{ fontFamily: 'DM Mono,monospace', fontSize: 9, color: 'var(--textLow)', letterSpacing: '0.12em' }}>{t.footer.copy}</p>
+        </div>
+        {t.footer.cols.map(({ title, links }, colIdx) => {
+          const isCompanyCol = colIdx === t.footer.cols.length - 1; // "Société" / "Company" column — always last
+          return (
+            <nav key={title} aria-label={title}>
+              <h4 style={{ fontFamily: 'DM Mono,monospace', fontSize: 9, color: 'var(--textLow)', letterSpacing: '0.24em', textTransform: 'uppercase', marginBottom: 18 }}>{title}</h4>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {links.map((l, i) => (
+                  <li key={l}>
+                    {isCompanyCol ? (
+                      <button
+                        onClick={() => onOpenInfo(FOOTER_INFO_SLUGS[i])}
+                        style={{ fontFamily: 'DM Mono,monospace', fontSize: 10, color: 'var(--silver)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', letterSpacing: '0.08em', transition: 'color 0.18s' }}
+                        onMouseEnter={e => e.currentTarget.style.color = '#ffffff'} onMouseLeave={e => e.currentTarget.style.color = 'var(--silver)'}
+                      >
+                        {l}
+                      </button>
+                    ) : (
+                      <Link to="#" style={{ fontFamily: 'DM Mono,monospace', fontSize: 10, color: 'var(--silver)', textDecoration: 'none', letterSpacing: '0.08em', transition: 'color 0.18s' }}
+                        onMouseEnter={e => e.currentTarget.style.color = '#ffffff'} onMouseLeave={e => e.currentTarget.style.color = 'var(--silver)'}>{l}</Link>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          );
+        })}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 22, alignItems: 'center', flexWrap: 'wrap' }}>
+        <span style={{ fontFamily: 'DM Mono,monospace', fontSize: 9, color: 'var(--sulu)', letterSpacing: '0.18em', textTransform: 'uppercase' }}>{t.footer.demo}</span>
+        <span style={{ fontFamily: 'DM Mono,monospace', fontSize: 9, color: 'var(--textLow)', letterSpacing: '0.08em' }}>restaurant@demo.com · fournisseur@demo.com · admin@demo.com</span>
+        <span style={{ fontFamily: 'DM Mono,monospace', fontSize: 9, color: 'var(--silver)', letterSpacing: '0.11em' }}>MDP: demo123</span>
+      </div>
+    </div>
+  </footer>
+);
+
+/* ───────────────────────────────────────────────────────────────────────────
+   FOOTER "COMPANY" INFO CARD — animated modal with blurred backdrop
+   ─────────────────────────────────────────────────────────────────────────── */
+const InfoCard = ({ slug, lang, onClose }) => {
+  const entry = LEGAL_CONTENT[slug];
+  if (!entry) return null;
+  const { title, body } = entry[lang] || entry.fr;
+  const Icon = INFO_ICONS[slug] || FileText;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, transition: { duration: 0.2 } }}
+      transition={{ duration: 0.3 }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+      }}
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 50, scale: 0.9, rotateX: 8 }}
+        animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
+        exit={{ opacity: 0, y: 30, scale: 0.94, transition: { duration: 0.22 } }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        style={{
+          position: 'relative', perspective: 1000,
+          background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 28,
+          padding: '48px', maxWidth: 540, width: '100%', maxHeight: '78vh', overflowY: 'auto',
+          boxShadow: '0 40px 90px rgba(0,0,0,0.45)',
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 0.5, scale: 1 }}
+          transition={{ delay: 0.1, duration: 0.8 }}
+          style={{
+            position: 'absolute', top: -60, right: -60, width: 180, height: 180, borderRadius: '50%',
+            background: 'radial-gradient(circle, var(--sulu) 0%, transparent 70%)',
+            filter: 'blur(30px)', pointerEvents: 'none',
+          }}
+        />
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.4, rotate: -15 }}
+          animate={{ opacity: 1, scale: 1, rotate: 0 }}
+          transition={{ delay: 0.15, duration: 0.45, ease: [0.34, 1.56, 0.64, 1] }}
+          style={{
+            position: 'relative', width: 56, height: 56, borderRadius: '50%',
+            background: 'var(--suluLo)', border: '1px solid var(--sulu)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 26,
+          }}
+        >
+          <Icon size={22} color="var(--sulu)" strokeWidth={1.6} />
+        </motion.div>
+
+        <motion.h2
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.22, duration: 0.4 }}
+          style={{
+            position: 'relative', fontFamily: 'DM Serif Display,serif',
+            fontSize: 'clamp(26px,4.5vw,38px)', color: 'var(--card-title)',
+            textTransform: 'uppercase', marginBottom: 22, letterSpacing: '0.02em',
+          }}
+        >
+          {title}
+        </motion.h2>
+
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.4 }}
+          style={{
+            position: 'relative', fontFamily: 'DM Mono,monospace', fontSize: 13.5,
+            color: 'var(--card-body)', lineHeight: 1.9, letterSpacing: '0.02em',
+          }}
+        >
+          {body}
+        </motion.p>
+      </motion.div>
+    </motion.div>
+  );
+};
+/* ───────────────────────────────────────────────────────────────────────────
+   ADMIN EASTER EGG — kept as-is (functional, not decorative)
+   ─────────────────────────────────────────────────────────────────────────── */
+const AdminModal = ({ onClose, onLogin, email, setEmail, pass, setPass, code, setCode, error }) => (
+  <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(12px)' }} onClick={onClose} role="dialog" aria-modal="true" aria-label="Accès staff">
+    <style>{`
+      .admin-modal { animation: modalIn 0.5s cubic-bezier(0.16,1,0.3,1) forwards; }
+      .admin-field { animation: fadeInUp 0.4s ease forwards; opacity: 0; }
+      .admin-field:nth-child(1) { animation-delay: 0.12s; } .admin-field:nth-child(2) { animation-delay: 0.22s; }
+      .admin-field:nth-child(3) { animation-delay: 0.32s; } .admin-field:nth-child(4) { animation-delay: 0.42s; } .admin-field:nth-child(5) { animation-delay: 0.52s; }
+      .scanline { position: absolute; left: 0; right: 0; height: 2px; background: linear-gradient(to bottom, transparent, rgba(168,224,99,0.08), transparent); animation: scanline 3s linear infinite; }
+    `}</style>
+    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 1 }}><div className="scanline" /></div>
+    <div className="admin-modal" style={{ position: 'relative', zIndex: 2, background: '#030d06', border: '1px solid rgba(168,224,99,0.25)', padding: '44px', width: 380, display: 'flex', flexDirection: 'column', gap: 16 }} onClick={e => e.stopPropagation()}>
+      {[{ top: 0, left: 0 }, { top: 0, right: 0 }, { bottom: 0, left: 0 }, { bottom: 0, right: 0 }].map((pos, i) => (
+        <div key={i} style={{ position: 'absolute', ...pos, width: 14, height: 14, borderTop: pos.top === 0 ? '1px solid var(--sulu)' : 'none', borderBottom: pos.bottom === 0 ? '1px solid var(--sulu)' : 'none', borderLeft: pos.left === 0 ? '1px solid var(--sulu)' : 'none', borderRight: pos.right === 0 ? '1px solid var(--sulu)' : 'none' }} />
+      ))}
+      <div className="admin-field">
+        <span style={{ fontFamily: 'DM Mono,monospace', fontSize: 8, color: 'var(--sulu)', letterSpacing: '0.35em', textTransform: 'uppercase', opacity: 0.6 }}>/// Accès restreint</span>
+        <h2 style={{ fontFamily: 'DM Serif Display,serif', fontSize: 32, fontWeight: 400, color: '#FFF', textTransform: 'uppercase', marginTop: 6, letterSpacing: '0.04em' }}>Staff</h2>
+      </div>
+      <div className="admin-field"><input className="gl-input" type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} style={{ background: 'rgba(168,224,99,0.03)', borderColor: 'rgba(168,224,99,0.15)' }} /></div>
+      <div className="admin-field"><input className="gl-input" type="password" placeholder="Mot de passe" value={pass} onChange={e => setPass(e.target.value)} style={{ background: 'rgba(168,224,99,0.03)', borderColor: 'rgba(168,224,99,0.15)' }} /></div>
+      <div className="admin-field"><input className="gl-input" type="text" placeholder="Code d'accès staff" value={code} onChange={e => setCode(e.target.value)} onKeyDown={e => e.key === 'Enter' && onLogin()} style={{ background: 'rgba(168,224,99,0.03)', borderColor: 'rgba(168,224,99,0.15)' }} /></div>
+      {error && <div className="admin-field" role="alert"><span style={{ fontFamily: 'DM Mono,monospace', fontSize: 9, color: 'var(--danger)', letterSpacing: '0.12em', background: 'var(--dangerLo)', padding: '8px 12px', display: 'block' }}>{error}</span></div>}
+      <div className="admin-field"><button className="gl-btn-p" style={{ width: '100%', justifyContent: 'center', background: 'var(--sulu)', color: '#030d06' }} onClick={onLogin}>Entrer →</button></div>
+    </div>
+  </div>
+);
+
+const LogoTransition = () => (
+  <>
+    <style>{`.logo-expand { animation: logoExpand 1.8s cubic-bezier(0.16,1,0.3,1) forwards, glowPulse 0.9s ease infinite; } .bg-reveal { animation: bgReveal 0.4s ease forwards; }`}</style>
+    <div className="bg-reveal" style={{ position: 'fixed', inset: 0, zIndex: 9998, background: '#030d06' }} />
+    <div className="logo-expand" style={{ position: 'fixed', left: '50%', top: '50%', zIndex: 9999 }}>
+      <svg width="48" height="48" viewBox="0 0 32 32" fill="none" aria-hidden>
+        <rect x="0.75" y="0.75" width="30.5" height="30.5" rx="3.5" stroke="#A8E063" strokeWidth="1.5" fill="none" />
+        <path d="M6 25 C6 13 16 6 26 7 C26 18 20 26 6 25 Z" fill="none" stroke="#A8E063" strokeWidth="1.6" strokeLinejoin="round" />
+        <text x="7" y="22" fontFamily="DM Serif Display,serif" fontSize="11" fill="#A8E063" fontStyle="italic">G</text>
+        <text x="16" y="22" fontFamily="DM Serif Display,serif" fontSize="11" fill="#B0B8B4" fontStyle="italic">L</text>
+      </svg>
+    </div>
+  </>
+);
+
+/* ───────────────────────────────────────────────────────────────────────────
+   ROOT
+   ─────────────────────────────────────────────────────────────────────────── */
+const Home = () => {
+  const { theme, lang, toggleTheme, toggleLang } = useAppStore();
+  const t = T[lang];
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(!hasShownPreloaderThisSession);
+  const [assetsReady, setAssetsReady] = useState(false);
+  const [logoAnimating] = useState(false);
+  const [openInfoSlug, setOpenInfoSlug] = useState(null);
+  const logoClicksRef = useRef(0);
+  const logoTimerRef = useRef(null);
+
+  useEffect(() => {
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    });
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+    gsap.ticker.lagSmoothing(0);
+    return () => { lenis.destroy(); };
+  }, []);
+
+  useEffect(() => {
+    const lenis = new Lenis();
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+    gsap.ticker.lagSmoothing(0);
+    return () => { lenis.destroy(); };
+  }, []);
+
+  useEffect(() => {
+    if (hasShownPreloaderThisSession) return;
+    let cancelled = false;
+    const imageUrls = [ctaBg, ctaBgLight, ctaBgDark];
+    const loadImage = (src) => new Promise((resolve) => {
+      const img = new Image();
+      img.onload = resolve;
+      img.onerror = resolve;
+      img.src = src;
+    });
+    const fontsReady = document.fonts?.ready ?? Promise.resolve();
+    Promise.all([...imageUrls.map(loadImage), fontsReady]).then(() => {
+      if (!cancelled) setAssetsReady(true);
+    });
+    const safety = setTimeout(() => { if (!cancelled) setAssetsReady(true); }, 6000);
+    return () => { cancelled = true; clearTimeout(safety); };
+  }, []);
+
+  const handleLogoClick = useCallback(() => {
+  logoClicksRef.current += 1;
+  const clicks = logoClicksRef.current;
+  clearTimeout(logoTimerRef.current);
+  if (clicks === 5) {
+    logoClicksRef.current = 0;
+    navigate('/404');
+    return;
+  }
+  logoTimerRef.current = setTimeout(() => { logoClicksRef.current = 0; }, 2000);
+}, [navigate]);
+
+  return (
+    <>
+      <GlobalStyles theme={theme} />
+
+      <AnimatePresence mode="wait">
+        {loading && (
+          <Preloader
+            ready={assetsReady}
+            onComplete={() => {
+              hasShownPreloaderThisSession = true;
+              setLoading(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      <a href="#main-content" style={{ position: 'absolute', left: -9999, top: 0, zIndex: 9999, background: 'var(--sulu)', color: '#030d06', padding: '8px 16px', fontFamily: 'DM Mono,monospace', fontSize: 11 }}
+        onFocus={e => { e.currentTarget.style.left = '0'; }} onBlur={e => { e.currentTarget.style.left = '-9999px'; }}>
+        Aller au contenu principal
+      </a>
+
+      <Navbar theme={theme} onTheme={toggleTheme} lang={lang} onLang={toggleLang} t={t} onLogoClick={handleLogoClick} />
+
+      <main id="main-content" style={{ overflowX: 'clip' }}>
+        <HeroSection t={t} />
+        <MarqueeSection />
+        <AboutSection t={t} />
+        <ServicesSection t={t} lang={lang} />
+        <CategoriesSection t={t} lang={lang} />
+        <FAQ t={t} />
+        <FinalCTA t={t} />
+        <EmailSignup t={t} />
+      </main>
+
+      <Footer t={t} onOpenInfo={setOpenInfoSlug} />
+
+      {logoAnimating && <LogoTransition />}
+
+      <AnimatePresence>
+        {openInfoSlug && (
+          <InfoCard slug={openInfoSlug} lang={lang} onClose={() => setOpenInfoSlug(null)} />
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 

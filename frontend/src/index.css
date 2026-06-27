@@ -1,231 +1,272 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 @theme {
-  /* ─── Hex Pens Aesthetic Color System ─── */
-  --color-brand-bg: #282828;         /* Hex Pens Dark Scheme Background */
-  --color-brand-surface: #262524;    /* Hex Pens Alt Dark */
-  --color-brand-surface-2: #403f3d;  /* Hex Pens Alt L-10 */
-  --color-brand-border: rgba(255, 255, 255, 0.2); /* Hex Pens border */
-  --color-brand-text: #ffffff;       /* Hex Pens Text */
-  --color-brand-text-muted: rgba(255, 255, 255, 0.6); /* Hex Pens Text muted */
-  --color-brand-accent: #f79420;     /* Hex Pens Red/Orange */
-  --color-brand-accent-dark: #f9ac51; /* Hex Pens Red/Orange L-10 */
-
-  /* Light Theme Overrides (if ever needed) */
-  --color-light-bg: #ffffff;
-  --color-light-surface: #f9fafb;
-  --color-light-border: rgba(40, 40, 40, 0.2);
-  --color-light-text: #282828;
-  --color-light-text-muted: rgba(40, 40, 40, 0.6);
+  /* ─── Ultra-Premium Hex Pens Aesthetic ─── */
+  --color-brand-bg: #0a0a0a;         
+  --color-brand-surface: rgba(20, 20, 20, 0.4); 
+  --color-brand-surface-2: rgba(30, 30, 30, 0.6);  
+  --color-brand-border: rgba(255, 255, 255, 0.1); 
+  --color-brand-text: #ffffff;       
+  --color-brand-text-muted: rgba(255, 255, 255, 0.5); 
+  --color-brand-accent: #f79420;     
+  --color-brand-accent-dark: #cc7410; 
 
   /* Shadows */
-  --shadow-luxury: 0 20px 40px -15px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.04);
-  --shadow-glow: 0 0 30px rgba(247, 148, 32, 0.15);
-  --shadow-glow-strong: 0 0 60px rgba(247, 148, 32, 0.3);
+  --shadow-luxury: 0 30px 60px -15px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  --shadow-glow: 0 0 40px rgba(247, 148, 32, 0.2);
+  --shadow-glow-strong: 0 0 80px rgba(247, 148, 32, 0.4);
 }
 
-/* ─── Base Styles ─── */
+/* ─── Base Styles & Parallax Background ─── */
 @layer base {
   html {
     scroll-behavior: smooth;
+    background-color: #000;
   }
+  
   body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background-color: var(--color-brand-bg);
+    background-color: transparent;
     color: var(--color-brand-text);
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+  
+  /* Fixed, full-bleed animated luxury background */
+  .hex-pens-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -2;
+    background-image: url('../assets/hex_bg.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    filter: brightness(0.7) contrast(1.1);
+    transform: scale(1.05);
+    animation: slow-pan 30s ease-in-out infinite alternate;
+  }
+
+  .hex-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    background: radial-gradient(circle at 50% 50%, rgba(10, 10, 10, 0.1) 0%, rgba(10, 10, 10, 0.95) 100%);
+    pointer-events: none;
+  }
+
   ::selection {
-    background: rgba(247, 148, 32, 0.4);
+    background: rgba(247, 148, 32, 0.5);
     color: #fff;
   }
   
-  /* Heading specific resets */
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Poppins', sans-serif;
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
   }
 }
 
-/* ─── Typography Utility ─── */
+html, body {
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+/* ─── Massive Typography & Text Effects ─── */
 .font-heading {
   font-family: 'Poppins', sans-serif;
   text-transform: uppercase;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  font-weight: 800;
+  letter-spacing: 0.1em;
 }
 
-/* ─── Text Outline Animation (Hex Pens Style) ─── */
+.text-massive {
+  font-size: clamp(3rem, 8vw, 8rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
 .heading-outline {
   -webkit-text-fill-color: transparent;
-  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5);
-  transition: all 0.4s ease;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.7);
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.heading-outline:hover {
+.heading-outline:hover, .group:hover .heading-outline {
   -webkit-text-fill-color: var(--color-brand-text);
   -webkit-text-stroke: 1px transparent;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  text-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
+  transform: scale(1.02);
 }
 
-/* ─── Alternating Color Schemes ─── */
-.theme-dark {
-  background-color: var(--color-brand-bg);
-  color: var(--color-brand-text);
+.text-gradient {
+  background: linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.4) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.theme-light {
-  background-color: var(--color-light-bg);
-  color: var(--color-light-text);
-}
-
-.theme-alt-dark {
-  background-color: var(--color-brand-surface);
-  color: var(--color-brand-text);
-}
-
-/* ─── Translucent Headers ─── */
-.glass-nav-dark {
-  background: rgba(40, 40, 40, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--color-brand-border);
-}
-
-/* ─── Sharp Panels (Hex Pens Style - NO ROUNDED CORNERS) ─── */
-.glass-card-dark {
-  background: var(--color-brand-surface);
-  border: 1px solid var(--color-brand-border);
+/* ─── Glassmorphism Panels ─── */
+.glass-panel {
+  background: rgba(20, 20, 20, 0.4);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.5);
   border-radius: 0px !important;
-  box-shadow: var(--shadow-luxury);
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.glass-card-light {
-  background: #ffffff;
-  border: 1px solid var(--color-light-border);
-  border-radius: 0px !important;
+.glass-panel:hover {
+  background: rgba(30, 30, 30, 0.5);
+  border-color: rgba(247, 148, 32, 0.3);
+  box-shadow: var(--shadow-glow);
 }
 
 /* ─── Custom Scrollbar ─── */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: var(--color-brand-bg);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--color-brand-surface-2);
-  border-radius: 0px; /* Sharp edges */
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-brand-accent);
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 0px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-brand-accent); }
 
-/* ─── Exact Hex Pens Scroll-Reveal Animations ─── */
+/* ─── Ultra-Smooth Reveal Animations ─── */
 .reveal-item {
   opacity: 0;
-  transform: translateY(40px) scale(0.99);
-  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(60px) scale(0.95);
+  transition: opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 1.4s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform, opacity;
 }
 
-.reveal-item.reveal-visible {
+.reveal-visible {
   opacity: 1;
   transform: translateY(0) scale(1);
 }
 
-/* Animation Delays */
 .delay-100 { transition-delay: 100ms; }
 .delay-200 { transition-delay: 200ms; }
 .delay-300 { transition-delay: 300ms; }
 .delay-400 { transition-delay: 400ms; }
 .delay-500 { transition-delay: 500ms; }
 
-/* ─── Hex Pens Sharp Buttons ─── */
+/* ─── Premium Hex Pens Buttons ─── */
 .btn-sharp {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 0px !important;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   text-transform: uppercase;
   font-weight: 700;
-  letter-spacing: 0.15em;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  letter-spacing: 0.2em;
+  padding: 1rem 2.5rem;
+  font-size: 0.75rem;
+  background-color: var(--color-brand-accent);
+  color: #000;
+  border: 1px solid var(--color-brand-accent);
   overflow: hidden;
-  background-color: #ffffff;
-  color: #282828;
-  border: 1px solid #ffffff;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1;
+}
+
+.btn-sharp::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: #fff;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: -1;
 }
 
 .btn-sharp:hover {
-  background-color: var(--color-brand-accent);
-  color: #ffffff;
-  border-color: var(--color-brand-accent);
-  transform: scale(1.02);
+  color: #000;
+  border-color: #fff;
+  box-shadow: 0 0 30px rgba(255,255,255,0.4);
+}
+
+.btn-sharp:hover::before {
+  transform: scaleX(1);
+  transform-origin: left;
 }
 
 .btn-sharp-outline {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 0px !important;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
   text-transform: uppercase;
   font-weight: 700;
-  letter-spacing: 0.15em;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  overflow: hidden;
+  letter-spacing: 0.2em;
+  padding: 1rem 2.5rem;
+  font-size: 0.75rem;
   background-color: transparent;
-  color: #ffffff;
-  border: 1px solid rgba(255,255,255,0.6);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.3);
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btn-sharp-outline:hover {
   background-color: rgba(255,255,255,0.1);
-  border-color: #ffffff;
+  border-color: var(--color-brand-accent);
+  color: var(--color-brand-accent);
+  box-shadow: 0 0 20px rgba(247, 148, 32, 0.2);
 }
 
-/* ─── Infinite Scrolling Marquee ─── */
-@keyframes marquee {
-  0% { transform: translateX(0%); }
-  100% { transform: translateX(-50%); }
+/* ─── Background Pan Animation ─── */
+@keyframes slow-pan {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
 }
 
-.animate-marquee {
+/* ─── Floating Elements ─── */
+.float-subtle {
+  animation: floatSubtle 8s ease-in-out infinite;
+}
+
+@keyframes floatSubtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+.skeleton-card {
+  background: rgba(255,255,255,0.03);
+  border-radius: 14px;
+  padding: 16px;
   display: flex;
-  width: max-content;
-  animation: marquee 30s linear infinite;
+  flex-direction: column;
+  gap: 10px;
+  animation: pulse 1.2s ease-in-out infinite;
 }
 
-/* ─── Image Zoom containers ─── */
-.zoom-container {
-  overflow: hidden;
-  position: relative;
+.skeleton-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.08);
 }
 
-.zoom-image {
-  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+.skeleton-line {
+  height: 10px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.08);
 }
 
-.zoom-container:hover .zoom-image {
-  transform: scale(1.06);
-}
+.w-60 { width: 60%; }
+.w-40 { width: 40%; }
+.w-30 { width: 30%; }
 
-/* ─── Animated float ─── */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-12px); }
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-/* ─── Hex Pens Subtle Dot Grid Overlay ─── */
-.dot-grid {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 0);
-  background-size: 24px 24px;
+@keyframes pulse {
+  0% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.4; }
 }

@@ -1,161 +1,191 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import RatingStars from './RatingStars';
-import { Star, MapPin } from 'lucide-react';
+import { useCartStore } from '../store/cartStore';
+import { MapPin, Star, ShoppingCart, Check } from 'lucide-react';
 
-// A premium curated map of products/categories to high-end Unsplash photography.
-// Makes the catalogue look incredibly real and premium, avoiding default empty mock styling.
-const getProductImage = (product) => {
-  const name = (product.name || '').toLowerCase();
-  const category = (product.category || '').toLowerCase();
+// ─── IMAGE MAP ────────────────────────────────────────────────────────────
+// Strip accents so "bœuf"/"boeuf", "épice"/"epice" etc. all match the same
+// rule, and prefer an image the backend already gives us before falling
+// back to keyword guessing.
+const normalize = (s = '') =>
+  s.toString().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // strip accents
+    .replace(/œ/g, 'oe').replace(/æ/g, 'ae');
 
-  // Match by name first for maximum specificity
-  if (name.includes('tomate')) {
-    return 'https://images.unsplash.com/photo-1595855759920-86582396756a?q=80&w=600&auto=format&fit=crop';
-  }
-  if (name.includes('pomme de terre') || name.includes('patate')) {
-    return 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?q=80&w=600&auto=format&fit=crop';
-  }
-  if (name.includes('poivron')) {
-    return 'https://images.unsplash.com/photo-1563513318-57457d1301fd?q=80&w=600&auto=format&fit=crop';
-  }
-  if (name.includes('hach') || name.includes('bœuf') || name.includes('boeuf')) {
-    return 'https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=600&auto=format&fit=crop';
-  }
-  if (name.includes('poulet') || name.includes('volaille')) {
-    return 'https://images.unsplash.com/photo-1604503468506-a8da13d82791?q=80&w=600&auto=format&fit=crop';
-  }
-  if (name.includes('agneau')) {
-    return 'https://images.unsplash.com/photo-1602491453979-54a3a4a72d3c?q=80&w=600&auto=format&fit=crop';
-  }
-  if (name.includes('sidi ali') || name.includes('eau')) {
-    return 'https://images.unsplash.com/photo-1616119129598-c923d240d046?q=80&w=600&auto=format&fit=crop';
-  }
-  if (name.includes('coca') || name.includes('cola')) {
-    return 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=600&auto=format&fit=crop';
-  }
-  if (name.includes('safran')) {
-    return 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?q=80&w=600&auto=format&fit=crop';
-  }
-  if (name.includes('tajine') || name.includes('épice') || name.includes('epice')) {
-    return 'https://images.unsplash.com/photo-1509358271058-acd22cc93898?q=80&w=600&auto=format&fit=crop';
-  }
-  if (name.includes('semoule') || name.includes('couscous')) {
-    return 'https://images.unsplash.com/photo-1574316071802-0d684efa7bf5?q=80&w=600&auto=format&fit=crop';
-  }
-  if (name.includes('riz')) {
-    return 'https://images.unsplash.com/photo-1586201375761-83865001e31c?q=80&w=600&auto=format&fit=crop';
-  }
+const NAME_IMAGE_RULES = [
+  
+];
 
-  // Fallbacks based on category
-  switch (category) {
-    case 'legumes':
-    case 'légumes':
-      return 'https://images.unsplash.com/photo-1597362925123-77861d3fbac7?q=80&w=600&auto=format&fit=crop';
-    case 'viandes':
-      return 'https://images.unsplash.com/photo-1603048588665-791ca8aea617?q=80&w=600&auto=format&fit=crop';
-    case 'boissons':
-      return 'https://images.unsplash.com/photo-1527960471264-93a989ef1cd4?q=80&w=600&auto=format&fit=crop';
-    case 'epices':
-    case 'épices':
-      return 'https://images.unsplash.com/photo-1596797038530-2c107229654b?q=80&w=600&auto=format&fit=crop';
-    case 'secs':
-      return 'https://images.unsplash.com/photo-1574316071802-0d684efa7bf5?q=80&w=600&auto=format&fit=crop';
-    default:
-      return 'https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=600&auto=format&fit=crop';
-  }
+const CATEGORY_IMAGE_RULES = {
+  legumes:  'https://images.pexels.com/photos/1435904/pexels-photo-1435904.jpeg?auto=compress&w=600',
+  viandes:  'https://imgs.search.brave.com/YQChv8WZKKcmRIhZ5-VnDB9MNYq3EFIERJ2YwjPq1LM/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly93d3cu/YXRsYW50ZXJyYS5m/ci9tZWRpYS9jYXRh/bG9nL3Byb2R1Y3Qv/Y2FjaGUvNTdkYTU3/ZDFiMTcwNDYyN2Fi/NzNhNjQyZTliYWUy/MTIvNC85LzQ5MzAw/NC0wMDU1MDIwMC00/NDE4LVN0ZWFrLWhh/Y2hlLWRlLWJvZXVm/LTE1LS1tZy5qcGc',
+  boissons: 'https://images.pexels.com/photos/2122294/pexels-photo-2122294.jpeg?auto=compress&w=600',
+  epices:   'https://images.pexels.com/photos/2802527/pexels-photo-2802527.jpeg?auto=compress&w=600',
+  secs:     'https://imgs.search.brave.com/Ah_jrT0e8gb5EYcYZHXDEoCP_rSEClI7HHctS746tTI/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9zdGF0/aWMudmVjdGVlenku/Y29tL3RpL3Bob3Rv/cy1ncmF0dWl0ZS90/Mi8yMjY3MzY4MS1y/aXotc3VyLWZvbmQt/bm9pci1waG90by5q/cGc',
 };
 
-const FournisseurCard = ({ product, fournisseur }) => {
-  const priceRange = product.price_min && product.price_max
-    ? `${product.price_min} - ${product.price_max} MAD / ${product.unit || ''}`
-    : `${product.price.toFixed(2)} MAD / ${product.unit || ''}`;
+const FALLBACK_IMAGE = 'https://images.pexels.com/photos/1300972/pexels-photo-1300972.jpeg?auto=compress&w=600';
+
+const getProductImage = (product) => {
+  // 1) Trust a real image from the backend/catalog data first.
+  if (product.image) return product.image;
+  if (Array.isArray(product.images) && product.images[0]) return product.images[0];
+
+  // 2) Otherwise guess from the product name.
+  const name = normalize(product.name);
+  for (const [keywords, url] of NAME_IMAGE_RULES) {
+    if (keywords.some(k => name.includes(k))) return url;
+  }
+
+  // 3) Otherwise guess from the category.
+  const cat = normalize(product.category);
+  if (CATEGORY_IMAGE_RULES[cat]) return CATEGORY_IMAGE_RULES[cat];
+
+  // 4) Generic fallback — better than a mismatched photo.
+  return FALLBACK_IMAGE;
+};
+
+// ─── FOURNISSEUR CARD ─────────────────────────────────────────────────────
+const FournisseurCard = ({ product, fournisseur, onCartAdd }) => {
+  const addToCart = useCartStore(s => s.addToCart);
+  const cartItems = useCartStore(s => s.items);
+  const isInCart = cartItems.some(i => i.product_id === product.id);
+  const [added, setAdded] = useState(false);
 
   const imageUrl = getProductImage(product);
+
+  const handleAddToCart = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addToCart({ ...product, image: imageUrl }, fournisseur, 1);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1800);
+    if (onCartAdd) onCartAdd(e);
+  };
+
+  const formatPrice = (n) => Number(n).toLocaleString('fr-MA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  const priceRange = product.price_min && product.price_max
+    ? `${formatPrice(product.price_min)} – ${formatPrice(product.price_max)} MAD / ${product.unit || 'Kg'}`
+    : `${formatPrice(product.price || 0)} MAD / ${product.unit || 'Kg'}`;
 
   return (
     <Link
       to={`/supplier/${fournisseur.id}`}
-      className="group bg-brand-surface border border-white/5 hover:border-brand-primary/20 transition-all duration-400 overflow-hidden flex flex-col h-full card-hover"
+      style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', height: '100%' }}
     >
-      {/* Product Image Frame */}
-      <div className="relative aspect-video w-full bg-zinc-900 border-b border-white/5 overflow-hidden zoom-container">
-        <img 
-          src={imageUrl} 
-          alt={product.name} 
-          className="w-full h-full object-cover zoom-image"
-          loading="lazy"
-        />
-        
-        {/* Promotion tag */}
-        {product.has_active_promo && (
-          <div className="absolute top-0 right-0 bg-brand-terracotta text-white font-heading text-[8px] font-black uppercase tracking-[0.2em] px-3 py-1.5 z-10">
-            -{product.promo_discount}% OFF
-          </div>
-        )}
+      <div
+        style={{
+          background: 'var(--surface)',
+          border: '1.5px solid var(--border)',
+          borderRadius: 14,
+          display: 'flex', flexDirection: 'column', height: '100%',
+          transition: 'border-color 0.2s, box-shadow 0.2s',
+          overflow: 'hidden',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-strong)'; e.currentTarget.style.boxShadow = 'var(--shadow)'; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}
+      >
+        {/* Image */}
+        <div style={{ position: 'relative', aspectRatio: '16/10', overflow: 'hidden', flexShrink: 0 }}>
+          <img
+            src={imageUrl}
+            alt={product.name}
+            loading="lazy"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', filter: 'var(--img-filter)', transition: 'transform 0.4s ease' }}
+            onMouseEnter={e => { e.target.style.transform = 'scale(1.04)'; }}
+            onMouseLeave={e => { e.target.style.transform = 'scale(1.0)'; }}
+            onError={e => { e.target.onerror = null; e.target.src = FALLBACK_IMAGE; }}
+          />
 
-        {/* Verified Badge */}
-        {fournisseur.is_verified && (
-          <div className="absolute bottom-3 left-3 bg-brand-primary text-brand-bg font-heading text-[8px] font-black uppercase tracking-[0.2em] px-2.5 py-1 z-10">
-            VERIFIED
-          </div>
-        )}
-      </div>
+          {/* Promo tag */}
+          {product.has_active_promo && (
+            <div style={{
+              position: 'absolute', top: 10, left: 10,
+              background: '#FFB74D', color: '#1A1A1A',
+              fontSize: 11, fontWeight: 700, borderRadius: 8,
+              padding: '4px 9px', pointerEvents: 'none',
+            }}>
+              -{product.promo_discount}%
+            </div>
+          )}
 
-      <div className="p-6 flex flex-col justify-between flex-grow">
-        <div>
-          {/* Category & City */}
-          <div className="flex justify-between items-center mb-3.5">
-            <span className="text-[8px] font-black text-brand-primary uppercase tracking-[0.25em] bg-brand-primary/10 border border-brand-primary/20 px-2 py-0.5">
-              {product.category || 'Légumes'}
-            </span>
-            <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider flex items-center gap-1">
-              <MapPin className="w-3 h-3 text-zinc-500" />
-              {fournisseur.city || 'Maroc'}
-            </span>
+          {/* Category tag */}
+          <div style={{
+            position: 'absolute', bottom: 10, right: 10,
+            fontSize: 11, fontWeight: 600, color: 'var(--text-1)',
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 8,
+            padding: '4px 10px',
+            pointerEvents: 'none',
+          }}>
+            {product.category || 'Légumes'}
           </div>
-
-          {/* Product Title */}
-          <h3 className="font-heading text-sm font-bold uppercase tracking-wide text-white group-hover:text-brand-primary transition-colors duration-300">
-            {product.name}
-          </h3>
-          
-          {/* Product Description */}
-          <p className="mt-2 text-[12px] text-zinc-400 leading-relaxed line-clamp-2">
-            {product.description || 'Ingrédient de qualité supérieure issu de producteurs marocains.'}
-          </p>
         </div>
 
-        {/* Product Details Section */}
-        <div className="mt-6 pt-5 border-t border-white/5 flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col">
-              <span className="text-[8px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-1">PRICE UNIT</span>
-              <span className="text-[12px] font-bold text-white tracking-wide">{priceRange}</span>
+        {/* Body */}
+        <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+          {/* City */}
+          <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <MapPin size={11} /> {fournisseur.city || 'Maroc'}
+          </p>
+
+          {/* Product name */}
+          <h3 style={{
+            fontFamily: 'Inter, sans-serif', fontWeight: 700,
+            fontSize: 16, color: 'var(--text-1)',
+            letterSpacing: '-0.2px', lineHeight: 1.25, marginBottom: 6,
+          }}>
+            {product.name}
+          </h3>
+
+          {/* Description */}
+          <p style={{
+            fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.55, marginBottom: 16, flex: 1,
+            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+          }}>
+            {product.description || 'Ingrédient de qualité supérieure — producteurs marocains.'}
+          </p>
+
+          {/* Stats row */}
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+            <div>
+              <span style={{ fontSize: 10.5, color: 'var(--text-3)', display: 'block', marginBottom: 3 }}>Prix unitaire</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent)' }}>{priceRange}</span>
             </div>
-            
-            <div className="flex flex-col items-end">
-              <span className="text-[8px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-1">RATING</span>
-              <div className="flex items-center gap-1">
-                <Star className="w-3 h-3 text-brand-saffron fill-brand-saffron" />
-                <span className="text-xs font-bold text-white">{fournisseur.avg_rating || 'N/A'}</span>
-              </div>
+            <div>
+              <span style={{ fontSize: 10.5, color: 'var(--text-3)', display: 'block', marginBottom: 3 }}>Note</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#E8A23D', display: 'flex', alignItems: 'center', gap: 3 }}>
+                <Star size={12} fill="#E8A23D" strokeWidth={0} /> {fournisseur.avg_rating || '—'}
+              </span>
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <span style={{ fontSize: 10.5, color: 'var(--text-3)', display: 'block', marginBottom: 3 }}>Fournisseur</span>
+              <span style={{ fontSize: 12, color: 'var(--text-2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>{fournisseur.company_name}</span>
+            </div>
+            <div>
+              <span style={{ fontSize: 10.5, color: 'var(--text-3)', display: 'block', marginBottom: 3 }}>Stock</span>
+              <span style={{ fontSize: 12, color: 'var(--text-2)' }}>{product.stock} {product.unit || 'Kg'}</span>
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-zinc-400">
-            <span className="font-bold text-white/70 uppercase tracking-wider">{fournisseur.company_name}</span>
-            <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">STOCK: {product.stock} {product.unit || 'Kg'}</span>
-          </div>
-
-          {/* CTA Button */}
+          {/* CTA */}
           <button
-            className="w-full flex items-center justify-center py-3 bg-white/[0.02] border border-white/10 group-hover:bg-brand-primary group-hover:text-brand-bg text-white group-hover:border-brand-primary text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-300 gap-2 btn-sharp mt-2"
+            onClick={handleAddToCart}
+            style={{
+              width: '100%', borderRadius: 10, padding: '11px 0',
+              background: added ? 'var(--subtle)' : 'var(--accent)',
+              border: `1.5px solid ${added ? 'var(--accent)' : 'var(--accent)'}`,
+              color: added ? 'var(--accent)' : 'var(--accent-text)',
+              fontSize: 13, fontWeight: 600, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => { if (!added) e.currentTarget.style.opacity = '0.88'; }}
+            onMouseLeave={e => { if (!added) e.currentTarget.style.opacity = '1'; }}
           >
-            Order Now
-            <svg className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
-            </svg>
+            {added ? <><Check size={14} /> Ajouté au panier</> : <><ShoppingCart size={14} /> {isInCart ? 'Ajouter encore' : 'Commander'}</>}
           </button>
         </div>
       </div>

@@ -1,215 +1,153 @@
 import React, { useState } from 'react';
-import RatingStars from './RatingStars';
 
-const FilterSidebar = ({ filters, onChange }) => {
-  const [priceRange, setPriceRange] = useState([filters.minPrice || 0, filters.maxPrice || 1000]);
-  const [selectedCity, setSelectedCity] = useState(filters.city || '');
-  const [selectedCategories, setSelectedCategories] = useState(filters.category || []);
-  const [minRating, setMinRating] = useState(filters.minRating || 0);
-  const [verifiedOnly, setVerifiedOnly] = useState(filters.verifiedOnly || false);
+const SULU   = '#e46718';
+const BORDER = 'rgb(255, 255, 255)';
 
-  const categories = [
-    { value: 'legumes', label: 'Vegetables / Légumes' },
-    { value: 'viandes', label: 'Meats / Viandes' },
-    { value: 'boissons', label: 'Beverages / Boissons' },
-    { value: 'epices', label: 'Spices / Épices' },
-    { value: 'secs', label: 'Dry Goods / Secs' },
-  ];
+const mono = (size = 10) => ({
+  fontFamily: 'DM Mono, monospace',
+  fontSize: size,
+  letterSpacing: '0.18em',
+  textTransform: 'uppercase',
+});
 
-  const cities = [
-    { value: 'casablanca', label: 'Casablanca' },
-    { value: 'rabat', label: 'Rabat' },
-    { value: 'marrakech', label: 'Marrakech' },
-    { value: 'fes', label: 'Fes' },
-    { value: 'tanger', label: 'Tangier' },
-    { value: 'agadir', label: 'Agadir' },
-  ];
+const cities = [
+  { value: 'casablanca', label: 'Casablanca' },
+  { value: 'rabat',      label: 'Rabat'      },
+  { value: 'marrakech',  label: 'Marrakech'  },
+  { value: 'fes',        label: 'Fès'        },
+  { value: 'tanger',     label: 'Tanger'     },
+  { value: 'agadir',     label: 'Agadir'     },
+];
 
-  const handleApplyFilters = () => {
-    onChange({
-      category: selectedCategories,
-      city: selectedCity,
-      minPrice: priceRange[0],
-      maxPrice: priceRange[1],
-      minRating: minRating,
-      verifiedOnly: verifiedOnly,
-      page: 1,
-    });
-  };
+const SectionLabel = ({ children }) => (
+  <span style={{ ...mono(8), color: 'var(--textLow)', marginBottom: 10, display: 'block' }}>
+    {children}
+  </span>
+);
 
-  const handleResetFilters = () => {
-    setSelectedCategories([]);
-    setSelectedCity('');
-    setPriceRange([0, 1000]);
-    setMinRating(0);
-    setVerifiedOnly(false);
-    onChange({
-      category: [],
-      city: '',
-      minPrice: 0,
-      maxPrice: 1000,
-      minRating: 0,
-      verifiedOnly: false,
-      page: 1,
-    });
-  };
+const Divider = () => (
+  <div style={{ borderTop: `1px solid ${BORDER}`, margin: '14px 0' }} />
+);
+
+const GLCheckbox = ({ checked, onChange, label }) => (
+  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+    <input type="checkbox" checked={checked} onChange={onChange} style={{ display: 'none' }} />
+    <div style={{
+      width: 13, height: 13, flexShrink: 0,
+      border: `1px solid ${checked ? SULU : BORDER}`,
+      background: checked ? 'rgba(168,224,99,0.10)' : 'transparent',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      transition: 'all 0.15s',
+    }}>
+      {checked && <div style={{ width: 5, height: 5, background: SULU }} />}
+    </div>
+    <span style={{ ...mono(9), color: checked ? 'var(--text)' : 'var(--textMid)', transition: 'color 0.15s' }}>
+      {label}
+    </span>
+  </label>
+);
+
+const FilterSidebar = ({ filters = {}, onChange }) => {
+  const [selectedCity,  setSelectedCity]  = useState(filters.city || '');
+  const [priceRange,    setPriceRange]    = useState([filters.minPrice || 0, filters.maxPrice || 1000]);
+  const [minRating,     setMinRating]     = useState(filters.minRating || 0);
+  const [verifiedOnly,  setVerifiedOnly]  = useState(filters.verifiedOnly || false);
+
+  const handleApply = () => onChange({
+    city: selectedCity,
+    minPrice: priceRange[0],
+    maxPrice: priceRange[1],
+    minRating,
+    verifiedOnly,
+    page: 1,
+  });
 
   return (
-    <div className="bg-brand-surface border border-white/[0.06] p-6 space-y-6">
-      <div className="flex items-center justify-between pb-4 border-b border-white/[0.06]">
-        <h3 className="font-heading text-xs font-bold uppercase tracking-[0.2em] text-white">
-          Filters / Filtres
-        </h3>
-        <button
-          onClick={handleResetFilters}
-          className="text-[10px] font-bold text-brand-terracotta hover:text-brand-terracotta/80 uppercase tracking-widest transition-colors"
-        >
-          Reset All
-        </button>
-      </div>
+    <div style={{ background: 'var(--bg)' }}>
 
-      {/* Categories */}
-      <div className="space-y-3">
-        <h4 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.15em]">Categories</h4>
-        <div className="space-y-2.5">
-          {categories.map((cat) => {
-            const isChecked = selectedCategories.includes(cat.value);
-            return (
-              <label
-                key={cat.value}
-                className="flex items-center group cursor-pointer text-[12px] font-medium text-white/60 hover:text-white transition-colors"
-              >
-                <div className="relative flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={isChecked}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedCategories([...selectedCategories, cat.value]);
-                      } else {
-                        setSelectedCategories(selectedCategories.filter((c) => c !== cat.value));
-                      }
-                    }}
-                    className="sr-only"
-                  />
-                  <div
-                    className={`w-4 h-4 border transition-all flex items-center justify-center ${
-                      isChecked
-                        ? 'border-brand-primary bg-brand-primary/10'
-                        : 'border-white/10 bg-transparent group-hover:border-white/20'
-                    }`}
-                  >
-                    {isChecked && (
-                      <div className="w-1.5 h-1.5 bg-brand-primary"></div>
-                    )}
-                  </div>
-                </div>
-                <span className="ml-3">{cat.label}</span>
-              </label>
-            );
-          })}
-        </div>
-      </div>
+      {/* City */}
+      <SectionLabel>Ville / City</SectionLabel>
+      <select value={selectedCity} onChange={e => setSelectedCity(e.target.value)}
+        style={{
+          width: '100%', background: 'var(--bg)',
+          border: `1px solid ${BORDER}`,
+          color: selectedCity ? 'var(--text)' : 'var(--textLow)',
+          padding: '9px 10px', ...mono(9), outline: 'none',
+          cursor: 'pointer', appearance: 'none',
+        }}>
+        <option value="" style={{ background: '#0B2818' }}>Toutes les villes</option>
+        {cities.map(c => (
+          <option key={c.value} value={c.value} style={{ background: '#0B2818', color: '#fff' }}>{c.label}</option>
+        ))}
+      </select>
 
-      {/* Moroccan City */}
-      <div className="space-y-3 pt-4 border-t border-white/[0.06]">
-        <h4 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.15em]">City / Ville</h4>
-        <select
-          value={selectedCity}
-          onChange={(e) => setSelectedCity(e.target.value)}
-          className="w-full px-4 py-3 bg-white/[0.02] border border-white/10 text-[12px] font-semibold text-white/80 focus:text-white focus:border-brand-primary focus:outline-none transition-all"
-        >
-          <option value="" className="bg-brand-surface text-white/60">All Cities / Toutes les villes</option>
-          {cities.map((city) => (
-            <option key={city.value} value={city.value} className="bg-brand-surface text-white">
-              {city.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      <Divider />
 
-      {/* Price Range */}
-      <div className="space-y-3 pt-4 border-t border-white/[0.06]">
-        <h4 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.15em]">Price Range (MAD)</h4>
-        <div className="flex gap-3">
-          <div className="flex-1">
-            <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest block mb-1">Min</span>
+      {/* Price range */}
+      <SectionLabel>Prix (MAD)</SectionLabel>
+      <div style={{ display: 'flex', gap: 8 }}>
+        {[['Min', 0], ['Max', 1]].map(([lbl, idx]) => (
+          <div key={lbl} style={{ flex: 1 }}>
+            <span style={{ ...mono(8), color: 'var(--textLow)', display: 'block', marginBottom: 5 }}>{lbl}</span>
             <input
               type="number"
-              value={priceRange[0]}
-              onChange={(e) => setPriceRange([parseInt(e.target.value) || 0, priceRange[1]])}
-              className="w-full px-3 py-2 bg-white/[0.02] border border-white/10 text-[12px] font-bold text-white focus:border-brand-primary focus:outline-none transition-all"
+              value={priceRange[idx]}
+              onChange={e => {
+                const v = parseInt(e.target.value) || 0;
+                setPriceRange(prev => idx === 0 ? [v, prev[1]] : [prev[0], v]);
+              }}
+              style={{
+                width: '100%', background: 'transparent',
+                border: `1px solid ${BORDER}`, color: 'var(--text)',
+                padding: '8px 9px', ...mono(9), outline: 'none',
+              }}
             />
           </div>
-          <div className="flex-1">
-            <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest block mb-1">Max</span>
-            <input
-              type="number"
-              value={priceRange[1]}
-              onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value) || 0])}
-              className="w-full px-3 py-2 bg-white/[0.02] border border-white/10 text-[12px] font-bold text-white focus:border-brand-primary focus:outline-none transition-all"
-            />
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Minimum Rating */}
-      <div className="space-y-3 pt-4 border-t border-white/[0.06]">
-        <h4 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.15em]">Minimum Rating</h4>
-        <div className="flex items-center space-x-2 mb-2">
-          <RatingStars rating={minRating} size="sm" />
-          <span className="text-[11px] font-semibold text-white/40">{minRating} Stars +</span>
-        </div>
-        <div className="flex gap-1.5">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <button
-              key={star}
-              type="button"
-              onClick={() => setMinRating(star)}
-              className={`flex-1 py-1.5 text-[11px] font-bold transition-all border ${
-                minRating === star
-                  ? 'bg-brand-primary/10 border-brand-primary text-brand-primary'
-                  : 'bg-transparent border-white/10 text-white/40 hover:border-white/20 hover:text-white/70'
-              }`}
-            >
-              {star}★
-            </button>
-          ))}
-        </div>
+      <Divider />
+
+      {/* Min rating */}
+      <SectionLabel>Note minimale</SectionLabel>
+      <div style={{ display: 'flex', gap: 4 }}>
+        {[1, 2, 3, 4, 5].map(star => (
+          <button key={star} onClick={() => setMinRating(star === minRating ? 0 : star)}
+            style={{
+              flex: 1, padding: '7px 0',
+              background: minRating >= star ? 'rgba(168,224,99,0.10)' : 'transparent',
+              border: `1px solid ${minRating >= star ? SULU : BORDER}`,
+              color: minRating >= star ? SULU : 'var(--textLow)',
+              ...mono(8), cursor: 'pointer', transition: 'all 0.15s',
+            }}>
+            {star}★
+          </button>
+        ))}
       </div>
 
-      {/* Verified Only */}
-      <div className="pt-4 border-t border-white/[0.06]">
-        <label className="flex items-center group cursor-pointer text-[12px] font-medium text-white/60 hover:text-white transition-colors">
-          <div className="relative flex items-center">
-            <input
-              type="checkbox"
-              checked={verifiedOnly}
-              onChange={(e) => setVerifiedOnly(e.target.checked)}
-              className="sr-only"
-            />
-            <div
-              className={`w-4 h-4 border transition-all flex items-center justify-center ${
-                verifiedOnly
-                  ? 'border-brand-primary bg-brand-primary/10'
-                  : 'border-white/10 bg-transparent group-hover:border-white/20'
-              }`}
-            >
-              {verifiedOnly && (
-                <div className="w-1.5 h-1.5 bg-brand-primary"></div>
-              )}
-            </div>
-          </div>
-          <span className="ml-3">Verified Suppliers Only</span>
-        </label>
-      </div>
+      <Divider />
 
-      {/* Apply Button */}
-      <button
-        onClick={handleApplyFilters}
-        className="w-full bg-brand-primary text-brand-bg py-3.5 text-[11px] font-bold uppercase tracking-[0.15em] transition-all btn-premium hover:bg-brand-accent"
+      {/* Verified only */}
+      <GLCheckbox
+        checked={verifiedOnly}
+        onChange={e => setVerifiedOnly(e.target.checked)}
+        label="Vérifiés seulement"
+      />
+
+      <Divider />
+
+      {/* Apply — un seul bouton */}
+      <button onClick={handleApply} style={{
+        width: '100%',
+        background: SULU, color: '#0B2818',
+        border: 'none', padding: '12px 0',
+        ...mono(9), fontWeight: 500,
+        cursor: 'pointer', transition: 'opacity 0.2s',
+      }}
+        onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+        onMouseLeave={e => e.currentTarget.style.opacity = '1'}
       >
-        Apply Filters
+        Appliquer →
       </button>
     </div>
   );

@@ -1,24 +1,24 @@
 import axios from 'axios';
 import { handleMockRequest } from './mockApi';
 
-// Always enable mock data for GitHub Pages deployment and demo purposes
 const USE_MOCK = true;
 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
 });
 
-// Configure mock adapter if USE_MOCK is enabled
+// Mock adapter
 if (USE_MOCK) {
   axiosInstance.defaults.adapter = async (config) => {
     try {
       const response = await handleMockRequest(config);
+
       return {
         data: response.data,
         status: response.status,
         statusText: 'OK',
         headers: {},
-        config: config,
+        config,
         request: {}
       };
     } catch (error) {
@@ -33,26 +33,28 @@ if (USE_MOCK) {
   };
 }
 
-// Request interceptor: attach JWT token from localStorage
+// Attach token
 axiosInstance.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
   return config;
 });
 
-// Response interceptor: handle token expiration
+// Handle auth errors
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
-      // Clear token and redirect to login if unauthorized
+    if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem('role');
-      window.location.href = '#/login'; // Updated for HashRouter
+      window.location.href = '#/login';
     }
+
     return Promise.reject(error);
   }
 );

@@ -8,8 +8,8 @@ const ProtectedRoute = ({ allowedRoles = [], children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles.length > 0 && !allowedRoles.includes(role)) {
-    return <Navigate to="/unauthorized" replace />;
+  if (allowedRoles.length > 0 && !allowedRoles.map(r => r.toLowerCase()).includes(role?.toLowerCase())) {
+    return <Navigate to="/login" replace />;
   }
 
   return children;

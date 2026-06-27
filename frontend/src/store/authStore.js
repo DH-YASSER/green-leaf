@@ -46,8 +46,6 @@ const useAuthStore = create((set) => ({
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('role');
-    // Redirect to home
-    window.location.href = '#/';
   },
 
   setUser: (userData) => {
