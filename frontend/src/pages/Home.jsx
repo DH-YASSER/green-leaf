@@ -216,6 +216,32 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import ctaBg from '../assets/image.webp';
 import ctaBgLight from '../assets/bg-20260520-111942.jpg';
 import ctaBgDark from '../assets/bg-20260520-113543.jpg';
+
+import marquee1 from '../assets/marquee-1.jpg';
+import marquee2 from '../assets/marquee-2.jpg';
+import marquee3 from '../assets/marquee-3.jpg';
+import marquee4 from '../assets/marquee-4.jpg';
+import marquee5 from '../assets/marquee-5.jpg';
+import marquee6 from '../assets/marquee-6.jpg';
+import marquee7 from '../assets/marquee-7.jpg';
+import marquee8 from '../assets/marquee-8.jpg';
+import marquee9 from '../assets/marquee-9.jpg';
+import marquee10 from '../assets/marquee-10.jpg';
+import marquee11 from '../assets/marquee-11.jpg';
+import marquee12 from '../assets/marquee-12.jpg';
+import marquee13 from '../assets/marquee-13.jpg';
+import marquee14 from '../assets/marquee-14.jpg';
+
+import veggies from '../assets/veggies.jpg';
+import fruits from '../assets/fruits.jpg';
+import meat from '../assets/meat.jpg';
+import chicken from '../assets/chicken.jpg';
+import spices from '../assets/spices.jpg';
+import herbs from '../assets/herbs.jpg';
+import nuts from '../assets/nuts.jpg';
+import beans from '../assets/beans.jpg';
+import drinks from '../assets/drinks.jpg';
+
 import {
   ArrowRight, Sun, Moon, Globe, ChevronDown, Plus, CheckCircle,
   Search, ShoppingCart, Truck, ListPlus, Wallet,
@@ -230,20 +256,7 @@ const IMGS = {
 
   // marquee — scrolling produce / market photography
   marquee: [
-    '/src/assets/marquee-1.jpg',
-    '/src/assets/marquee-2.jpg',
-    '/src/assets/marquee-3.jpg',
-    '/src/assets/marquee-4.jpg',
-    '/src/assets/marquee-5.jpg',
-    '/src/assets/marquee-6.jpg',
-    '/src/assets/marquee-7.jpg',
-    '/src/assets/marquee-8.jpg',
-    '/src/assets/marquee-9.jpg',   
-    '/src/assets/marquee-10.jpg', 
-    '/src/assets/marquee-11.jpg',  
-    '/src/assets/marquee-12.jpg', 
-    '/src/assets/marquee-13.jpg', 
-    '/src/assets/marquee-14.jpg'
+    marquee1, marquee2, marquee3, marquee4, marquee5, marquee6, marquee7, marquee8, marquee9, marquee10, marquee11, marquee12, marquee13, marquee14
   ],
 
   // about — decorative corner shots
@@ -254,11 +267,11 @@ const IMGS = {
   aboutBR: '/about-br.jpg',
 
   categories: [
-    ['/src/assets/veggies.jpg', '/src/assets/fruits.jpg'],
-    ['/src/assets/meat.jpg', '/src/assets/chicken.jpg'],
-    ['/src/assets/spices.jpg', '/src/assets/herbs.jpg'],
-    ['/src/assets/nuts.jpg', '/src/assets/beans.jpg'],
-    ['/src/assets/drinks.jpg'],
+    [veggies, fruits],
+    [meat, chicken],
+    [spices, herbs],
+    [nuts, beans],
+    [drinks],
   ],
 
   food: 'https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg?auto=compress&cs=tinysrgb&w=1200&h=700&fit=crop',
