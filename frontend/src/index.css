@@ -270,3 +270,41 @@ html, body {
   50% { opacity: 0.8; }
   100% { opacity: 0.4; }
 }
+
+/* ─── Responsive Utilities & Overrides ─── */
+@media (max-width: 1024px) {
+  .text-massive {
+    font-size: clamp(2.5rem, 6vw, 5rem);
+  }
+}
+
+@media (max-width: 768px) {
+  .hidden-mobile { display: none !important; }
+  .flex-col-mobile { flex-direction: column !important; }
+  .text-center-mobile { text-align: center !important; }
+  
+  .text-massive {
+    font-size: clamp(2rem, 10vw, 4rem);
+  }
+  
+  /* Fix padding and margins globally on mobile */
+  .px-mobile-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
+  .py-mobile-8 { padding-top: 2rem !important; padding-bottom: 2rem !important; }
+}
+
+@media (max-width: 480px) {
+  .text-massive {
+    font-size: clamp(1.8rem, 12vw, 3rem);
+  }
+  .hidden-xs { display: none !important; }
+  
+  /* Make all grids single column on very small screens */
+  .gl-footer-grid {
+    grid-template-columns: 1fr !important;
+    gap: 30px !important;
+  }
+  
+  /* Adjust the CTA and general layouts */
+  .mobile-w-full { width: 100% !important; }
+  .mobile-p-4 { padding: 1rem !important; }
+}

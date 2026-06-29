@@ -318,6 +318,38 @@ export const DashboardLayout = ({ children, role = 'restaurant' }) => {
 
       @keyframes fadeUp { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
       .db-animate { animation: fadeUp 0.4s ease forwards; }
+
+      /* ── RESPONSIVE ── */
+      @media (max-width: 768px) {
+        .db-sidebar {
+          position: fixed !important;
+          top: 0; left: 0; bottom: 0;
+          z-index: 100;
+          width: ${sidebarOpen ? '260px' : '0px'} !important;
+          min-width: ${sidebarOpen ? '260px' : '0px'} !important;
+          box-shadow: ${sidebarOpen ? '4px 0 24px rgba(0,0,0,0.5)' : 'none'};
+        }
+        .db-sidebar-backdrop {
+          display: ${sidebarOpen ? 'block' : 'none'};
+          position: fixed;
+          inset: 0;
+          z-index: 99;
+          background: rgba(0,0,0,0.5);
+        }
+        .db-topbar { padding: 10px 14px !important; }
+        .db-content { padding: 14px !important; }
+        .db-stat-grid { grid-template-columns: 1fr !important; }
+        .db-mid-grid, .db-bottom-grid { grid-template-columns: 1fr !important; }
+        .db-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .db-table { min-width: 600px; }
+        .db-topbar-title { font-size: 13px !important; }
+        .db-topbar-sub { font-size: 8px !important; }
+        .db-icon-btn span { display: none; }
+      }
+      @media (max-width: 480px) {
+        .db-stat-val { font-size: 20px !important; }
+        .db-card { padding: 12px !important; }
+      }
     `;
 
     let styleEl = document.getElementById(STYLE_ID);
@@ -337,6 +369,9 @@ export const DashboardLayout = ({ children, role = 'restaurant' }) => {
 
   return (
     <div className="db-shell">
+      {/* MOBILE BACKDROP */}
+      <div className="db-sidebar-backdrop" onClick={() => setSidebarOpen(false)} style={{ display: 'none' }} />
+
       {/* SIDEBAR */}
       <aside className="db-sidebar">
         <div className="db-sb-logo">

@@ -219,6 +219,11 @@ const GlobalStyles = ({ theme }) => (
     @media (max-width: 768px) {
       .bp-browse-grid { grid-template-columns: repeat(2,1fr) !important; }
       .bp-browse-header-row { flex-direction: column !important; align-items: stretch !important; gap: 14px !important; }
+      .bp-browse-nav { padding: 0 14px !important; }
+      .bp-browse-nav > div { flex-wrap: wrap !important; }
+    }
+    @media (max-width: 480px) {
+      .bp-browse-grid { grid-template-columns: 1fr !important; }
     }
   `}</style>
 );

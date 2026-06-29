@@ -1121,14 +1121,14 @@ const AuthCard = ({ initialMode }) => {
         minHeight: '100vh', width: '100vw', position: 'relative',
         background: '#070a08', overflow: 'hidden',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: 24,
+        padding: 'clamp(12px, 3vw, 24px)',
       }}>
         <VideoBackground theme={theme} onReady={() => setVideoReady(true)} />
 
         {/* top bar */}
         <div style={{
-          position: 'absolute', top: 24, left: 24, right: 24, zIndex: 3,
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          position: 'absolute', top: 'clamp(12px, 3vw, 24px)', left: 'clamp(12px, 3vw, 24px)', right: 'clamp(12px, 3vw, 24px)', zIndex: 3,
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10,
         }}>
           <Logo />
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>

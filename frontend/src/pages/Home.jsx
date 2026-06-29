@@ -245,7 +245,7 @@ import drinks from '../assets/drinks.jpg';
 import {
   ArrowRight, Sun, Moon, Globe, ChevronDown, Plus, CheckCircle,
   Search, ShoppingCart, Truck, ListPlus, Wallet,
-  Leaf, MessageCircle, FileText, ShieldCheck, X,
+  Leaf, MessageCircle, FileText, ShieldCheck, X, Menu
 } from 'lucide-react';
 
 /* ───────────────────────────────────────────────────────────────────────────
@@ -508,9 +508,23 @@ const GlobalStyles = ({ theme }) => (
       .gl-footer-grid { grid-template-columns: 1fr 1fr !important; }
       .gl-hero-btns { flex-direction:column !important; align-items:stretch !important; }
       .gl-hero-btns a, .gl-hero-btns button { justify-content:center !important; }
-      .gl-faq-grid { grid-template-columns: 1fr !important; }
+      .gl-faq-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
       .gl-about-deco { display:none !important; }
-      .gl-service-row { gap:16px !important; }
+      .gl-service-row { gap:16px !important; flex-direction: column !important; align-items: flex-start !important; }
+      .gl-service-num { width: auto !important; }
+      .gl-marquee-tile { width: 200px !important; height: 140px !important; }
+      .gl-cat-img-half { width: 100% !important; height: 50% !important; }
+      .gl-cat-img-full { width: 100% !important; height: 100% !important; }
+    }
+
+    @media (min-width: 769px) {
+      .gl-cat-img-half { width: 50%; height: 100%; }
+      .gl-cat-img-full { width: 100%; height: 100%; }
+    }
+
+    @media (max-width: 480px) {
+      .gl-footer-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+      .gl-marquee-tile { width: 160px !important; height: 110px !important; }
     }
       @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   `}</style>
@@ -644,6 +658,7 @@ const ThemeToggle = ({ theme, onToggle, lang }) => (
    ─────────────────────────────────────────────────────────────────────────── */
 const Navbar = ({ theme, onTheme, lang, onLang, t, onLogoClick }) => {
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isAuthenticated, user } = useAuthStore();
   const role = user?.role?.toLowerCase() || '';
   const navigate = useNavigate();
@@ -660,66 +675,136 @@ const Navbar = ({ theme, onTheme, lang, onLang, t, onLogoClick }) => {
     return () => window.removeEventListener('scroll', fn);
   }, []);
 
+  // Prevent scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) document.body.style.overflow = 'hidden';
+    else document.body.style.overflow = 'auto';
+  }, [mobileMenuOpen]);
+
   return (
-    <nav role="navigation" aria-label="Navigation principale" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, background: scrolled ? 'var(--nav-bg)' : 'transparent', backdropFilter: scrolled ? 'blur(20px)' : 'none', borderBottom: scrolled ? '1px solid var(--nav-border)' : 'none', transition: 'all 0.35s ease' }}>
-      <div style={{ maxWidth: 1320, margin: '0 auto', padding: '0 32px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', height: 70 }}>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+    <>
+      <nav role="navigation" aria-label="Navigation principale" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, background: scrolled ? 'var(--nav-bg)' : 'transparent', backdropFilter: scrolled ? 'blur(20px)' : 'none', borderBottom: scrolled ? '1px solid var(--nav-border)' : 'none', transition: 'all 0.35s ease' }}>
+        <div style={{ maxWidth: 1320, margin: '0 auto', padding: '0 32px' }} className="px-mobile-4">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 70 }}>
+            
+            {/* Left Desktop: Toggles */}
+            <div className="hidden-mobile" style={{ display: 'flex', gap: 8, alignItems: 'center', flex: 1 }}>
+              <ThemeToggle theme={theme} onToggle={onTheme} lang={lang} />
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="gl-icon-btn"
+                onClick={onLang}
+                style={{ borderRadius: 20 }}
+              >
+                <Globe size={12} aria-hidden />
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.span
+                    key={lang}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.2 }}
+                    style={{ display: 'inline-block' }}
+                  >
+                    {lang === 'fr' ? 'EN' : 'FR'}
+                  </motion.span>
+                </AnimatePresence>
+              </motion.button>
+            </div>
 
-            <ThemeToggle theme={theme} onToggle={onTheme} lang={lang} />
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="gl-icon-btn"
-              onClick={onLang}
-              style={{ borderRadius: 20 }}
-            >
-              <Globe size={12} aria-hidden />
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.span
-                  key={lang}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.2 }}
-                  style={{ display: 'inline-block' }}
-                >
-                  {lang === 'fr' ? 'EN' : 'FR'}
-                </motion.span>
-              </AnimatePresence>
-            </motion.button>
-          </div>
+            {/* Center: Logo */}
+            <div style={{ display: 'flex', justifyContent: 'center', flex: 1 }}>
+              <button onClick={() => { setMobileMenuOpen(false); onLogoClick(); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} aria-label="GreenLeaf — retour à l'accueil">
+                <Logo textColor={scrolled || mobileMenuOpen ? 'var(--text)' : '#ffffff'} leafColor={scrolled || mobileMenuOpen ? 'var(--sulu)' : '#50DE68'} subtextColor={scrolled || mobileMenuOpen ? 'var(--silver)' : 'rgba(255,255,255,0.7)'} />
+              </button>
+            </div>
 
-          <button onClick={onLogoClick} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} aria-label="GreenLeaf — retour à l'accueil">
-            <Logo textColor={scrolled ? 'var(--text)' : '#ffffff'} leafColor={scrolled ? 'var(--sulu)' : '#50DE68'} subtextColor={scrolled ? 'var(--silver)' : 'rgba(255,255,255,0.7)'} />
-          </button>
+            {/* Right Desktop: Auth */}
+            <div className="hidden-mobile" style={{ display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'flex-end', flex: 1 }}>
+              {isAuthenticated ? (
+                <Link to={getDashboardPath()} className="gl-nav-link" style={{ color: 'var(--sulu)' }}>{t.nav.dashboard}</Link>
+              ) : (
+                <>
+                  <button
+                    onClick={() => navigate('/login')}
+                    className="gl-nav-link"
+                    style={{ color: scrolled ? 'var(--nav-link)' : 'rgba(255,255,255,0.85)', background: 'none', border: 'none', cursor: 'pointer', textShadow: scrolled ? 'none' : '0 1px 6px rgba(0,0,0,0.5)' }}
+                  >
+                    {t.nav.login}
+                  </button>
+                  <button
+                    onClick={() => navigate('/register/restaurant')}
+                    className="gl-btn-p"
+                    style={{ padding: '10px 20px', fontSize: 10, background: 'var(--sulu)', color: '#0c1410' }}
+                  >
+                    {t.nav.join}
+                  </button>
+                </>
+              )}
+            </div>
 
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'flex-end' }}>
-            {isAuthenticated ? (
-              <Link to={getDashboardPath()} className="gl-nav-link" style={{ color: 'var(--sulu)' }}>{t.nav.dashboard}</Link>
-            ) : (
-              <>
-
-                <button
-                  onClick={() => navigate('/login')}
-                  className="gl-nav-link"
-                  style={{ color: scrolled ? 'var(--nav-link)' : 'rgba(255,255,255,0.85)', background: 'none', border: 'none', cursor: 'pointer', textShadow: scrolled ? 'none' : '0 1px 6px rgba(0,0,0,0.5)' }}
-                >
-                  {t.nav.login}
-                </button>
-                <button
-                  onClick={() => navigate('/register/restaurant')}
-                  className="gl-btn-p"
-                  style={{ padding: '10px 20px', fontSize: 10, background: 'var(--sulu)', color: '#0c1410' }}
-                >
-                  {t.nav.join}
-                </button>
-              </>
-            )}
+            {/* Mobile: Hamburger */}
+            <div className="mobile-only" style={{ display: 'none', flex: 1, justifyContent: 'flex-end' }}>
+              <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{ background: 'none', border: 'none', color: scrolled || mobileMenuOpen ? 'var(--text)' : '#ffffff', cursor: 'pointer', padding: '8px' }}>
+                {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </div>
+            {/* Inline CSS just for this component to show/hide mobile button */}
+            <style>{`
+              @media (max-width: 768px) {
+                .mobile-only { display: flex !important; }
+              }
+            `}</style>
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.2 }}
+            style={{ position: 'fixed', top: 70, left: 0, right: 0, bottom: 0, background: 'var(--bg)', zIndex: 49, padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 24 }}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {isAuthenticated ? (
+                <button onClick={() => { setMobileMenuOpen(false); navigate(getDashboardPath()); }} className="gl-btn-p" style={{ padding: '14px 20px', fontSize: 12, background: 'var(--sulu)', color: '#0c1410', width: '100%' }}>
+                  {t.nav.dashboard}
+                </button>
+              ) : (
+                <>
+                  <button onClick={() => { setMobileMenuOpen(false); navigate('/login'); }} className="gl-nav-link" style={{ color: 'var(--text)', background: 'none', border: '1px solid var(--border)', borderRadius: '4px', padding: '14px', fontSize: 14, width: '100%', textAlign: 'center' }}>
+                    {t.nav.login}
+                  </button>
+                  <button onClick={() => { setMobileMenuOpen(false); navigate('/register/restaurant'); }} className="gl-btn-p" style={{ padding: '14px', fontSize: 14, background: 'var(--sulu)', color: '#0c1410', width: '100%', textAlign: 'center' }}>
+                    {t.nav.join}
+                  </button>
+                </>
+              )}
+            </div>
+
+            <div style={{ borderTop: '1px solid var(--border)', margin: '12px 0' }} />
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 14, color: 'var(--textMid)' }}>Theme</span>
+              <ThemeToggle theme={theme} onToggle={onTheme} lang={lang} />
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 14, color: 'var(--textMid)' }}>Language</span>
+              <button className="gl-icon-btn" onClick={onLang} style={{ borderRadius: 20 }}>
+                <Globe size={12} style={{ marginRight: 6 }} />
+                <span>{lang === 'fr' ? 'EN' : 'FR'}</span>
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 
@@ -735,7 +820,7 @@ const HeroSection = ({ t }) => {
   return (
     <section style={{
       height: '100vh',
-      minHeight: 700,
+      minHeight: 'min(700px, 100svh)',
       position: 'relative',
       display: 'flex',
       flexDirection: 'column',
@@ -768,7 +853,7 @@ const HeroSection = ({ t }) => {
       <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 80% 60% at 50% 30%, rgba(168,224,99,0.15) 0%, transparent 70%)', zIndex: 1, pointerEvents: 'none' }} />
 
       {/* 5. Content (Z-Index 2) */}
-      <div style={{ position: 'relative', zIndex: 2, padding: '120px 32px 0', textAlign: 'center' }}>
+      <div style={{ position: 'relative', zIndex: 2, padding: 'clamp(80px, 15vw, 120px) clamp(16px, 4vw, 32px) 0', textAlign: 'center' }}>
         <FadeIn delay={0} y={-20}>
           <span style={{ fontFamily: 'DM Mono,monospace', fontSize: 10, color: 'var(--silver)', letterSpacing: '0.30em', textTransform: 'uppercase' }}>{t.hero.eyebrow}</span>
         </FadeIn>
@@ -779,7 +864,7 @@ const HeroSection = ({ t }) => {
         </FadeIn>
       </div>
 
-      <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', padding: '0 32px 56px', gap: 20, flexWrap: 'wrap' }}>
+      <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', padding: '0 clamp(16px, 4vw, 32px) clamp(32px, 6vw, 56px)', gap: 20, flexWrap: 'wrap' }}>
         <FadeIn delay={0.35} y={20}>
           <p style={{ fontFamily: 'DM Mono,monospace', fontSize: 'clamp(11px,1.4vw,15px)', color: 'var(--silver)', letterSpacing: '0.08em', lineHeight: 1.8, maxWidth: 280, textTransform: 'uppercase' }}>
             {t.hero.sub}
@@ -971,9 +1056,9 @@ const CategoriesSection = ({ t, lang }) => (
               position: 'relative',
               overflow: 'hidden'
             }}>
-              <div style={{ position: 'absolute', inset: 0, zIndex: 0, display: 'flex' }}>
+              <div style={{ position: 'absolute', inset: 0, zIndex: 0, display: 'flex' }} className="flex-col-mobile">
                 {IMGS.categories[i].map((imgSrc, imgIdx, arr) => (
-                  <img key={imgIdx} src={imgSrc} alt="" loading="lazy" style={{ width: arr.length > 1 ? '50%' : '100%', height: '100%', objectFit: 'cover', filter: 'brightness(1)' }} />
+                  <img key={imgIdx} src={imgSrc} alt="" loading="lazy" className={arr.length > 1 ? 'gl-cat-img-half' : 'gl-cat-img-full'} style={{ objectFit: 'cover', filter: 'brightness(1)' }} />
                 ))}
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }} />
               </div>
@@ -1000,7 +1085,7 @@ const CategoriesSection = ({ t, lang }) => (
 const FAQ = ({ t }) => {
   const [open, setOpen] = useState(null);
   return (
-    <section style={{ background: 'var(--bg2)', padding: '96px 32px', border: 'none', position: 'relative' }} aria-label="Questions fréquentes">
+    <section style={{ background: 'var(--bg2)', padding: 'clamp(48px, 10vw, 96px) clamp(16px, 4vw, 32px)', border: 'none', position: 'relative' }} aria-label="Questions fréquentes">
 
       {/* top fade */}
       <div style={{
@@ -1152,7 +1237,7 @@ const FinalCTA = ({ t }) => {
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
         textAlign: 'center',
-        padding: '80px 32px',
+        padding: 'clamp(48px, 10vw, 80px) clamp(16px, 4vw, 32px)',
         width: '100%',
       }}>
         <Eyebrow center style={{ marginBottom: 22, color: isDark ? 'rgba(140,180,255,0.7)' : 'var(--silver)' }}>
@@ -1188,7 +1273,7 @@ const EmailSignup = ({ t }) => {
   const [status, setStatus] = useState('idle');
   const handleSubmit = (e) => { e.preventDefault(); if (!email) return; setStatus('loading'); setTimeout(() => setStatus('done'), 1200); };
   return (
-    <section style={{ background: 'var(--bg)', padding: '76px 32px', borderTop: '1px solid var(--border)' }} aria-label="Newsletter">
+    <section style={{ background: 'var(--bg)', padding: 'clamp(40px, 8vw, 76px) clamp(16px, 4vw, 32px)', borderTop: '1px solid var(--border)' }} aria-label="Newsletter">
       <div style={{ maxWidth: 500, margin: '0 auto', textAlign: 'center' }}>
         <h3 style={{ fontFamily: 'DM Serif Display,serif', fontSize: 30, fontWeight: 400, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>{t.email.title}</h3>
         <p style={{ fontFamily: 'DM Mono,monospace', fontSize: 10, color: 'var(--silver)', letterSpacing: '0.11em', marginBottom: 28 }}>{t.email.sub}</p>
@@ -1210,7 +1295,7 @@ const EmailSignup = ({ t }) => {
 };
 
 const Footer = ({ t, onOpenInfo }) => (
-  <footer style={{ background: 'var(--bg3)', borderTop: '1px solid var(--border)', padding: '60px 32px 28px' }}>
+  <footer style={{ background: 'var(--bg3)', borderTop: '1px solid var(--border)', padding: 'clamp(32px, 6vw, 60px) clamp(16px, 4vw, 32px) 28px' }}>
     <div style={{ maxWidth: 1320, margin: '0 auto' }}>
       <div className="gl-footer-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 44, paddingBottom: 44, borderBottom: '1px solid var(--border)', marginBottom: 28 }}>
         <div>
