@@ -21,36 +21,49 @@ class PublicProductController extends Controller
             ->with(['fournisseur', 'category', 'images']);
 
         // Filter by category
-        if ($request->has('category')) {
-            $query->whereHas('category', function ($q) use ($request) {
-                $q->where('slug', $request->category);
+        if ($request->filled('category')) {
+            $categories = explode(',', $request->category);
+            $query->whereHas('category', function ($q) use ($categories) {
+                $q->whereIn('slug', $categories);
+            });
+        }
+
+        // Filter by search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhereHas('fournisseur', function($sq) use ($search) {
+                      $sq->where('company_name', 'like', "%{$search}%")
+                         ->orWhere('name', 'like', "%{$search}%");
+                  });
             });
         }
 
         // Filter by city (via fournisseur)
-        if ($request->has('city')) {
+        if ($request->filled('city')) {
             $query->whereHas('fournisseur', function ($q) use ($request) {
                 $q->where('city', $request->city);
             });
         }
 
         // Filter by price range
-        if ($request->has('min_price')) {
+        if ($request->filled('min_price')) {
             $query->where('price', '>=', $request->min_price);
         }
-        if ($request->has('max_price')) {
+        if ($request->filled('max_price')) {
             $query->where('price', '<=', $request->max_price);
         }
 
         // Filter by is_verified_only (on fournisseur)
-        if ($request->has('is_verified_only') && filter_var($request->is_verified_only, FILTER_VALIDATE_BOOLEAN)) {
+        if ($request->filled('is_verified_only') && filter_var($request->is_verified_only, FILTER_VALIDATE_BOOLEAN)) {
             $query->whereHas('fournisseur', function ($q) {
                 $q->where('is_verified', true);
             });
         }
 
         // Filter by min_rating
-        if ($request->has('min_rating')) {
+        if ($request->filled('min_rating')) {
             $minRating = $request->min_rating;
             $query->whereHas('fournisseur', function ($q) use ($minRating) {
                 $q->whereExists(function ($query) use ($minRating) {
@@ -62,13 +75,15 @@ class PublicProductController extends Controller
                 });
             });
         }
-
         // Sorting
         $sortBy = $request->sort_by ?? 'newest';
         switch ($sortBy) {
             case 'rating':
-                // We'll sort by the average rating of the fournisseur (descending)
-                $query->orderByDesc(DB::raw('(SELECT AVG(rating) FROM reviews WHERE reviews.fournisseur_id = users.id)'));
+                // Sort by the average rating of the product's fournisseur (descending).
+                // Correlate on products.fournisseur_id — there's no `users` table in scope here.
+                $query->orderByDesc(
+                    DB::raw('(SELECT AVG(rating) FROM reviews WHERE reviews.fournisseur_id = products.fournisseur_id)')
+                );
                 break;
             case 'price_asc':
                 $query->orderBy('price', 'asc');
@@ -106,6 +121,7 @@ class PublicProductController extends Controller
                         'name' => $product->fournisseur->name,
                         'city' => $product->fournisseur->city,
                         'avg_rating' => $product->fournisseur->reviews ? $product->fournisseur->reviews->avg('rating') : 0,
+                        'review_count' => $product->fournisseur->reviews ? $product->fournisseur->reviews->count() : 0,
                         'is_verified' => $product->fournisseur->is_verified,
                         'verified_badge' => $product->fournisseur->is_verified ? 'verified' : null,
                     ],
@@ -135,6 +151,72 @@ class PublicProductController extends Controller
             'prev_page_url' => $products->previousPageUrl(),
             'to' => $products->lastItem(),
             'total' => $products->total(),
+        ]);
+    }
+
+    /**
+     * Return product counts per category, applying every filter except
+     * category itself — so the category tabs can show "(N)" counts that
+     * reflect the user's other active filters.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function categoryCounts(Request $request)
+    {
+        $query = Product::where('is_active', true);
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhereHas('fournisseur', function ($sq) use ($search) {
+                      $sq->where('company_name', 'like', "%{$search}%")
+                         ->orWhere('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($request->filled('city')) {
+            $query->whereHas('fournisseur', function ($q) use ($request) {
+                $q->where('city', $request->city);
+            });
+        }
+
+        if ($request->filled('min_price')) {
+            $query->where('price', '>=', $request->min_price);
+        }
+        if ($request->filled('max_price')) {
+            $query->where('price', '<=', $request->max_price);
+        }
+
+        if ($request->filled('is_verified_only') && filter_var($request->is_verified_only, FILTER_VALIDATE_BOOLEAN)) {
+            $query->whereHas('fournisseur', function ($q) {
+                $q->where('is_verified', true);
+            });
+        }
+
+        if ($request->filled('min_rating')) {
+            $minRating = $request->min_rating;
+            $query->whereHas('fournisseur', function ($q) use ($minRating) {
+                $q->whereExists(function ($query) use ($minRating) {
+                    $query->select(DB::raw(1))
+                        ->from('reviews')
+                        ->whereColumn('reviews.fournisseur_id', 'users.id')
+                        ->groupBy('reviews.fournisseur_id')
+                        ->havingRaw('AVG(rating) >= ?', [$minRating]);
+                });
+            });
+        }
+
+        $byCategory = $query->join('categories', 'categories.id', '=', 'products.category_id')
+            ->select('categories.slug', DB::raw('count(*) as count'))
+            ->groupBy('categories.slug')
+            ->pluck('count', 'categories.slug');
+
+        return response()->json([
+            'total' => array_sum($byCategory->toArray()),
+            'byCategory' => $byCategory,
         ]);
     }
 

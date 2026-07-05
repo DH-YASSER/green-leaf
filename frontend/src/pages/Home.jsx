@@ -7,7 +7,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import ScrollStack, { ScrollStackItem } from '../components/ScrollStack';
 
 let hasShownPreloaderThisSession = false;
-const THEMES = {
+export const THEMES = {
 
   dark: {
     // ─── GRANULAR COMPONENT-LEVEL VARIABLES ─────────────────────────────────
@@ -213,6 +213,7 @@ import { useAuthStore } from '../store/authStore';
 import Logo from '../components/Logo';
 import axios from '../api/axios';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import LoginModal from './LoginModal';
 import ctaBg from '../assets/image.webp';
 import ctaBgLight from '../assets/bg-20260520-111942.jpg';
 import ctaBgDark from '../assets/bg-20260520-113543.jpg';
@@ -244,8 +245,8 @@ import drinks from '../assets/drinks.jpg';
 
 import {
   ArrowRight, Sun, Moon, Globe, ChevronDown, Plus, CheckCircle,
-  Search, ShoppingCart, Truck, ListPlus, Wallet,
-  Leaf, MessageCircle, FileText, ShieldCheck, X, Menu
+  Search, ShoppingCart, Truck, Store, ListPlus, Wallet,
+  Leaf, MessageCircle, FileText,Handshake, ShieldCheck, X, Menu
 } from 'lucide-react';
 
 /* ───────────────────────────────────────────────────────────────────────────
@@ -286,7 +287,7 @@ const T = {
     hero: {
       h1: 'De la terre', h2: 'à votre', h3: 'cuisine.',
       sub: 'GreenLeaf connecte restaurants marocains et coopératives agricoles — sans intermédiaires, sans commissions.',
-      cta1: 'Je suis un restaurant', cta2: 'Je suis fournisseur', scroll: 'Défiler',
+      cta: "S'inscrire gratuitement", scroll: 'Défiler',
     },
     about: {
       h1: 'À propos de', h2: 'GreenLeaf',
@@ -327,7 +328,12 @@ const T = {
     },
     finalCta: {
       l1: 'Approvisionnez', l2: 'mieux, dès', l3: "aujourd'hui.",
-      cta1: 'Inscrire mon restaurant', cta2: 'Inscrire mon exploitation',
+      cta: 'Créer mon compte',
+    },
+    rolePicker: {
+      title: 'Vous êtes...', sub: 'Choisissez votre profil pour continuer.',
+      restaurant: 'Restaurant', restaurantD: "J'achète des produits pour mon restaurant",
+      fournisseur: 'Fournisseur', fournisseurD: 'Je vends mes produits à des restaurants',
     },
     email: { title: 'Restez connecté', sub: 'Nouveaux fournisseurs, tendances prix et offres exclusives.', cta: "S'inscrire", done: 'Inscrit · Merci !' },
     footer: {
@@ -335,8 +341,7 @@ const T = {
       copy: '© 2026 GreenLeaf Maroc',
       cols: [
         { title: 'Régions', links: ['Casablanca-Settat', 'Souss-Massa', 'Marrakech-Safi', 'Fès-Meknès', 'Tanger-Tétouan'] },
-        { title: 'Société', links: ['À propos', 'Support', 'Conditions', 'Confidentialité'] },
-      ],
+{ title: 'Société', links: ['À propos', 'Support', 'Conditions', 'Conditions de marque', 'Confidentialité'] },      ],
       demo: 'Accès démo ·',
     },
   },
@@ -345,7 +350,7 @@ const T = {
     hero: {
       h1: 'From the soil', h2: 'to your', h3: 'kitchen.',
       sub: 'GreenLeaf connects Moroccan restaurants directly to farming cooperatives — no middlemen, no commissions.',
-      cta1: "I'm a restaurant", cta2: "I'm a supplier", scroll: 'Scroll',
+      cta: 'Sign up for free', scroll: 'Scroll',
     },
     about: {
       h1: 'About', h2: 'GreenLeaf',
@@ -386,7 +391,12 @@ const T = {
     },
     finalCta: {
       l1: 'Source smarter,', l2: 'starting', l3: 'today.',
-      cta1: 'Register my restaurant', cta2: 'Register my farm',
+      cta: 'Create my account',
+    },
+    rolePicker: {
+      title: 'You are...', sub: 'Pick your profile to continue.',
+      restaurant: 'Restaurant', restaurantD: "I'm buying products for my restaurant",
+      fournisseur: 'Supplier', fournisseurD: "I'm selling products to restaurants",
     },
     email: { title: 'Stay connected', sub: 'New suppliers, price trends and exclusive offers.', cta: 'Subscribe', done: 'Subscribed · Thank you!' },
     footer: {
@@ -394,8 +404,7 @@ const T = {
       copy: '© 2026 GreenLeaf Morocco',
       cols: [
         { title: 'Regions', links: ['Casablanca-Settat', 'Souss-Massa', 'Marrakech-Safi', 'Fès-Meknès', 'Tanger-Tétouan'] },
-        { title: 'Company', links: ['About', 'Support', 'Terms', 'Privacy'] },
-      ],
+{ title: 'Company', links: ['About', 'Support', 'Terms', 'Brand Terms', 'Privacy'] },      ],
       demo: 'Demo access ·',
     },
   },
@@ -404,7 +413,7 @@ const T = {
 /* ───────────────────────────────────────────────────────────────────────────
    FOOTER "COMPANY" INFO CARDS — content + slug↔icon mapping
    ─────────────────────────────────────────────────────────────────────────── */
-const FOOTER_INFO_SLUGS = ['about', 'support', 'terms', 'privacy'];
+const FOOTER_INFO_SLUGS = ['about', 'support', 'terms','brandTerms', 'privacy'];
 
 const LEGAL_CONTENT = {
   about: {
@@ -419,6 +428,10 @@ const LEGAL_CONTENT = {
     fr: { title: 'Conditions générales', body: "En utilisant GreenLeaf, vous acceptez nos conditions d'utilisation, incluant nos politiques de paiement escrow, de livraison et de résolution des litiges." },
     en: { title: 'Terms of Service', body: "By using GreenLeaf, you agree to our terms of use, including our escrow payment, delivery, and dispute resolution policies." },
   },
+  brandTerms: {
+    fr: { title: 'Conditions de marque', body: "Ces conditions régissent l'utilisation de la marque GreenLeaf par les fournisseurs et partenaires, incluant l'usage du logo, la présentation des produits et les standards de qualité attendus sur la marketplace." },
+    en: { title: 'Brand Terms of Service', body: "These terms govern how suppliers and partners use the GreenLeaf brand, including logo usage, product presentation, and the quality standards expected on the marketplace." },
+  },
   privacy: {
     fr: { title: 'Confidentialité', body: "Nous protégeons vos données personnelles conformément à la loi marocaine 09-08. Vos informations ne sont jamais vendues à des tiers." },
     en: { title: 'Privacy Policy', body: "We protect your personal data in compliance with Moroccan law 09-08. Your information is never sold to third parties." },
@@ -429,13 +442,14 @@ const INFO_ICONS = {
   about: Leaf,
   support: MessageCircle,
   terms: FileText,
+  brandTerms: Handshake,
   privacy: ShieldCheck,
 };
 
 /* ───────────────────────────────────────────────────────────────────────────
    GLOBAL STYLES
    ─────────────────────────────────────────────────────────────────────────── */
-const GlobalStyles = ({ theme }) => (
+export const GlobalStyles = ({ theme }) => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap');
 
@@ -462,6 +476,49 @@ const GlobalStyles = ({ theme }) => (
 
     .gl-nav-link { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.20em; text-transform:uppercase; color:var(--nav-link); text-decoration:none; transition:color .2s; text-shadow:0 1px 6px rgba(0,0,0,.5); }
     .gl-nav-link:hover { color:var(--nav-link-hover); }
+
+   
+ .gl-btn-netflix {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 26px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 6px;
+  cursor: pointer;
+  overflow: hidden;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.20em;
+  text-transform: uppercase;
+  color: var(--nx-color, var(--sulu));
+  border: none;
+  transition: 0.5s;
+}
+.gl-btn-netflix:hover {
+  filter: drop-shadow(0 0 8px var(--nx-color, var(--sulu))) drop-shadow(0 0 20px var(--nx-color, var(--sulu)));
+  letter-spacing: 0.3em;
+  color: var(--nx-hover-color, #fff);
+}
+.gl-btn-netflix span {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: var(--nx-color, var(--sulu));
+  pointer-events: none;
+  transition: transform 0.15s ease-in-out;
+  z-index: -1;
+  transform: scaleY(0);
+  transform-origin: bottom;
+}
+.gl-btn-netflix:hover span {
+  transform: scaleY(1);
+  transform-origin: top;
+}
+.gl-btn-netflix span:nth-child(even) { transform-origin: top; }
+.gl-btn-netflix:hover span:nth-child(even) { transform-origin: bottom; }
+
 
     .gl-icon-btn { background:rgba(0,0,0,.32); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.18); cursor:pointer; padding:7px 14px; display:inline-flex; align-items:center; gap:6px; transition:border-color .2s,background .2s; border-radius:20px; color:rgba(255,255,255,0.85); font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; }
 .gl-icon-btn:hover { border-color:var(--sulu); background:rgba(0,0,0,.5); color:#FFF; }
@@ -533,6 +590,7 @@ const GlobalStyles = ({ theme }) => (
 
 const Preloader = ({ ready, onComplete }) => {
   const [progress, setProgress] = useState(0);
+  const [flash, setFlash] = useState(false);
   const readyRef = useRef(ready);
 
   useEffect(() => { readyRef.current = ready; }, [ready]);
@@ -544,7 +602,8 @@ const Preloader = ({ ready, onComplete }) => {
         if (prev >= cap) {
           if (cap === 100) {
             clearInterval(interval);
-            setTimeout(onComplete, 400);
+            setFlash(true); // punch: flash + content snap out first
+            setTimeout(onComplete, 480); // then lift the curtain
           }
           return prev;
         }
@@ -557,23 +616,41 @@ const Preloader = ({ ready, onComplete }) => {
   return (
     <motion.div
       initial={{ y: 0 }}
-      exit={{ y: '-100vh', transition: { duration: 1.2, ease: [0.76, 0, 0.24, 1] } }}
+      exit={{
+        opacity: 0,
+        transition: { duration: 0.6, ease: [0.4, 0, 0.2, 1], delay: 0.15 },
+      }}
       style={{
         position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
         background: '#121613', zIndex: 9999, display: 'flex', alignItems: 'flex-end',
-        padding: '4vw', borderBottom: '1px solid rgba(255,255,255,0.08)'
+        padding: '4vw', borderBottom: '1px solid rgba(255,255,255,0.08)', overflow: 'hidden'
       }}
     >
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');`}</style>
+
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', width: '100%' }}>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        {/* Bars — quick, simple fade, they've done their job */}
+        <motion.div
+          animate={flash ? { opacity: 0 } : { opacity: 1 }}
+          transition={{ duration: 0.25, ease: 'easeOut' }}
+          style={{ display: 'flex', gap: 8, alignItems: 'center' }}
+        >
           <motion.div animate={{ height: [15, 30, 10, 25, 15] }} transition={{ repeat: Infinity, duration: 1.2 }} style={{ width: 4, background: '#2BEE4B' }} />
           <motion.div animate={{ height: [25, 10, 35, 15, 25] }} transition={{ repeat: Infinity, duration: 1.4 }} style={{ width: 4, background: '#2BEE4B' }} />
           <motion.div animate={{ height: [10, 25, 15, 30, 10] }} transition={{ repeat: Infinity, duration: 1.1 }} style={{ width: 4, background: '#2BEE4B' }} />
-        </div>
-        <div style={{ fontSize: 'clamp(100px, 15vw, 200px)', fontFamily: '"Playfair Display", serif', color: '#FAFFFA', lineHeight: 0.8, letterSpacing: '-0.04em' }}>
+        </motion.div>
+
+        {/* Counter — drifts up-left and shrinks, handing off to the headline settling in above it */}
+        <motion.div
+          animate={flash
+            ? { opacity: 0, x: -40, y: -140, scale: 0.4 }
+            : { opacity: 1, x: 0, y: 0, scale: 1 }
+          }
+          transition={{ duration: 0.55, ease: [0.4, 0, 0.2, 1] }}
+          style={{ fontSize: 'clamp(100px, 15vw, 200px)', fontFamily: '"Playfair Display", serif', color: '#FAFFFA', lineHeight: 0.8, letterSpacing: '-0.04em', transformOrigin: 'bottom right' }}
+        >
           {progress}
-        </div>
+        </motion.div>
       </div>
     </motion.div>
   );
@@ -656,19 +733,38 @@ const ThemeToggle = ({ theme, onToggle, lang }) => (
 /* ───────────────────────────────────────────────────────────────────────────
    NAVBAR
    ─────────────────────────────────────────────────────────────────────────── */
-const Navbar = ({ theme, onTheme, lang, onLang, t, onLogoClick }) => {
+const Navbar = ({ theme, onTheme, lang, onLang, t, onLogoClick, onLoginClick, onSignupClick }) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isAuthenticated, user } = useAuthStore();
   const role = user?.role?.toLowerCase() || '';
   const navigate = useNavigate();
+  const connexionBtnRef = useRef(null);
+const rejoindreBtnRef = useRef(null);
 
+useEffect(() => {
+  const initBars = (btn) => {
+    if (!btn || btn.dataset.barsInit) return;
+    btn.dataset.barsInit = 'true';
+    const width = btn.offsetWidth;
+    const barCount = 60;
+    const spacing = width / barCount;
+    for (let i = 0; i < barCount; i++) {
+      const span = document.createElement('span');
+      span.style.left = `${i * spacing}px`;
+      span.style.width = `${spacing + 0.5}px`;
+      span.style.transitionDelay = `${Math.random() * 0.25}s`;
+      btn.appendChild(span);
+    }
+  };
+  initBars(connexionBtnRef.current);
+  initBars(rejoindreBtnRef.current);
+}, []);
   const getDashboardPath = useCallback(() => {
-    if (role === 'admin') return '/gl/c0ns0le';
-    if (role === 'fournisseur') return '/fournisseur/dashboard';
-    return '/restaurant/dashboard';
-  }, [role]);
-
+  if (role === 'admin') return '/gl/c0ns0le';
+  if (role === 'fournisseur') return '/fournisseur/dashboard';
+  return '/browse';
+}, [role]);
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', fn, { passive: true });
@@ -686,7 +782,7 @@ const Navbar = ({ theme, onTheme, lang, onLang, t, onLogoClick }) => {
       <nav role="navigation" aria-label="Navigation principale" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, background: scrolled ? 'var(--nav-bg)' : 'transparent', backdropFilter: scrolled ? 'blur(20px)' : 'none', borderBottom: scrolled ? '1px solid var(--nav-border)' : 'none', transition: 'all 0.35s ease' }}>
         <div style={{ maxWidth: 1320, margin: '0 auto', padding: '0 32px' }} className="px-mobile-4">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 70 }}>
-            
+
             {/* Left Desktop: Toggles */}
             <div className="hidden-mobile" style={{ display: 'flex', gap: 8, alignItems: 'center', flex: 1 }}>
               <ThemeToggle theme={theme} onToggle={onTheme} lang={lang} />
@@ -727,16 +823,18 @@ const Navbar = ({ theme, onTheme, lang, onLang, t, onLogoClick }) => {
               ) : (
                 <>
                   <button
-                    onClick={() => navigate('/login')}
-                    className="gl-nav-link"
-                    style={{ color: scrolled ? 'var(--nav-link)' : 'rgba(255,255,255,0.85)', background: 'none', border: 'none', cursor: 'pointer', textShadow: scrolled ? 'none' : '0 1px 6px rgba(0,0,0,0.5)' }}
+                    ref={connexionBtnRef}
+                    onClick={onLoginClick}
+                    className="gl-btn-netflix"
                   >
                     {t.nav.login}
                   </button>
+
                   <button
-                    onClick={() => navigate('/register/restaurant')}
-                    className="gl-btn-p"
-                    style={{ padding: '10px 20px', fontSize: 10, background: 'var(--sulu)', color: '#0c1410' }}
+                    ref={rejoindreBtnRef}
+                    onClick={onSignupClick}
+                    className="gl-btn-netflix"
+                    style={{ '--nx-color': '#0c1410', '--nx-hover-color': 'var(--sulu)', background: 'var(--sulu)' }}
                   >
                     {t.nav.join}
                   </button>
@@ -777,10 +875,10 @@ const Navbar = ({ theme, onTheme, lang, onLang, t, onLogoClick }) => {
                 </button>
               ) : (
                 <>
-                  <button onClick={() => { setMobileMenuOpen(false); navigate('/login'); }} className="gl-nav-link" style={{ color: 'var(--text)', background: 'none', border: '1px solid var(--border)', borderRadius: '4px', padding: '14px', fontSize: 14, width: '100%', textAlign: 'center' }}>
+                  <button onClick={() => { setMobileMenuOpen(false); onLoginClick(); }} className="gl-nav-link" style={{ color: 'var(--text)', background: 'none', border: '1px solid var(--border)', borderRadius: '4px', padding: '14px', fontSize: 14, width: '100%', textAlign: 'center' }}>
                     {t.nav.login}
                   </button>
-                  <button onClick={() => { setMobileMenuOpen(false); navigate('/register/restaurant'); }} className="gl-btn-p" style={{ padding: '14px', fontSize: 14, background: 'var(--sulu)', color: '#0c1410', width: '100%', textAlign: 'center' }}>
+                  <button onClick={() => { setMobileMenuOpen(false); onSignupClick(); }} className="gl-btn-p" style={{ padding: '14px', fontSize: 14, background: 'var(--sulu)', color: '#0c1410', width: '100%', textAlign: 'center' }}>
                     {t.nav.join}
                   </button>
                 </>
@@ -812,7 +910,7 @@ const Navbar = ({ theme, onTheme, lang, onLang, t, onLogoClick }) => {
    1. HERO — Spline 3D scene background, content overlaid on top
    ─────────────────────────────────────────────────────────────────────────── */
 
-const HeroSection = ({ t }) => {
+const HeroSection = ({ t, revealed = true, onSignupClick }) => {
   const { theme } = useAppStore();
   const isDark = theme === 'dark';
   // remove isLoading and hasError states — not needed anymore
@@ -854,14 +952,22 @@ const HeroSection = ({ t }) => {
 
       {/* 5. Content (Z-Index 2) */}
       <div style={{ position: 'relative', zIndex: 2, padding: 'clamp(80px, 15vw, 120px) clamp(16px, 4vw, 32px) 0', textAlign: 'center' }}>
-        <FadeIn delay={0} y={-20}>
+        <motion.div
+          initial={{ opacity: 0, y: -16, scale: 1.08 }}
+          animate={revealed ? { opacity: 1, y: 0, scale: 1 } : {}}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
+        >
           <span style={{ fontFamily: 'DM Mono,monospace', fontSize: 10, color: 'var(--silver)', letterSpacing: '0.30em', textTransform: 'uppercase' }}>{t.hero.eyebrow}</span>
-        </FadeIn>
-        <FadeIn delay={0.15} y={40}>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: -24, scale: 1.12 }}
+          animate={revealed ? { opacity: 1, y: 0, scale: 1 } : {}}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.12 }}
+        >
           <h1 className="gl-hero-heading" style={{ fontFamily: 'DM Serif Display,Georgia,serif', fontWeight: 400, fontSize: 'clamp(48px, 9vw, 132px)', lineHeight: 0.92, textTransform: 'uppercase', letterSpacing: '0.02em', marginTop: 10 }}>
             {t.hero.h1}<br />{t.hero.h2}<br />{t.hero.h3}
           </h1>
-        </FadeIn>
+        </motion.div>
       </div>
 
       <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', padding: '0 clamp(16px, 4vw, 32px) clamp(32px, 6vw, 56px)', gap: 20, flexWrap: 'wrap' }}>
@@ -871,8 +977,7 @@ const HeroSection = ({ t }) => {
           </p>
         </FadeIn>
         <FadeIn delay={0.5} y={20} className="gl-hero-btns" style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <Link to="/register/restaurant" className="gl-btn-p">{t.hero.cta1} <ArrowRight size={14} aria-hidden /></Link>
-          <Link to="/register/fournisseur" className="gl-btn-g">{t.hero.cta2}</Link>
+          <button onClick={onSignupClick} className="gl-btn-p">{t.hero.cta} <ArrowRight size={14} aria-hidden /></button>
         </FadeIn>
       </div>
 
@@ -889,8 +994,8 @@ const HeroSection = ({ t }) => {
    2. MARQUEE — two rows, scroll-linked, opposite directions
    ─────────────────────────────────────────────────────────────────────────── */
 const MarqueeSection = () => {
- const row1 = [...IMGS.marquee.slice(0, 7), ...IMGS.marquee.slice(0, 7), ...IMGS.marquee.slice(0, 7)];
-const row2 = [...IMGS.marquee.slice(7), ...IMGS.marquee.slice(7), ...IMGS.marquee.slice(7)];
+  const row1 = [...IMGS.marquee.slice(0, 7), ...IMGS.marquee.slice(0, 7), ...IMGS.marquee.slice(0, 7)];
+  const row2 = [...IMGS.marquee.slice(7), ...IMGS.marquee.slice(7), ...IMGS.marquee.slice(7)];
 
   return (
     <section style={{ background: 'var(--bg)', padding: '60px 0', overflow: 'hidden' }} aria-label="Notre marché">
@@ -1132,7 +1237,7 @@ const FAQ = ({ t }) => {
    FINAL CTA
    ─────────────────────────────────────────────────────────────────────────── */
 
-const FinalCTA = ({ t }) => {
+const FinalCTA = ({ t, onSignupClick }) => {
   const { theme } = useAppStore();
   const isDark = theme === 'dark';
 
@@ -1258,10 +1363,9 @@ const FinalCTA = ({ t }) => {
           {t.finalCta.l1}<br /><Accent>{t.finalCta.l2}</Accent><br />{t.finalCta.l3}
         </h2>
         <div className="gl-hero-btns" style={{ display: 'flex', gap: 14, flexWrap: 'wrap', justifyContent: 'center' }}>
-          <Link to="/register/restaurant" className="gl-btn-p" style={{ padding: '10px 20px', fontSize: 10, background: 'var(--sulu)', color: '#0c1410' }}>
-            {t.nav.join}
-          </Link>
-          <Link to="/register/fournisseur" className="gl-btn-g">{t.finalCta.cta2}</Link>
+          <button onClick={onSignupClick} className="gl-btn-p" style={{ padding: '10px 20px', fontSize: 10, background: 'var(--sulu)', color: '#0c1410' }}>
+            {t.finalCta.cta}
+          </button>
         </div>
       </div>
     </section>
@@ -1474,6 +1578,64 @@ const LogoTransition = () => (
 /* ───────────────────────────────────────────────────────────────────────────
    ROOT
    ─────────────────────────────────────────────────────────────────────────── */
+/* ───────────────────────────────────────────────────────────────────────────
+   ROLE PICKER — shown after the single "Sign up" CTA, before /register/:role
+   ─────────────────────────────────────────────────────────────────────────── */
+const RolePickerModal = ({ open, onClose, onSelect, t }) => (
+  <AnimatePresence>
+    {open && (
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(5,7,6,0.72)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+        onMouseDown={onClose}
+        role="dialog" aria-modal="true" aria-label={t.rolePicker.title}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 24, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 16, scale: 0.97 }}
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          onMouseDown={e => e.stopPropagation()}
+          style={{ width: '100%', maxWidth: 420, background: 'var(--bg2, #161717)', border: '1px solid var(--border)', borderRadius: 18, padding: '30px 26px', position: 'relative' }}
+        >
+          <button onClick={onClose} aria-label="Close" style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: 8, width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--textMid)', cursor: 'pointer' }}>
+            <X size={16} />
+          </button>
+
+          <h2 style={{ fontFamily: 'DM Serif Display, Georgia, serif', fontSize: 24, fontWeight: 400, color: 'var(--text)', margin: '0 0 6px' }}>{t.rolePicker.title}</h2>
+          <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, color: 'var(--textMid)', letterSpacing: '0.04em', marginBottom: 22 }}>{t.rolePicker.sub}</p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <button
+              onClick={() => onSelect('restaurant')}
+              style={{ display: 'flex', alignItems: 'center', gap: 14, textAlign: 'left', width: '100%', background: 'transparent', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 18px', cursor: 'pointer', transition: 'border-color 0.2s, background 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--sulu)'; e.currentTarget.style.background = 'rgba(129,199,132,0.06)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'transparent'; }}
+            >
+              <Store size={20} color="var(--sulu)" style={{ flexShrink: 0 }} />
+              <div>
+                <div style={{ fontFamily: 'DM Serif Display, Georgia, serif', fontSize: 15, color: 'var(--text)' }}>{t.rolePicker.restaurant}</div>
+                <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: 'var(--textLow)', marginTop: 2 }}>{t.rolePicker.restaurantD}</div>
+              </div>
+            </button>
+            <button
+              onClick={() => onSelect('fournisseur')}
+              style={{ display: 'flex', alignItems: 'center', gap: 14, textAlign: 'left', width: '100%', background: 'transparent', border: '1px solid var(--border)', borderRadius: 12, padding: '16px 18px', cursor: 'pointer', transition: 'border-color 0.2s, background 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--sulu)'; e.currentTarget.style.background = 'rgba(129,199,132,0.06)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'transparent'; }}
+            >
+              <Truck size={20} color="var(--sulu)" style={{ flexShrink: 0 }} />
+              <div>
+                <div style={{ fontFamily: 'DM Serif Display, Georgia, serif', fontSize: 15, color: 'var(--text)' }}>{t.rolePicker.fournisseur}</div>
+                <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: 'var(--textLow)', marginTop: 2 }}>{t.rolePicker.fournisseurD}</div>
+              </div>
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+);
+
 const Home = () => {
   const { theme, lang, toggleTheme, toggleLang } = useAppStore();
   const t = T[lang];
@@ -1492,18 +1654,15 @@ const Home = () => {
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     });
-    lenis.on('scroll', ScrollTrigger.update);
-    gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+    const onLenisScroll = () => ScrollTrigger.update();
+    const onTick = (time) => { lenis.raf(time * 1000); };
+    lenis.on('scroll', onLenisScroll);
+    gsap.ticker.add(onTick);
     gsap.ticker.lagSmoothing(0);
-    return () => { lenis.destroy(); };
-  }, []);
-
-  useEffect(() => {
-    const lenis = new Lenis();
-    lenis.on('scroll', ScrollTrigger.update);
-    gsap.ticker.add((time) => { lenis.raf(time * 1000); });
-    gsap.ticker.lagSmoothing(0);
-    return () => { lenis.destroy(); };
+    return () => {
+      gsap.ticker.remove(onTick);
+      lenis.destroy();
+    };
   }, []);
 
   useEffect(() => {
@@ -1524,17 +1683,24 @@ const Home = () => {
     return () => { cancelled = true; clearTimeout(safety); };
   }, []);
 
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [rolePickerOpen, setRolePickerOpen] = useState(false);
+  const handleRoleSelect = (role) => {
+    setRolePickerOpen(false);
+    navigate(`/register/${role}`);
+  };
+
   const handleLogoClick = useCallback(() => {
-  logoClicksRef.current += 1;
-  const clicks = logoClicksRef.current;
-  clearTimeout(logoTimerRef.current);
-  if (clicks === 5) {
-    logoClicksRef.current = 0;
-    navigate('/404');
-    return;
-  }
-  logoTimerRef.current = setTimeout(() => { logoClicksRef.current = 0; }, 2000);
-}, [navigate]);
+    logoClicksRef.current += 1;
+    const clicks = logoClicksRef.current;
+    clearTimeout(logoTimerRef.current);
+    if (clicks === 5) {
+      logoClicksRef.current = 0;
+      navigate('/404');
+      return;
+    }
+    logoTimerRef.current = setTimeout(() => { logoClicksRef.current = 0; }, 2000);
+  }, [navigate]);
 
   return (
     <>
@@ -1557,16 +1723,16 @@ const Home = () => {
         Aller au contenu principal
       </a>
 
-      <Navbar theme={theme} onTheme={toggleTheme} lang={lang} onLang={toggleLang} t={t} onLogoClick={handleLogoClick} />
+      <Navbar theme={theme} onTheme={toggleTheme} lang={lang} onLang={toggleLang} t={t} onLogoClick={handleLogoClick} onLoginClick={() => setLoginOpen(true)} onSignupClick={() => setRolePickerOpen(true)} />
 
       <main id="main-content" style={{ overflowX: 'clip' }}>
-        <HeroSection t={t} />
+        <HeroSection t={t} revealed={!loading} onSignupClick={() => setRolePickerOpen(true)} />
         <MarqueeSection />
         <AboutSection t={t} />
         <ServicesSection t={t} lang={lang} />
         <CategoriesSection t={t} lang={lang} />
         <FAQ t={t} />
-        <FinalCTA t={t} />
+        <FinalCTA t={t} onSignupClick={() => setRolePickerOpen(true)} />
         <EmailSignup t={t} />
       </main>
 
@@ -1579,6 +1745,9 @@ const Home = () => {
           <InfoCard slug={openInfoSlug} lang={lang} onClose={() => setOpenInfoSlug(null)} />
         )}
       </AnimatePresence>
+
+      <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
+      <RolePickerModal open={rolePickerOpen} onClose={() => setRolePickerOpen(false)} onSelect={handleRoleSelect} t={t} />
     </>
   );
 };

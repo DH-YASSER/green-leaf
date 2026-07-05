@@ -26,6 +26,14 @@ Route::post('/login', [App\Http\Controllers\AuthController::class, 'login']);
 Route::post('/logout', [App\Http\Controllers\AuthController::class, 'logout']);
 Route::get('/me', [App\Http\Controllers\AuthController::class, 'me']);
 Route::post('/admin/login', [App\Http\Controllers\AuthController::class, 'adminLogin']);
+Route::post('/auth/check-email', [App\Http\Controllers\AuthController::class, 'checkEmail']);
+
+// Email verification
+Route::get('/email/verify/{id}/{hash}', [App\Http\Controllers\AuthController::class, 'verifyEmail'])
+    ->middleware(['signed'])
+    ->name('verification.verify');
+Route::post('/email/verification-notification', [App\Http\Controllers\AuthController::class, 'resendVerification'])
+    ->middleware(['auth:api', 'throttle:6,1']);
 
 // Admin panel routes (protected by auth and role:admin)
 Route::middleware(['auth:api', 'role:admin'])->prefix('admin')->group(function () {
@@ -57,17 +65,46 @@ Route::middleware(['auth:api', 'role:admin'])->prefix('admin')->group(function (
 
 // Restaurant routes (protected by auth and role:restaurant)
 Route::middleware(['auth:api', 'role:restaurant'])->prefix('restaurant')->group(function () {
-    Route::get('/dashboard', [App\Http\Controllers\Restaurant\DashboardController::class, 'index']);
     Route::get('/orders', [App\Http\Controllers\RestaurantOrderController::class, 'index']);
+    Route::get('/orders/export', [App\Http\Controllers\RestaurantOrderController::class, 'exportCsv']);
     Route::get('/orders/{id}', [App\Http\Controllers\RestaurantOrderController::class, 'show']);
-    Route::get('/messages', [App\Http\Controllers\MessageController::class, 'index']);
+    Route::post('/orders', [App\Http\Controllers\RestaurantOrderController::class, 'store']);
+
+    Route::get('/conversations', [App\Http\Controllers\MessageController::class, 'conversations']);
     Route::get('/messages/{userId}', [App\Http\Controllers\MessageController::class, 'show']);
     Route::post('/messages', [App\Http\Controllers\MessageController::class, 'store']);
+    Route::get('/messages/unread-count', [App\Http\Controllers\MessageController::class, 'unreadCount']);
+
+    // Favorites & Boards
+    Route::get('/favorites', [App\Http\Controllers\Restaurant\FavoriteController::class, 'savedProducts']);
+    Route::post('/favorites/toggle', [App\Http\Controllers\Restaurant\FavoriteController::class, 'toggleFavorite']);
+    Route::patch('/favorites/{id}/move', [App\Http\Controllers\Restaurant\FavoriteController::class, 'moveToBoard']);
+    Route::get('/boards', [App\Http\Controllers\Restaurant\FavoriteController::class, 'boards']);
+    Route::post('/boards', [App\Http\Controllers\Restaurant\FavoriteController::class, 'createBoard']);
+    Route::put('/boards/{id}', [App\Http\Controllers\Restaurant\FavoriteController::class, 'updateBoard']);
+    Route::delete('/boards/{id}', [App\Http\Controllers\Restaurant\FavoriteController::class, 'deleteBoard']);
+    Route::get('/boards/{id}/products', [App\Http\Controllers\Restaurant\FavoriteController::class, 'boardProducts']);
+
+    // Following suppliers
+    Route::get('/following', [App\Http\Controllers\Restaurant\FavoriteController::class, 'following']);
+    Route::post('/following/toggle', [App\Http\Controllers\Restaurant\FavoriteController::class, 'toggleFollow']);
+
+    Route::get('/profile', [App\Http\Controllers\Restaurant\ProfileController::class, 'show']);
+    Route::put('/profile', [App\Http\Controllers\Restaurant\ProfileController::class, 'update']);
+    Route::put('/password', [App\Http\Controllers\Restaurant\ProfileController::class, 'updatePassword']);
+    Route::put('/notifications', [App\Http\Controllers\Restaurant\ProfileController::class, 'updateNotifications']);
+    Route::post('/avatar', [App\Http\Controllers\Restaurant\ProfileController::class, 'uploadAvatar']);
 });
 
 // Fournisseur routes (protected by auth and role:fournisseur)
 Route::middleware(['auth:api', 'role:fournisseur'])->prefix('fournisseur')->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\Fournisseur\DashboardController::class, 'index']);
+
+    // Shop setup wizard (post-registration, 3 steps)
+    Route::put('/shop-setup/page', [App\Http\Controllers\Fournisseur\ShopSetupController::class, 'updateShopPage']);
+    Route::put('/shop-setup/order-preferences', [App\Http\Controllers\Fournisseur\ShopSetupController::class, 'updateOrderPreferences']);
+    Route::post('/shop-setup/verification-docs', [App\Http\Controllers\Fournisseur\ShopSetupController::class, 'updateVerificationDocs']);
+
     Route::get('/products', [App\Http\Controllers\FournisseurProductController::class, 'index']);
     Route::post('/products', [App\Http\Controllers\FournisseurProductController::class, 'store']);
     Route::put('/products/{id}', [App\Http\Controllers\FournisseurProductController::class, 'update']);

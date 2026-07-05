@@ -1,10 +1,10 @@
 import axios from 'axios';
 import { handleMockRequest } from './mockApi';
 
-const USE_MOCK = true;
+const USE_MOCK = false;
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
 });
 
 // Mock adapter

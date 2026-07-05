@@ -86,10 +86,8 @@ class AuthController extends Controller
                 ]);
             }
 
-            // Send email verification (mock implementation)
-            // In a real app, you would send a verification email.
-            // For now, we'll just set the email_verified_at to null and is_verified to false.
-            // You can implement your own email sending logic here.
+            // Send email verification
+            $user->sendEmailVerificationNotification();
 
             return response()->json([
                 'message' => 'User registered successfully. Please verify your email.',
@@ -116,7 +114,55 @@ class AuthController extends Controller
 
         return $this->respondWithToken($token);
     }
+    
+     public function checkEmail(Request $request)
+{
+    $request->validate(['email' => 'required|email']);
 
+    $exists = User::where('email', $request->email)->exists();
+
+    return response()->json(['exists' => $exists]);
+}
+
+    /**
+     * Handle the signed link the user clicks in their verification email.
+     * No auth middleware here on purpose — the request comes from a plain
+     * browser click on an email link, with no Authorization header attached.
+     * The `signed` route middleware already rejects tampered/expired links
+     * before this method runs; the hash re-check below is a cheap extra
+     * guard against verifying the wrong id.
+     */
+    public function verifyEmail(Request $request, $id, $hash)
+    {
+        $user = User::findOrFail($id);
+
+        if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+            return redirect(rtrim(config('app.frontend_url'), '/') . '/#/email-verified?status=invalid');
+        }
+
+        if (! $user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+        }
+
+        return redirect(rtrim(config('app.frontend_url'), '/') . '/#/email-verified?status=ok');
+    }
+
+    /**
+     * Resend the verification email. Called from the app while logged in,
+     * so this one DOES go through auth:api like the rest of the app.
+     */
+    public function resendVerification(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Email already verified.'], 400);
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        return response()->json(['message' => 'Verification email sent.']);
+    }
     /**
      * Login admin user and create token.
      */
@@ -168,7 +214,7 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => Auth::guard()->getTTL() * 60,
+            'expires_in' => Auth::guard()->factory()->getTTL() * 60,
             'user' => Auth::user()->load('restaurantProfile','fournisseurProfile')
         ]);
     }

@@ -1027,7 +1027,7 @@ const Products = ({ t }) => {
   const [images, setImages]     = useState([]);
   const [saving, setSaving]     = useState(false);
 
-  const load = async () => { setLoading(true); try { const r = await axios.get('/api/fournisseur/products'); setProducts(r.data || []); } catch(e){} finally { setLoading(false); } };
+  const load = async () => { setLoading(true); try { const r = await axios.get('/api/fournisseur/products'); setProducts(r.data.data || r.data || []); } catch(e){} finally { setLoading(false); } };
   useEffect(() => { load(); }, []);
   const onChange = e => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
   const onSubmit = async () => {
@@ -1035,9 +1035,13 @@ const Products = ({ t }) => {
     try {
       const fd = new FormData();
       Object.entries(form).forEach(([k,v]) => fd.append(k,v));
-      images.forEach(img => img.file && fd.append('images', img.file));
-      if (editId) await axios.put(`/api/fournisseur/products/${editId}`, fd, { headers:{'Content-Type':'multipart/form-data'} });
-      else        await axios.post('/api/fournisseur/products', fd, { headers:{'Content-Type':'multipart/form-data'} });
+      images.forEach(img => img.file && fd.append('images[]', img.file));
+      if (editId) {
+        fd.append('_method', 'PUT');
+        await axios.post(`/api/fournisseur/products/${editId}`, fd, { headers:{'Content-Type':'multipart/form-data'} });
+      } else {
+        await axios.post('/api/fournisseur/products', fd, { headers:{'Content-Type':'multipart/form-data'} });
+      }
       setModal(null); setEditId(null); setForm(EMPTY_P); setImages([]); load();
     } catch(e){} finally { setSaving(false); }
   };
@@ -1136,7 +1140,7 @@ const Promotions = ({ t }) => {
   const [form, setForm]         = useState(EMPTY_PROMO);
   const [saving, setSaving]     = useState(false);
 
-  const load = async () => { setLoading(true); try { const [p,pr] = await Promise.all([axios.get('/api/fournisseur/promotions'),axios.get('/api/fournisseur/products')]); setPromos(p.data||[]); setProducts(pr.data||[]); } catch(e){} finally { setLoading(false); } };
+  const load = async () => { setLoading(true); try { const [p,pr] = await Promise.all([axios.get('/api/fournisseur/promotions'),axios.get('/api/fournisseur/products')]); setPromos(p.data.data||p.data||[]); setProducts(pr.data.data||pr.data||[]); } catch(e){} finally { setLoading(false); } };
   useEffect(() => { load(); }, []);
   const onChange = e => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
   const onSubmit = async () => { setSaving(true); try { if(editId) await axios.put(`/api/fournisseur/promotions/${editId}`,form); else await axios.post('/api/fournisseur/promotions',form); setModal(null); setEditId(null); setForm(EMPTY_PROMO); load(); } catch(e){} finally { setSaving(false); } };
@@ -1291,7 +1295,7 @@ const Profile = ({ t }) => {
 
   useEffect(()=>{ (async()=>{ try{ const r=await axios.get('/api/fournisseur/profile'); setForm(r.data||{}); setProfilePic(r.data?.profile_pic); }catch(e){} })(); },[]);
   const onChange = e => setForm(p=>({...p,[e.target.name]:e.target.value}));
-  const onSaveInfo = async ()=>{ setSaving(true); try{ const fd=new FormData(); Object.entries(form).forEach(([k,v])=>fd.append(k,v)); if(profilePic instanceof File) fd.append('profile_pic',profilePic); await axios.put('/api/fournisseur/profile',fd,{headers:{'Content-Type':'multipart/form-data'}}); }catch(e){} finally{ setSaving(false); } };
+  const onSaveInfo = async ()=>{ setSaving(true); try{ const fd=new FormData(); Object.entries(form).forEach(([k,v])=>fd.append(k,v)); if(profilePic instanceof File) fd.append('profile_pic',profilePic); fd.append('_method', 'PUT'); await axios.post('/api/fournisseur/profile',fd,{headers:{'Content-Type':'multipart/form-data'}}); }catch(e){} finally{ setSaving(false); } };
   const onSaveSecurity = async ()=>{ setSaving(true); try{ await axios.patch('/api/fournisseur/profile/security',form); }catch(e){} finally{ setSaving(false); } };
   const onSaveNotifs = async ()=>{ setSaving(true); try{ await axios.patch('/api/fournisseur/profile/notifications',form); }catch(e){} finally{ setSaving(false); } };
 

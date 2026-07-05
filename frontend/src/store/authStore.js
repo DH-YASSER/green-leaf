@@ -20,7 +20,7 @@ const storedRole = getStoredRole();
 const useAuthStore = create((set) => ({
   user: storedUser,
   token: storedToken,
-  role: storedRole,
+  role: storedRole || (storedUser ? storedUser.role : null),
   isAuthenticated: !!(storedToken && storedUser),
 
   login: (userData, token) => {

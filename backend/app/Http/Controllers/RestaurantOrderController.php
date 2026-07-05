@@ -154,11 +154,42 @@ class RestaurantOrderController extends Controller
             ->with(['items.product', 'fournisseur']);
 
         // Filter by status if provided
-        if ($request->has('status')) {
+        if ($request->has('status') && $request->status !== 'all') {
             $query->where('status', $request->status);
         }
 
-        $orders = $query->latest()->paginate(15);
+        // Filter by date range
+        if ($request->has('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->has('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // Search by order ID or fournisseur name
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('id', 'like', "%{$search}%")
+                  ->orWhereHas('fournisseur', function ($fq) use ($search) {
+                      $fq->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Sort
+        $sortBy = $request->get('sort', 'newest');
+        if ($sortBy === 'oldest') {
+            $query->oldest();
+        } elseif ($sortBy === 'price_high') {
+            $query->orderBy('total_price', 'desc');
+        } elseif ($sortBy === 'price_low') {
+            $query->orderBy('total_price', 'asc');
+        } else {
+            $query->latest();
+        }
+
+        $orders = $query->paginate(15);
 
         return response()->json([
             'current_page' => $orders->currentPage(),
@@ -252,6 +283,60 @@ class RestaurantOrderController extends Controller
                     ] : null,
                 ];
             }),
+        ]);
+    }
+
+    /**
+     * Export orders as CSV spreadsheet.
+     */
+    public function exportCsv(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->role !== 'restaurant' || !$user->is_verified) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+
+        $orders = Order::where('restaurant_id', $user->id)
+            ->with(['items.product', 'fournisseur'])
+            ->latest()
+            ->get();
+
+        $csvLines = [];
+        $csvLines[] = ['Order ID', 'Date', 'Supplier', 'Status', 'Product', 'Qty', 'Unit Price', 'Line Total', 'Order Total'];
+
+        foreach ($orders as $order) {
+            $first = true;
+            foreach ($order->items as $item) {
+                $csvLines[] = [
+                    $first ? $order->id : '',
+                    $first ? $order->created_at->format('Y-m-d H:i') : '',
+                    $first ? ($order->fournisseur->name ?? 'N/A') : '',
+                    $first ? $order->status : '',
+                    $item->product->name ?? 'N/A',
+                    $item->quantity,
+                    number_format($item->unit_price, 2),
+                    number_format($item->quantity * $item->unit_price, 2),
+                    $first ? number_format($order->total_price, 2) : '',
+                ];
+                $first = false;
+            }
+            if ($order->items->isEmpty()) {
+                $csvLines[] = [$order->id, $order->created_at->format('Y-m-d H:i'), $order->fournisseur->name ?? 'N/A', $order->status, '', '', '', '', number_format($order->total_price, 2)];
+            }
+        }
+
+        $callback = function () use ($csvLines) {
+            $file = fopen('php://output', 'w');
+            foreach ($csvLines as $line) {
+                fputcsv($file, $line);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="orders_' . date('Y-m-d') . '.csv"',
         ]);
     }
 }
