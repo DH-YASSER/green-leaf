@@ -1828,7 +1828,7 @@ const Home = () => {
         <ServicesSection t={t} lang={lang} />
         <CategoriesSection t={t} lang={lang} />
         <FAQ t={t} />
-        <FreshFinalCTA t={t} onSignupClick={() => setRolePickerOpen(true)} />
+        <FinalCTA t={t} onSignupClick={() => setRolePickerOpen(true)} />
         <EmailSignup t={t} />
       </main>
 
