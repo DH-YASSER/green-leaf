@@ -1,4 +1,4 @@
-import{r as a,j as e,d as c,L as t,S as h,X as p,G as f,C as x}from"./react-vendor-DT-Tbp60.js";import{u as g,a as y,b as l}from"./index-CtfLn14W.js";import"./vendor-CUbtOFGM.js";import"./motion-vendor-BpwSzfL4.js";const S=()=>{const{lang:i}=g(),{user:s}=y(),[n,r]=a.useState("retailers"),[d,o]=a.useState(!1);return e.jsxs("div",{style:{backgroundColor:"var(--page-bg)",color:"var(--page-text)",minHeight:"100vh",display:"flex",flexDirection:"column",fontFamily:"Inter, sans-serif"},children:[e.jsx("style",{children:`
+import{r as a,j as e,d as c,L as t,S as h,X as p,G as f,C as x}from"./react-vendor-DT-Tbp60.js";import{u as g,a as y,b as l}from"./index-CNFTLkJs.js";import"./vendor-CUbtOFGM.js";import"./motion-vendor-BpwSzfL4.js";const S=()=>{const{lang:i}=g(),{user:s}=y(),[n,r]=a.useState("retailers"),[d,o]=a.useState(!1);return e.jsxs("div",{style:{backgroundColor:"var(--page-bg)",color:"var(--page-text)",minHeight:"100vh",display:"flex",flexDirection:"column",fontFamily:"Inter, sans-serif"},children:[e.jsx("style",{children:`
         .help-mobile-btn { display: none; }
         .help-desktop-content { display: block; }
         @media (max-width: 768px) {
