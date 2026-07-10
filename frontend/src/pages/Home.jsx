@@ -12,62 +12,62 @@ export const THEMES = {
   dark: {
     // ─── GRANULAR COMPONENT-LEVEL VARIABLES ─────────────────────────────────
     // Global Page Styles
-    '--page-bg': '#0B0C0C',
-    '--page-text': '#FFFFFF',
-    '--text-muted': 'rgba(255,255,255,0.70)',
-    '--text-low': 'rgba(255,255,255,0.40)',
-    '--page-border': 'rgba(255, 255, 255, 0.08)',
+    '--page-bg': '#151815',
+    '--page-text': '#F5F2EA',
+    '--text-muted': 'rgba(245,242,234,0.74)',
+    '--text-low': 'rgba(245,242,234,0.48)',
+    '--page-border': 'rgba(245, 242, 234, 0.12)',
     '--accent-color': '#81C784',   // green reserved for key actions
     '--accent-gold': '#E8B86D',
 
     // Navbar
-    '--nav-bg': 'rgba(11,12,12,0.96)',
-    '--nav-border': 'rgba(255, 255, 255, 0.08)',
-    '--nav-link': 'rgba(255,255,255,0.70)',
-    '--nav-link-hover': '#FFFFFF',
+    '--nav-bg': 'rgba(21,24,21,0.94)',
+    '--nav-border': 'rgba(245, 242, 234, 0.12)',
+    '--nav-link': 'rgba(245,242,234,0.72)',
+    '--nav-link-hover': '#F5F2EA',
     '--nav-active': '#81C784',   // key action: active state
 
     // Sidebar
-    '--sidebar-bg': '#161717',
-    '--sidebar-border': 'rgba(255, 255, 255, 0.08)',
-    '--sidebar-link': 'rgba(255,255,255,0.70)',
-    '--sidebar-link-hover': '#FFFFFF',
-    '--sidebar-active-bg': 'rgba(255, 255, 255, 0.08)',
+    '--sidebar-bg': '#1D211D',
+    '--sidebar-border': 'rgba(245, 242, 234, 0.12)',
+    '--sidebar-link': 'rgba(245,242,234,0.72)',
+    '--sidebar-link-hover': '#F5F2EA',
+    '--sidebar-active-bg': 'rgba(245, 242, 234, 0.09)',
     '--sidebar-active-text': '#81C784',   // key action: active state
 
     // Buttons
     '--btn-primary-bg': '#81C784',   // key action: primary CTA
-    '--btn-primary-text': '#000000',
+    '--btn-primary-text': '#111411',
     '--btn-primary-hover': '0.88',
     '--btn-secondary-bg': 'transparent',
-    '--btn-secondary-text': '#C7CCC9',
-    '--btn-secondary-border': 'rgba(199, 204, 201, 0.30)',
-    '--btn-icon-border': 'rgba(255, 255, 255, 0.08)',
-    '--btn-icon-text': '#C7CCC9',
-    '--btn-icon-hover-bg': 'rgba(255, 255, 255, 0.08)',
+    '--btn-secondary-text': '#D6D2C8',
+    '--btn-secondary-border': 'rgba(214, 210, 200, 0.32)',
+    '--btn-icon-border': 'rgba(245, 242, 234, 0.12)',
+    '--btn-icon-text': '#D6D2C8',
+    '--btn-icon-hover-bg': 'rgba(245, 242, 234, 0.09)',
 
     // Cards & Panels
-    '--card-bg': '#161717',
-    '--card-border': 'rgba(255, 255, 255, 0.08)',
-    '--card-title': '#FFFFFF',
-    '--card-body': 'rgba(255,255,255,0.70)',
-    '--card-hover-bg': 'rgba(255, 255, 255, 0.04)',
+    '--card-bg': '#20251F',
+    '--card-border': 'rgba(245, 242, 234, 0.12)',
+    '--card-title': '#F5F2EA',
+    '--card-body': 'rgba(245,242,234,0.74)',
+    '--card-hover-bg': 'rgba(245, 242, 234, 0.07)',
 
     // Inputs
-    '--input-bg': 'transparent',
-    '--input-border': 'rgba(255, 255, 255, 0.08)',
-    '--input-text': '#FFFFFF',
-    '--input-placeholder': 'rgba(199, 204, 201, 0.45)',
+    '--input-bg': 'rgba(245, 242, 234, 0.04)',
+    '--input-border': 'rgba(245, 242, 234, 0.14)',
+    '--input-text': '#F5F2EA',
+    '--input-placeholder': 'rgba(214, 210, 200, 0.52)',
     '--input-focus-border': '#81C784',   // key action: focus state
 
     // Chat
-    '--chat-bubble-self': 'rgba(255, 255, 255, 0.10)',
-    '--chat-bubble-other': '#161717',
-    '--chat-text-self': '#FFFFFF',
-    '--chat-text-other': 'rgba(255,255,255,0.70)',
+    '--chat-bubble-self': 'rgba(245, 242, 234, 0.11)',
+    '--chat-bubble-other': '#20251F',
+    '--chat-text-self': '#F5F2EA',
+    '--chat-text-other': 'rgba(245,242,234,0.74)',
 
     // Auth Page
-    '--auth-panel-bg': '#161717',
+    '--auth-panel-bg': '#20251F',
 
     // Status / Badges
     '--status-pending-bg': 'rgba(245,158,11,0.08)',
@@ -80,28 +80,28 @@ export const THEMES = {
     '--status-info-text': 'rgba(147,197,253,0.85)',
 
     // ─── BACKWARD COMPATIBLE GLOBAL ALIASES ─────────────────────────────────
-    '--bg': '#0B0C0C',
-    '--bg2': '#161717',
-    '--bg3': '#000000',
-    '--bg4': '#1E2020',
-    '--bg5': '#252727',
-    '--text': '#FFFFFF',
-    '--textMid': 'rgba(255,255,255,0.70)',
-    '--textLow': 'rgba(255,255,255,0.40)',
+    '--bg': '#151815',
+    '--bg2': '#20251F',
+    '--bg3': '#111411',
+    '--bg4': '#262C25',
+    '--bg5': '#2E352C',
+    '--text': '#F5F2EA',
+    '--textMid': 'rgba(245,242,234,0.74)',
+    '--textLow': 'rgba(245,242,234,0.48)',
     '--sulu': '#81C784',
     '--suluLo': 'rgba(129, 199, 132, 0.10)',
     '--suluMd': 'rgba(129, 199, 132, 0.22)',
-    '--silver': '#C7CCC9',
-    '--silverLo': 'rgba(199, 204, 201, 0.10)',
-    '--silverMd': 'rgba(199, 204, 201, 0.30)',
-    '--border': 'rgba(255, 255, 255, 0.08)',
-    '--border2': 'rgba(255, 255, 255, 0.14)',
-    '--navBg': 'rgba(11,12,12,0.96)',
-    '--inputBg': 'transparent',
+    '--silver': '#D6D2C8',
+    '--silverLo': 'rgba(214, 210, 200, 0.12)',
+    '--silverMd': 'rgba(214, 210, 200, 0.32)',
+    '--border': 'rgba(245, 242, 234, 0.12)',
+    '--border2': 'rgba(245, 242, 234, 0.18)',
+    '--navBg': 'rgba(21,24,21,0.94)',
+    '--inputBg': 'rgba(245, 242, 234, 0.04)',
     '--danger': 'rgba(239,100,100,0.85)',
     '--dangerLo': 'rgba(239,100,100,0.10)',
-    '--heroFilter': 'brightness(0.18) saturate(0.45)',
-    '--imgFilter': 'brightness(0.55) saturate(0.7)',
+    '--heroFilter': 'brightness(0.32) saturate(0.62)',
+    '--imgFilter': 'brightness(0.72) saturate(0.82)',
     '--accent2': '#E8B86D',
     '--amber': 'rgba(245,158,11,0.85)',
     '--amberLo': 'rgba(245,158,11,0.08)',
@@ -598,12 +598,12 @@ const Preloader = ({ ready, onComplete }) => {
   useEffect(() => {
     const interval = setInterval(() => {
       setProgress(prev => {
-        const cap = readyRef.current ? 100 : 90; // crawls to 90%, waits for real assets, then finishes
+        const cap = readyRef.current ? 100 : 90;
         if (prev >= cap) {
           if (cap === 100) {
             clearInterval(interval);
-            setFlash(true); // punch: flash + content snap out first
-            setTimeout(onComplete, 480); // then lift the curtain
+            setFlash(true);
+            setTimeout(onComplete, 480);
           }
           return prev;
         }
@@ -622,32 +622,30 @@ const Preloader = ({ ready, onComplete }) => {
       }}
       style={{
         position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-        background: '#121613', zIndex: 9999, display: 'flex', alignItems: 'flex-end',
-        padding: '4vw', borderBottom: '1px solid rgba(255,255,255,0.08)', overflow: 'hidden'
+        background: 'var(--bg)', zIndex: 9999, display: 'flex', alignItems: 'flex-end',
+        padding: '4vw', borderBottom: '1px solid var(--border)', overflow: 'hidden'
       }}
     >
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');`}</style>
 
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', width: '100%' }}>
-        {/* Bars — quick, simple fade, they've done their job */}
         <motion.div
           animate={flash ? { opacity: 0 } : { opacity: 1 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
           style={{ display: 'flex', gap: 8, alignItems: 'center' }}
         >
-          <motion.div animate={{ height: [15, 30, 10, 25, 15] }} transition={{ repeat: Infinity, duration: 1.2 }} style={{ width: 4, background: '#2BEE4B' }} />
-          <motion.div animate={{ height: [25, 10, 35, 15, 25] }} transition={{ repeat: Infinity, duration: 1.4 }} style={{ width: 4, background: '#2BEE4B' }} />
-          <motion.div animate={{ height: [10, 25, 15, 30, 10] }} transition={{ repeat: Infinity, duration: 1.1 }} style={{ width: 4, background: '#2BEE4B' }} />
+          <motion.div animate={{ height: [15, 30, 10, 25, 15] }} transition={{ repeat: Infinity, duration: 1.2 }} style={{ width: 4, background: 'var(--sulu)' }} />
+          <motion.div animate={{ height: [25, 10, 35, 15, 25] }} transition={{ repeat: Infinity, duration: 1.4 }} style={{ width: 4, background: 'var(--sulu)' }} />
+          <motion.div animate={{ height: [10, 25, 15, 30, 10] }} transition={{ repeat: Infinity, duration: 1.1 }} style={{ width: 4, background: 'var(--sulu)' }} />
         </motion.div>
 
-        {/* Counter — drifts up-left and shrinks, handing off to the headline settling in above it */}
         <motion.div
           animate={flash
             ? { opacity: 0, x: -40, y: -140, scale: 0.4 }
             : { opacity: 1, x: 0, y: 0, scale: 1 }
           }
           transition={{ duration: 0.55, ease: [0.4, 0, 0.2, 1] }}
-          style={{ fontSize: 'clamp(100px, 15vw, 200px)', fontFamily: '"Playfair Display", serif', color: '#FAFFFA', lineHeight: 0.8, letterSpacing: '-0.04em', transformOrigin: 'bottom right' }}
+          style={{ fontSize: 'clamp(100px, 15vw, 200px)', fontFamily: '"Playfair Display", serif', color: 'var(--text)', lineHeight: 0.8, letterSpacing: '-0.04em', transformOrigin: 'bottom right' }}
         >
           {progress}
         </motion.div>
@@ -1052,19 +1050,6 @@ const MarqueeSection = () => {
    ─────────────────────────────────────────────────────────────────────────── */
 const AboutSection = ({ t }) => (
   <section id="about" style={{ background: 'var(--bg)', position: 'relative', minHeight: '90vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '120px 24px', overflow: 'hidden' }}>
-    <FadeIn delay={0.1} x={-80} duration={0.9} className="gl-about-deco" style={{ position: 'absolute', top: '6%', left: '4%' }}>
-      <img src={IMGS.aboutTL} alt="" loading="lazy" style={{ width: 150, height: 150, objectFit: 'cover', borderRadius: 20, filter: 'var(--imgFilter)' }} />
-    </FadeIn>
-    <FadeIn delay={0.25} x={-80} duration={0.9} className="gl-about-deco" style={{ position: 'absolute', bottom: '8%', left: '8%' }}>
-      <img src={IMGS.aboutBL} alt="" loading="lazy" style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 20, filter: 'var(--imgFilter)' }} />
-    </FadeIn>
-    <FadeIn delay={0.15} x={80} duration={0.9} className="gl-about-deco" style={{ position: 'absolute', top: '6%', right: '4%' }}>
-      <img src={IMGS.aboutTR} alt="" loading="lazy" style={{ width: 150, height: 150, objectFit: 'cover', borderRadius: 20, filter: 'var(--imgFilter)' }} />
-    </FadeIn>
-    <FadeIn delay={0.3} x={80} duration={0.9} className="gl-about-deco" style={{ position: 'absolute', bottom: '8%', right: '8%' }}>
-      <img src={IMGS.aboutBR} alt="" loading="lazy" style={{ width: 140, height: 140, objectFit: 'cover', borderRadius: 20, filter: 'var(--imgFilter)' }} />
-    </FadeIn>
-
     <FadeIn delay={0} y={20}>
       <Eyebrow center>{t.about.eyebrow}</Eyebrow>
     </FadeIn>
