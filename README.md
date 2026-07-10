@@ -1,36 +1,37 @@
-# Green Leaf — B2B Moroccan Food Marketplace
+# Green Leaf - B2B Moroccan Food Marketplace
 
-**Green Leaf** is a modern B2B marketplace platform designed to connect restaurants directly with verified agricultural suppliers and food producers in Morocco (Casablanca, Rabat, Marrakech, Fes, Tanger, Agadir). 
+**Live demo:** https://dh-yasser.github.io/green-leaf/
 
-This repository contains both the **React + Vite Frontend** and the **Laravel Backend** codebases.
+Green Leaf is a modern B2B marketplace platform designed to connect restaurants directly with verified agricultural suppliers and food producers in Morocco.
 
----
-
-## 🌟 Key Features
-
-*   **Supplier Directory & Filters:** Browse and filter ingredients by category, price range, city, and ratings.
-*   **Role-Based Access Control:** Distinct dashboard views for **Restaurants**, **Suppliers (Fournisseurs)**, and **Admins**.
-*   **Interactive Demo Mode:** The frontend comes with a fully integrated mock database in `localStorage` enabling a zero-backend interactive experience for prototyping and demonstration.
-*   **Moroccan-Inspired Design:** Beautiful glassmorphic UI utilizing authentic color accents and zellige patterns.
-*   **Bilingual Adaptability:** Unified support for French and English culinary terminology.
+This repository contains both the React + Vite frontend and the Laravel backend codebases.
 
 ---
 
-## 🛠️ Project Structure
+## Key Features
 
-```
+- Supplier directory with search, filters, categories, ratings, and city-based discovery.
+- Role-based dashboards for restaurants, suppliers, and admins.
+- Restaurant ordering flow with cart, order tracking, and notifications.
+- Supplier shop setup, product management, media handling, and review status.
+- Admin panel for users, suppliers, products, orders, categories, settings, and logs.
+- Light/dark theme and bilingual-friendly UI structure.
+
+---
+
+## Project Structure
+
+```text
 green-leaf/
-├── frontend/         # React 18 + Vite + Tailwind CSS v4 + Zustand
-└── backend/          # Laravel REST API (PHP)
+├── frontend/   # React + Vite + Zustand
+└── backend/    # Laravel REST API
 ```
 
 ---
 
-## 🚀 How to Run Locally
+## Run Locally
 
-### 1. Frontend (React)
-
-Make sure you have [Node.js](https://nodejs.org/) installed:
+### Frontend
 
 ```bash
 cd frontend
@@ -38,16 +39,9 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173/` in your browser.
+Open `http://localhost:5173/green-leaf/`.
 
-#### 🔑 Demo Accounts (Pre-seeded in Local Storage)
-*   **Restaurant:** `restaurant@demo.com` / `demo123`
-*   **Supplier (Fournisseur):** `fournisseur@demo.com` / `demo123`
-*   **Admin:** `admin@demo.com` / `admin123`
-
-### 2. Backend (Laravel)
-
-Make sure you have [PHP 8.2+](https://www.php.net/) and [Composer](https://getcomposer.org/) installed:
+### Backend
 
 ```bash
 cd backend
@@ -59,28 +53,22 @@ php artisan serve
 
 ---
 
-## 📦 How to Push & Deploy to GitHub Pages
+## Demo Accounts
 
-Since background processes cannot open the interactive browser login for GitHub, you just need to run the following commands in your own terminal (VS Code Terminal, Command Prompt, or PowerShell) to push the code and publish the site.
+- Restaurant: `restaurant@demo.com` / `demo123`
+- Supplier: `fournisseur@demo.com` / `demo123`
+- Admin: `admin@demo.com` / `admin123`
 
-### Step 1: Push the Code to your GitHub
+---
 
-Open your terminal at `C:\Users\HP\Desktop\markeat` and run:
-
-```bash
-# Push the codebase to your new repository
-git push -u origin main
-```
-*(A window will pop up allowing you to log in to GitHub securely in one click.)*
-
-### Step 2: Publish to GitHub Pages
-
-Once the code is pushed, deploy the React site:
+## GitHub Pages Deployment
 
 ```bash
 cd frontend
 npm run deploy
 ```
 
-Your B2B marketplace will be live at:  
-👉 **`https://DH-YASSER.github.io/green-leaf/`**
+Live site:
+https://dh-yasser.github.io/green-leaf/
+
+Note: GitHub Pages hosts the frontend only. Laravel/MySQL must be deployed separately for full backend/database functionality online.
