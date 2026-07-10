@@ -10,18 +10,18 @@ import {
 
 const THEMES_CSS = {
   dark: {
-    '--db-sidebar':     '#0c0e16',
-    '--db-sidebar-b':   '#171a27',
-    '--db-topbar':      '#0f1219',
-    '--db-card':        '#141720',
-    '--db-card-b':      '#1e2235',
-    '--db-page':        '#0a0c13',
-    '--db-text':        '#dde3f2',
-    '--db-muted':       '#6b7494',
-    '--db-low':         '#363c58',
-    '--db-accent':      '#a8f070',
-    '--db-accent-dim':  'rgba(168,240,112,0.10)',
-    '--db-accent-b':    'rgba(168,240,112,0.22)',
+    '--db-sidebar':     '#1a201a',
+    '--db-sidebar-b':   '#2a3128',
+    '--db-topbar':      '#1d231c',
+    '--db-card':        '#242b23',
+    '--db-card-b':      '#3a4337',
+    '--db-page':        '#151815',
+    '--db-text':        '#f5f2ea',
+    '--db-muted':       '#b8b2a6',
+    '--db-low':         '#7d8578',
+    '--db-accent':      '#81c784',
+    '--db-accent-dim':  'rgba(129,199,132,0.12)',
+    '--db-accent-b':    'rgba(129,199,132,0.26)',
     '--db-purple':      '#8b5cf6',
     '--db-purple-dim':  'rgba(139,92,246,0.12)',
     '--db-blue':        '#3b82f6',
@@ -59,8 +59,8 @@ const THEMES_CSS = {
   }
 };
 
-import Logo from './components/Logo';
-import EmailVerificationBanner from './components/EmailVerificationBanner';
+import Logo from '../components/Logo';
+import EmailVerificationBanner from '../components/EmailVerificationBanner';
 
 const NAV_RESTAURANT = [
   { section: 'Principal' },
@@ -101,6 +101,15 @@ export const DashboardLayout = ({ children, role = 'restaurant' }) => {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
+
+  useEffect(() => {
+    const syncSidebarForViewport = () => {
+      if (window.innerWidth <= 768) setSidebarOpen(false);
+    };
+    syncSidebarForViewport();
+    window.addEventListener('resize', syncSidebarForViewport);
+    return () => window.removeEventListener('resize', syncSidebarForViewport);
+  }, []);
 
   const nav = role === 'fournisseur' ? NAV_FOURNISSEUR : NAV_RESTAURANT;
   const cssVars = THEMES_CSS[theme] || THEMES_CSS.dark;
