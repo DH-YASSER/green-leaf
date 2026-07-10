@@ -1,1 +1,0 @@
-import{u as t,j as a}from"./react-vendor-DT-Tbp60.js";import{L as e}from"./index-Dh-S5Fp-.js";import"./vendor-CUbtOFGM.js";import"./motion-vendor-BpwSzfL4.js";function m(){const o=t();return a.jsx(e,{open:!0,onClose:()=>o("/")})}export{m as LoginPage,m as default};
