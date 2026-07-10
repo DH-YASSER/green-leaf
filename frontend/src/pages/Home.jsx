@@ -570,6 +570,8 @@ export const GlobalStyles = ({ theme }) => (
       .gl-service-row { gap:16px !important; flex-direction: column !important; align-items: flex-start !important; }
       .gl-service-num { width: auto !important; }
       .gl-marquee-tile { width: 200px !important; height: 140px !important; }
+      .gl-final-cta-inner { grid-template-columns: 1fr !important; }
+      .gl-final-cta-inner > div:last-child { justify-self: stretch !important; width: 100% !important; }
       .gl-cat-img-half { width: 100% !important; height: 50% !important; }
       .gl-cat-img-full { width: 100% !important; height: 100% !important; }
     }
@@ -1357,6 +1359,115 @@ const FinalCTA = ({ t, onSignupClick }) => {
   );
 };
 
+const FreshFinalCTA = ({ t, onSignupClick }) => {
+  const { theme } = useAppStore();
+  const isDark = theme === 'dark';
+
+  return (
+    <section style={{
+      position: 'relative',
+      minHeight: 460,
+      overflow: 'hidden',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: isDark ? '#1D211D' : '#F3EEE4',
+      borderTop: '1px solid var(--border)',
+      borderBottom: '1px solid var(--border)',
+      padding: 'clamp(34px, 7vw, 72px) clamp(16px, 4vw, 32px)',
+    }} aria-label="Inscription">
+      <img
+        src={ctaBgLight}
+        alt=""
+        style={{
+          position: 'absolute', inset: 0, zIndex: 0,
+          width: '100%', height: '100%',
+          objectFit: 'cover',
+          objectPosition: 'center',
+          filter: isDark ? 'brightness(0.56) saturate(0.8)' : 'brightness(0.9) saturate(0.95)',
+        }}
+      />
+      <div style={{
+        position: 'absolute', inset: 0, zIndex: 1,
+        background: isDark
+          ? 'linear-gradient(90deg, rgba(21,24,21,0.92) 0%, rgba(21,24,21,0.76) 48%, rgba(21,24,21,0.38) 100%)'
+          : 'linear-gradient(90deg, rgba(246,242,232,0.96) 0%, rgba(246,242,232,0.78) 52%, rgba(246,242,232,0.22) 100%)',
+        pointerEvents: 'none',
+      }} />
+      <div className="gl-final-cta-inner" style={{
+        position: 'relative',
+        zIndex: 2,
+        width: 'min(1180px, 100%)',
+        display: 'grid',
+        gridTemplateColumns: 'minmax(0, 620px) minmax(240px, 1fr)',
+        gap: 'clamp(24px, 6vw, 72px)',
+        alignItems: 'center',
+      }}>
+        <div>
+          <Eyebrow style={{ marginBottom: 18, color: 'var(--sulu)' }}>
+            {t.finalCta.eyebrow}
+          </Eyebrow>
+          <h2 style={{
+            fontFamily: 'DM Serif Display,serif',
+            fontSize: 'clamp(36px,5vw,76px)',
+            fontWeight: 400,
+            textTransform: 'uppercase',
+            lineHeight: 0.98,
+            letterSpacing: '0.02em',
+            marginBottom: 20,
+            color: 'var(--text)',
+            maxWidth: 650,
+          }}>
+            {t.finalCta.l1}<br /><Accent>{t.finalCta.l2}</Accent><br />{t.finalCta.l3}
+          </h2>
+          <p style={{
+            fontFamily: 'DM Mono,monospace',
+            fontSize: 'clamp(12px,1.2vw,14px)',
+            color: 'var(--textMid)',
+            lineHeight: 1.75,
+            letterSpacing: '0.04em',
+            maxWidth: 560,
+            marginBottom: 28,
+          }}>
+            {t.hero.sub}
+          </p>
+          <div className="gl-hero-btns" style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+            <button onClick={onSignupClick} className="gl-btn-p" style={{ padding: '13px 24px', fontSize: 10, background: 'var(--sulu)', color: '#0c1410' }}>
+              {t.finalCta.cta}
+            </button>
+          </div>
+        </div>
+        <div style={{
+          display: 'grid',
+          gap: 12,
+          justifySelf: 'end',
+          width: 'min(330px, 100%)',
+        }}>
+          {[
+            ['24h', 'Livraison suivie'],
+            ['0%', 'Commission plateforme'],
+            ['MAD', 'Paiement local'],
+          ].map(([value, label]) => (
+            <div key={label} style={{
+              border: '1px solid var(--border)',
+              background: isDark ? 'rgba(245,242,234,0.08)' : 'rgba(255,255,255,0.72)',
+              padding: '18px 20px',
+              display: 'flex',
+              alignItems: 'baseline',
+              justifyContent: 'space-between',
+              gap: 18,
+              backdropFilter: 'blur(10px)',
+            }}>
+              <strong style={{ fontFamily: 'DM Serif Display,serif', fontSize: 34, color: 'var(--text)', fontWeight: 400 }}>{value}</strong>
+              <span style={{ fontFamily: 'DM Mono,monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--textMid)', textAlign: 'right' }}>{label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
 const EmailSignup = ({ t }) => {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState('idle');
@@ -1717,7 +1828,7 @@ const Home = () => {
         <ServicesSection t={t} lang={lang} />
         <CategoriesSection t={t} lang={lang} />
         <FAQ t={t} />
-        <FinalCTA t={t} onSignupClick={() => setRolePickerOpen(true)} />
+        <FreshFinalCTA t={t} onSignupClick={() => setRolePickerOpen(true)} />
         <EmailSignup t={t} />
       </main>
 
