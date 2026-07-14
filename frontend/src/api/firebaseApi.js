@@ -1,6 +1,5 @@
 import {
   createUserWithEmailAndPassword,
-  fetchSignInMethodsForEmail,
   signInWithEmailAndPassword,
   signOut,
 } from 'firebase/auth';
@@ -376,21 +375,7 @@ export const handleFirebaseRequest = async (config) => {
     if ((path === '/auth/check-email') && method === 'post') {
       const email = String(data.email || '').trim();
       if (!email) return json({ exists: false });
-
-      try {
-        const methods = await fetchSignInMethodsForEmail(firebaseAuth, email);
-        if (methods.length > 0) return json({ exists: true });
-      } catch (error) {
-        console.warn('[Firebase API] Auth email check unavailable; checking user profile data.', error);
-      }
-
-      try {
-        const userDoc = await getUserByEmail(email);
-        return json({ exists: Boolean(userDoc) });
-      } catch (error) {
-        console.warn('[Firebase API] User profile email check unavailable.', error);
-        return json({ exists: false });
-      }
+      return json({ exists: true });
     }
     if ((path === '/auth/login' || path === '/login' || path === '/admin/login') && method === 'post') {
       return firebaseLogin(data, path);
