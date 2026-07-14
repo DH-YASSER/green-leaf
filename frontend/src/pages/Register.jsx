@@ -5,7 +5,6 @@ import {
     Mail, Lock, Phone, MapPin, ArrowRight, ArrowLeft, Eye, EyeOff,
 } from 'lucide-react';
 import axios from '../api/axios';
-import { useAuthStore } from '../store/authStore';
 import { useAppStore } from '../store/appStore';
 import LoginModal from './LoginModal';
 import Logo from '../components/Logo';
@@ -75,7 +74,6 @@ const Register = () => {
     const { lang, toggleLang, theme } = useAppStore();
     const navigate = useNavigate();
     const { role: urlRole } = useParams();
-    const { login } = useAuthStore();
     const c = COPY[lang];
 
     // role now comes only from the URL (/register/restaurant or /register/fournisseur) —
@@ -133,10 +131,9 @@ const Register = () => {
                 payload.ice_number = 'N/A';
                 payload.category = 'other';
             }
-            const { data } = await axios.post('/api/register', payload);
-            const { user, access_token, token } = data;
-            login(user, access_token || token);
-            navigate(user.role === 'fournisseur' ? '/fournisseur/shop-setup' : '/browse');
+            await axios.post('/api/register', payload);
+            await axios.post('/api/logout');
+            navigate('/login');
         } catch (err) {
             const errors = err.response?.data?.errors;
             const msg = err.response?.data?.message;
