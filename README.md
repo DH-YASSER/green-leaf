@@ -1,10 +1,17 @@
 # Green Leaf - B2B Moroccan Food Marketplace
 
-**Live demo:** https://dh-yasser.github.io/green-leaf/
+**Laravel/MySQL frontend demo:** https://dh-yasser.github.io/green-leaf/
+
+**Firebase version demo:** https://greenleaf-46120.web.app/
 
 Green Leaf is a modern B2B marketplace platform designed to connect restaurants directly with verified agricultural suppliers and food producers in Morocco.
 
 This repository contains both the React + Vite frontend and the Laravel backend codebases.
+
+There are two versions:
+
+- `main`: original Laravel + MySQL version.
+- `firebase-version`: no-Laravel version using Firebase Auth, Firestore, Firebase Hosting, and Cloudinary for image uploads.
 
 ---
 
@@ -72,3 +79,15 @@ Live site:
 https://dh-yasser.github.io/green-leaf/
 
 Note: GitHub Pages hosts the frontend only. Laravel/MySQL must be deployed separately for full backend/database functionality online.
+
+---
+
+## Firebase Version
+
+Firebase live site:
+https://greenleaf-46120.web.app/
+
+Branch:
+https://github.com/DH-YASSER/green-leaf/tree/firebase-version
+
+This version does not require Laravel or MySQL online. It uses Firebase for hosting/auth/database and Cloudinary for image uploads.
