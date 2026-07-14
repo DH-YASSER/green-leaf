@@ -28,6 +28,7 @@ import {
 const delay = (ms = 120) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const json = (data, status = 200) => ({ data, status });
+const shouldSeedDemoData = import.meta.env.VITE_FIREBASE_SEED_DEMO === 'true';
 
 const cloudinaryConfig = {
   cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME,
@@ -81,6 +82,34 @@ const saveWithId = async (name, id, data) => {
   return { id: String(id), ...data };
 };
 
+const getFirebaseAuthMessage = (error) => {
+  const code = error?.code || '';
+  const messages = {
+    'auth/operation-not-allowed': 'Email/password login is disabled in Firebase. Enable it in Authentication > Sign-in method.',
+    'auth/invalid-credential': 'Email or password is incorrect.',
+    'auth/user-not-found': 'No account exists for this email.',
+    'auth/wrong-password': 'Email or password is incorrect.',
+    'auth/email-already-in-use': 'This email already has an account. Try signing in instead.',
+    'auth/weak-password': 'Password must be at least 6 characters.',
+    'auth/invalid-email': 'Please enter a valid email address.',
+    'auth/network-request-failed': 'Network error. Check your connection and try again.',
+  };
+  return messages[code] || error?.message || 'Firebase authentication failed.';
+};
+
+const throwFirebaseAuthError = (error) => {
+  throw {
+    message: getFirebaseAuthMessage(error),
+    response: {
+      status: 400,
+      data: {
+        message: getFirebaseAuthMessage(error),
+        code: error?.code || 'firebase-auth-error',
+      },
+    },
+  };
+};
+
 const seedIfEmpty = async () => {
   const markerRef = doc(firestore, 'meta', 'seed');
   const marker = await getDoc(markerRef);
@@ -118,11 +147,7 @@ const firebaseLogin = async (data, path) => {
   try {
     await signInWithEmailAndPassword(firebaseAuth, email, password);
   } catch (error) {
-    if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-      try { await createUserWithEmailAndPassword(firebaseAuth, email, password); } catch {}
-    } else {
-      throw error;
-    }
+    throwFirebaseAuthError(error);
   }
 
   const uid = firebaseAuth.currentUser?.uid;
@@ -152,7 +177,12 @@ const firebaseLogin = async (data, path) => {
 
 const firebaseRegister = async (data) => {
   const role = data.role === 'fournisseur' || data.role === 'company' ? 'fournisseur' : 'restaurant';
-  const credential = await createUserWithEmailAndPassword(firebaseAuth, data.email, data.password || 'password');
+  let credential;
+  try {
+    credential = await createUserWithEmailAndPassword(firebaseAuth, data.email, data.password || 'password');
+  } catch (error) {
+    throwFirebaseAuthError(error);
+  }
   const user = {
     id: credential.user.uid,
     name: data.name || data.company_name || 'Nouveau membre',
@@ -328,10 +358,12 @@ export const handleFirebaseRequest = async (config) => {
     return handleMockRequest(config);
   }
 
-  try {
+  if (shouldSeedDemoData) {
+    try {
     await seedIfEmpty();
-  } catch (error) {
-    console.warn('[Firebase API] Demo seed skipped. Add data through the app or loosen rules only during setup.', error);
+    } catch (error) {
+      console.warn('[Firebase API] Demo seed skipped. Add data through the app or loosen rules only during setup.', error);
+    }
   }
 
   const path = normalizePath(config.url);
@@ -489,6 +521,7 @@ export const handleFirebaseRequest = async (config) => {
 
     return handleMockRequest(config);
   } catch (error) {
+    if (error?.response) throw error;
     console.error('[Firebase API]', error);
     throw {
       message: error.message || 'Firebase request failed',
