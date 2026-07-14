@@ -4,6 +4,8 @@ This branch is the no-Laravel version of Green Leaf.
 
 The original Laravel + MySQL version stays on `main`.
 
+Live Firebase Hosting URL: https://greenleaf-46120.web.app
+
 ## What changes here
 
 - React talks directly to Firebase.
@@ -35,6 +37,12 @@ cd frontend
 npm run build
 cd ..
 firebase deploy
+```
+
+If Storage is not enabled yet in Firebase Console, deploy hosting only:
+
+```bash
+firebase deploy --only hosting
 ```
 
 ## Notes
