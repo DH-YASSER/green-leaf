@@ -17,8 +17,7 @@ import {
   updateDoc,
   where,
 } from 'firebase/firestore';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
-import { firebaseAuth, firebaseStorage, firestore, hasFirebaseConfig } from './firebaseClient';
+import { firebaseAuth, firestore, hasFirebaseConfig } from './firebaseClient';
 import { handleMockRequest } from './mockApi';
 import {
   MOCK_FOURNISSEURS,
@@ -29,6 +28,12 @@ import {
 const delay = (ms = 120) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const json = (data, status = 200) => ({ data, status });
+
+const cloudinaryConfig = {
+  cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME,
+  uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
+  folder: import.meta.env.VITE_CLOUDINARY_FOLDER || 'green-leaf',
+};
 
 const normalizePath = (url = '') => url.replace(/^https?:\/\/[^/]+/, '').replace(/^\/api/, '') || '/';
 
@@ -196,11 +201,55 @@ const filterProducts = (products, suppliers, params = {}) => {
   return list;
 };
 
+const compressToDataUrl = (file, maxSize = 900, quality = 0.68) => new Promise((resolve, reject) => {
+  if (!(file instanceof File)) return resolve('');
+  const reader = new FileReader();
+  reader.onerror = reject;
+  reader.onload = () => {
+    const img = new Image();
+    img.onerror = reject;
+    img.onload = () => {
+      const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(img.width * scale));
+      canvas.height = Math.max(1, Math.round(img.height * scale));
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+const uploadToCloudinary = async (file, folder) => {
+  if (!(file instanceof File)) return '';
+  if (!cloudinaryConfig.cloudName || !cloudinaryConfig.uploadPreset) {
+    return compressToDataUrl(file);
+  }
+
+  const form = new FormData();
+  form.append('file', file);
+  form.append('upload_preset', cloudinaryConfig.uploadPreset);
+  form.append('folder', `${cloudinaryConfig.folder}/${folder}`);
+
+  const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloudName}/image/upload`, {
+    method: 'POST',
+    body: form,
+  });
+
+  if (!response.ok) {
+    console.warn('[Cloudinary] Upload failed, saving compressed Base64 fallback.');
+    return compressToDataUrl(file);
+  }
+
+  const result = await response.json();
+  return result.secure_url || result.url || '';
+};
+
 const uploadFile = async (file, folder) => {
-  if (!(file instanceof File) || !firebaseStorage) return '';
-  const fileRef = ref(firebaseStorage, `${folder}/${Date.now()}-${file.name}`);
-  await uploadBytes(fileRef, file);
-  return getDownloadURL(fileRef);
+  if (!(file instanceof File)) return typeof file === 'string' ? file : '';
+  return uploadToCloudinary(file, folder);
 };
 
 const createProduct = async (data) => {
@@ -299,9 +348,12 @@ export const handleFirebaseRequest = async (config) => {
       return json({ success: true });
     }
 
-    const suppliers = await asArray('suppliers');
-    const products = await asArray('products');
-    const orders = await asArray('orders');
+    const supplierDocs = await asArray('suppliers');
+    const productDocs = await asArray('products');
+    const orderDocs = await asArray('orders');
+    const suppliers = supplierDocs.length ? supplierDocs : MOCK_FOURNISSEURS;
+    const products = productDocs.length ? productDocs : MOCK_PRODUCTS;
+    const orders = orderDocs.length ? orderDocs : MOCK_ORDERS;
     const user = currentUser() || {};
 
     if (path === '/products/category-counts' && method === 'get') return json(categoryCounts(products));
@@ -346,11 +398,60 @@ export const handleFirebaseRequest = async (config) => {
         approved: supplier.status === 'approved' || supplier.is_verified,
       });
     }
+    if (path === '/fournisseur/shop-setup/page' && (method === 'put' || method === 'post')) {
+      const supplierId = user.role === 'fournisseur' ? user.id : 'f1';
+      const currentSupplier = suppliers.find((item) => item.id === supplierId) || {};
+      const mediaUpdates = {};
+
+      for (const key of ['profile_photo', 'cover_photo', 'feature_image', 'logo_image']) {
+        if (data[key]) mediaUpdates[`${key}_url`] = await uploadFile(data[key], `suppliers/${supplierId}`);
+      }
+
+      if (Array.isArray(data.additional_images)) {
+        mediaUpdates.additional_image_urls = await Promise.all(
+          data.additional_images.map((file) => uploadFile(file, `suppliers/${supplierId}`))
+        );
+      }
+
+      const updates = {
+        ...currentSupplier,
+        ...data,
+        ...mediaUpdates,
+        id: supplierId,
+        updated_at: new Date().toISOString(),
+      };
+      delete updates.profile_photo;
+      delete updates.cover_photo;
+      delete updates.feature_image;
+      delete updates.logo_image;
+      delete updates.additional_images;
+      await saveWithId('suppliers', supplierId, updates);
+      return json(updates);
+    }
+    if (path === '/fournisseur/shop-setup/order-preferences' && (method === 'put' || method === 'post')) {
+      const supplierId = user.role === 'fournisseur' ? user.id : 'f1';
+      const currentSupplier = suppliers.find((item) => item.id === supplierId) || {};
+      const updates = { ...currentSupplier, order_preferences: data, updated_at: new Date().toISOString() };
+      await saveWithId('suppliers', supplierId, updates);
+      return json(updates);
+    }
+    if (path === '/fournisseur/shop-setup/complete' && method === 'post') {
+      const supplierId = user.role === 'fournisseur' ? user.id : 'f1';
+      await saveWithId('suppliers', supplierId, { status: 'review', submitted_for_review: true, updated_at: new Date().toISOString() });
+      return json({ success: true, status: 'review' });
+    }
 
     if (path === '/restaurant/profile' && method === 'get') return json(user);
     if (path === '/restaurant/profile' && method === 'put') {
       await saveWithId('users', user.id || 'rest-1', { ...user, ...data });
       return json({ ...user, ...data });
+    }
+    if (path === '/restaurant/avatar' && method === 'post') {
+      const file = data.avatar || data.image || Object.values(data).find((value) => value instanceof File);
+      const avatar_url = await uploadFile(file, `avatars/${user.id || 'restaurant'}`);
+      const updates = { ...user, avatar_url };
+      await saveWithId('users', user.id || 'rest-1', updates);
+      return json(updates);
     }
 
     if (path === '/notifications' && method === 'get') {
