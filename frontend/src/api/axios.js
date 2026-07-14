@@ -1,17 +1,22 @@
 import axios from 'axios';
 import { handleMockRequest } from './mockApi';
+import { handleFirebaseRequest } from './firebaseApi';
 
-const USE_MOCK = false;
+const DATA_MODE = import.meta.env.VITE_DATA_MODE || 'firebase';
+const USE_MOCK = DATA_MODE === 'mock';
+const USE_FIREBASE = DATA_MODE === 'firebase';
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+  baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000',
 });
 
-// Mock adapter
-if (USE_MOCK) {
+// Firebase/local demo adapter. This lets the Firebase branch run without Laravel.
+if (USE_FIREBASE || USE_MOCK) {
   axiosInstance.defaults.adapter = async (config) => {
     try {
-      const response = await handleMockRequest(config);
+      const response = USE_FIREBASE
+        ? await handleFirebaseRequest(config)
+        : await handleMockRequest(config);
 
       return {
         data: response.data,

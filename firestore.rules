@@ -1,0 +1,64 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function isAdmin() {
+      return signedIn() && userDoc().data.role == 'admin';
+    }
+
+    function isSupplier() {
+      return signedIn() && userDoc().data.role == 'fournisseur';
+    }
+
+    function isRestaurant() {
+      return signedIn() && userDoc().data.role == 'restaurant';
+    }
+
+    match /products/{productId} {
+      allow read: if true;
+      allow create: if isSupplier() && request.resource.data.fournisseur_id == request.auth.uid;
+      allow update, delete: if isAdmin() || (isSupplier() && resource.data.fournisseur_id == request.auth.uid);
+    }
+
+    match /suppliers/{supplierId} {
+      allow read: if true;
+      allow create: if signedIn() && supplierId == request.auth.uid;
+      allow update: if isAdmin() || (isSupplier() && supplierId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    match /orders/{orderId} {
+      allow read: if isAdmin()
+        || (isRestaurant() && resource.data.restaurant_id == request.auth.uid)
+        || (isSupplier() && resource.data.fournisseur_id == request.auth.uid);
+      allow create: if isRestaurant() && request.resource.data.restaurant_id == request.auth.uid;
+      allow update: if isAdmin()
+        || (isRestaurant() && resource.data.restaurant_id == request.auth.uid)
+        || (isSupplier() && resource.data.fournisseur_id == request.auth.uid);
+    }
+
+    match /notifications/{notificationId} {
+      allow read, update: if signedIn() && resource.data.user_id == request.auth.uid;
+      allow create, delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read, update: if isAdmin() || (signedIn() && userId == request.auth.uid);
+      allow create: if signedIn() && userId == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+
+    match /meta/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
