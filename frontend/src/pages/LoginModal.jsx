@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, X, ArrowRight, Globe } from 'lucide-react';
 import axios from '../api/axios';
+import { signInWithGoogle } from '../api/firebaseGoogleAuth';
 import { useAuthStore } from '../store/authStore';
 import { useAppStore } from '../store/appStore';
 
 const ease = [0.22, 1, 0.36, 1];
 
-// ─── LABELS (login + forgot-password only — register lives on its own page) ─
+// LABELS (login + forgot-password only - register lives on its own page)
 const LABELS = {
   fr: {
     restaurant: 'Restaurant', supplier: 'Fournisseur',
@@ -52,16 +53,16 @@ const shakeVariant = {
   shake: { x: [0, -10, 10, -8, 8, -4, 4, 0], transition: { duration: 0.5, ease: 'easeInOut' } },
 };
 
-// ─── LoginModal ─────────────────────────────────────────────────────────────
+// LoginModal
 // Faire-style: login is a modal overlay you can open from anywhere (navbar,
 // a gated action, etc.) without losing the page you were on. Register stays
-// a dedicated page — see Register.jsx.
+// a dedicated page - see Register.jsx.
 const LoginModal = ({ open, onClose }) => {
   const { lang } = useAppStore();
   const navigate = useNavigate();
   const { login, isAuthenticated, user } = useAuthStore();
 
-  // ─── RATE LIMITING & ACCOUNT LOCKOUT (same policy as before) ────────────
+  // RATE LIMITING & ACCOUNT LOCKOUT (same policy as before)
   const MAX_ATTEMPTS = 5;
   const LOCKOUT_DURATION = 5 * 60 * 1000;
   const RATE_WINDOW = 60 * 1000;
@@ -116,13 +117,13 @@ const LoginModal = ({ open, onClose }) => {
     setLockoutUntil(0);
   };
 
-  // ─── VALIDATION ──────────────────────────────────────────────────────────
+  // VALIDATION
   const [fieldErrors, setFieldErrors] = useState({});
   const validateEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) ? '' : (lang === 'fr' ? 'Adresse email invalide' : 'Invalid email address');
   const setFieldError = (k, msg) => setFieldErrors(p => ({ ...p, [k]: msg }));
   const clearFieldError = (k) => setFieldErrors(p => { const n = { ...p }; delete n[k]; return n; });
 
-  // ─── LOGIN STATE ─────────────────────────────────────────────────────────
+  // LOGIN STATE
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [showLoginPass, setShowLoginPass] = useState(false);
   const [loginError, setLoginError] = useState('');
@@ -176,7 +177,7 @@ const LoginModal = ({ open, onClose }) => {
     setLoginError('');
   };
 
-  // email changes after a check → status goes stale, back to idle so the
+  // email changes after a check -> status goes stale, back to idle so the
   // password slot collapses and the user has to re-check on submit
   const handleEmailChange = (e) => {
     handleLoginChange(e);
@@ -209,12 +210,12 @@ const LoginModal = ({ open, onClose }) => {
     if (forgotMode) return handleForgotSubmit(e);
     if (lockoutUntil > Date.now()) return;
 
-    // stage 1: no confirmed account yet → this submit just checks the email
+    // stage 1: no confirmed account yet -> this submit just checks the email
     if (emailStatus !== 'exists') {
       return checkEmail();
     }
 
-    // stage 2: account confirmed, password is on screen → actually log in
+    // stage 2: account confirmed, password is on screen -> actually log in
     setLoginLoading(true); setLoginError('');
     try {
       const { data } = await axios.post('/api/login', loginForm);
@@ -238,8 +239,27 @@ const LoginModal = ({ open, onClose }) => {
     }
   };
 
-  const handleGoogleLogin = () => {
-    window.location.href = `${axios.defaults.baseURL || ''}/api/auth/google`;
+  const handleGoogleLogin = async () => {
+    if (lockoutUntil > Date.now()) return;
+    setLoginLoading(true);
+    setLoginError('');
+    try {
+      const { user: googleUser, token } = await signInWithGoogle();
+      clearAttempts();
+      login(googleUser, token);
+      const r = googleUser.role?.toLowerCase() || '';
+      onClose?.();
+      navigate(r === 'admin' ? '/gl/c0ns0le' : r === 'restaurant' ? '/browse' : '/fournisseur/dashboard');
+    } catch (err) {
+      setLoginError(
+        err.code === 'auth/popup-closed-by-user'
+          ? (lang === 'fr' ? 'Connexion Google annulée.' : 'Google sign-in cancelled.')
+          : (lang === 'fr' ? 'Connexion Google impossible. Vérifiez que Google est activé dans Firebase.' : 'Google sign-in failed. Check that Google is enabled in Firebase.')
+      );
+      setShakeKey(k => k + 1);
+    } finally {
+      setLoginLoading(false);
+    }
   };
 
   const openForgot = () => {
@@ -314,7 +334,7 @@ const LoginModal = ({ open, onClose }) => {
                 <div style={{ position: 'relative' }}>
                   <Mail size={14} color="var(--textLow)" style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                   <input
-                    className="gl-login-input" type="email" required placeholder="contact@restaurant.ma"
+                    className="gl-login-input" type="email" required
                     style={{ paddingLeft: 44, paddingRight: 36, borderColor: fieldErrors.loginEmail ? '#C23B3B' : undefined }}
                     name="email"
                     value={forgotMode ? forgotEmail : loginForm.email}
@@ -347,7 +367,7 @@ const LoginModal = ({ open, onClose }) => {
                         <input
                           ref={passwordRef}
                           className="gl-login-input" name="password" type={showLoginPass ? 'text' : 'password'}
-                          required placeholder="••••••••" value={loginForm.password} onChange={handleLoginChange}
+                          required value={loginForm.password} onChange={handleLoginChange}
                           style={{ paddingLeft: 44, paddingRight: 44 }}
                         />
                         <button type="button" onClick={() => setShowLoginPass(p => !p)} style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--textLow)', display: 'flex' }}>
@@ -436,7 +456,7 @@ const LoginModal = ({ open, onClose }) => {
                     <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, color: 'var(--textLow)', letterSpacing: '0.18em', textTransform: 'uppercase' }}>{lang === 'fr' ? 'ou' : 'or'}</span>
                     <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
                   </div>
-                  <button type="button" onClick={handleGoogleLogin} disabled={lockoutUntil > Date.now()} className="gl-login-google">
+                  <button type="button" onClick={handleGoogleLogin} disabled={loginLoading || lockoutUntil > Date.now()} className="gl-login-google">
                     <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                       <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
