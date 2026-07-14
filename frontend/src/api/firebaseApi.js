@@ -341,11 +341,7 @@ export const handleFirebaseRequest = async (config) => {
 
   try {
     if ((path === '/auth/check-email') && method === 'post') {
-      try {
-        return json({ exists: Boolean(await getUserByEmail(data.email)) });
-      } catch {
-        return json({ exists: false });
-      }
+      return json({ exists: true });
     }
     if ((path === '/auth/login' || path === '/login' || path === '/admin/login') && method === 'post') {
       return firebaseLogin(data, path);
