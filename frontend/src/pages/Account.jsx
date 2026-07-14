@@ -1,10 +1,13 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+﻿import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import axios from '../api/axios';
 import { useAppStore } from '../store/appStore';
 import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../store/cartStore';
-import { Camera, AlertCircle, Search, ShoppingCart, Bell, User } from 'lucide-react';
+import Logo from '../components/Logo';
+import NotificationBell from '../components/NotificationBell';
+import { PaymentCardForm } from './restaurant/PaymentCard';
+import { Camera, AlertCircle, Search, ShoppingCart, User } from 'lucide-react';
 
 /**
  * FAIRE-STYLE ACCOUNT / SETTINGS PAGE
@@ -18,77 +21,76 @@ const EMPTY_INFO = { business_name: '', contact_name: '', email: '', phone: '', 
 const EMPTY_PWD = { current: '', newPwd: '', confirm: '' };
 const DEFAULT_NOTIFS = { order_updates: true, messages: true, promos: false, weekly: true };
 
-// ── Styles ─────────────────────────────────────────────────────────────────
+// â”€â”€ Styles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const GlobalStyles = () => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
-    body { background: #FFFFFF; color: #1a1a1a; font-family: 'Inter', -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+    body { background: var(--page-bg); color: var(--page-text); font-family: 'Inter', -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
 
     /* Top Nav (matches Browse.jsx) */
-    .faire-nav { position: sticky; top: 0; z-index: 100; background: #fff; border-bottom: 1px solid #e8e8e8; }
+    .faire-nav { position: sticky; top: 0; z-index: 100; background: var(--nav-bg); border-bottom: 1px solid var(--nav-border); }
     .faire-nav-inner { max-width: 1440px; margin: 0 auto; padding: 0 32px; display: flex; align-items: center; height: 64px; gap: 24px; }
-    .faire-logo { font-size: 22px; font-weight: 800; letter-spacing: -0.6px; color: #1a1a1a; text-decoration: none; flex-shrink: 0; }
-    .faire-logo span { color: #2D9B4F; }
+    .faire-logo { flex-shrink: 0; display: inline-flex; align-items: center; }
     .faire-search-wrap { flex: 1; max-width: 560px; position: relative; }
-    .faire-search { width: 100%; height: 42px; border: 1.5px solid #d4d4d4; border-radius: 24px; padding: 0 16px 0 42px; font-size: 14px; color: #1a1a1a; background: #f7f7f7; outline: none; transition: all 0.2s; font-family: 'Inter', sans-serif; }
-    .faire-search:focus { border-color: #2D9B4F; background: #fff; box-shadow: 0 0 0 3px rgba(45,155,79,0.08); }
+    .faire-search { width: 100%; height: 42px; border: 1.5px solid var(--input-border); border-radius: 24px; padding: 0 16px 0 42px; font-size: 14px; color: var(--input-text); background: var(--input-bg); outline: none; transition: all 0.2s; font-family: 'Inter', sans-serif; }
+    .faire-search:focus { border-color: var(--accent-color); background: var(--input-bg); box-shadow: 0 0 0 3px rgba(45,155,79,0.08); }
     .faire-nav-actions { display: flex; align-items: center; gap: 20px; margin-left: auto; }
-    .faire-nav-btn { height: 40px; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #555; transition: color 0.15s; position: relative; text-decoration: none; }
-    .faire-nav-btn:hover { color: #1a1a1a; }
+    .faire-nav-btn { height: 40px; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--btn-icon-text); transition: color 0.15s; position: relative; text-decoration: none; }
+    .faire-nav-btn:hover { color: var(--page-text); }
     .faire-cart-count { position: absolute; top: -6px; right: -10px; background: #2D9B4F; color: #fff; font-size: 9px; font-weight: 700; width: 16px; height: 16px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
 
     /* Layout */
     .acc-layout { max-width: 1440px; margin: 0 auto; display: flex; min-height: calc(100vh - 65px); }
     
     /* Sidebar */
-    .acc-sidebar { width: 260px; border-right: 1px solid #e8e8e8; padding: 40px 0 40px 32px; flex-shrink: 0; }
+    .acc-sidebar { width: 260px; border-right: 1px solid var(--page-border); padding: 40px 0 40px 32px; flex-shrink: 0; }
     .acc-sidebar-group { margin-bottom: 32px; }
-    .acc-sidebar-title { font-size: 16px; font-weight: 700; color: #1a1a1a; margin-bottom: 16px; }
-    .acc-nav-link { display: block; font-size: 14px; color: #555; text-decoration: none; padding: 8px 0; transition: color 0.15s; cursor: pointer; font-weight: 400; border: none; background: none; text-align: left; width: 100%; }
-    .acc-nav-link:hover { color: #1a1a1a; }
-    .acc-nav-link.active { color: #1a1a1a; font-weight: 600; }
+    .acc-sidebar-title { font-size: 16px; font-weight: 700; color: var(--page-text); margin-bottom: 16px; }
+    .acc-nav-link { display: block; font-size: 14px; color: var(--text-muted); text-decoration: none; padding: 8px 0; transition: color 0.15s; cursor: pointer; font-weight: 400; border: none; background: none; text-align: left; width: 100%; }
+    .acc-nav-link:hover { color: var(--page-text); }
+    .acc-nav-link.active { color: var(--accent-color); font-weight: 600; }
 
     /* Main Content */
     .acc-main { flex: 1; padding: 40px 60px 80px; max-width: 860px; }
-    .acc-page-title { font-size: 24px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-    .acc-page-subtitle { font-size: 14px; color: #555; margin-bottom: 32px; }
+    .acc-page-title { font-size: 24px; font-weight: 700; color: var(--page-text); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .acc-page-subtitle { font-size: 14px; color: var(--text-muted); margin-bottom: 32px; }
 
     /* Forms & Inputs */
-    .r-label { display: block; font-size: 13px; font-weight: 500; color: #555; margin-bottom: 6px; }
-    .r-input, .r-select, .r-textarea { width: 100%; padding: 12px 14px; border: 1.5px solid #d4d4d4; border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 14px; color: #1a1a1a; background: #fff; transition: border-color 0.15s; outline: none; }
-    .r-input:focus, .r-select:focus, .r-textarea:focus { border-color: #1a1a1a; }
+    .r-label { display: block; font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
+    .r-input, .r-select, .r-textarea { width: 100%; padding: 12px 14px; border: 1.5px solid var(--input-border); border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 14px; color: var(--input-text); background: var(--input-bg); transition: border-color 0.15s; outline: none; }
+    .r-input:focus, .r-select:focus, .r-textarea:focus { border-color: var(--accent-color); }
     .r-input-error { border-color: #dc2626 !important; }
     .r-field { display: flex; flex-direction: column; margin-bottom: 24px; }
     
     /* Buttons */
     .r-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: background 0.15s; }
     .r-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .r-btn-dark { background: #333; color: #fff; }
-    .r-btn-dark:hover:not(:disabled) { background: #1a1a1a; }
-    .r-btn-outline { background: transparent; color: #1a1a1a; border: 1.5px solid #d4d4d4; }
-    .r-btn-outline:hover:not(:disabled) { border-color: #1a1a1a; }
+    .r-btn-dark { background: var(--btn-primary-bg); color: var(--btn-primary-text); }
+    .r-btn-dark:hover:not(:disabled) { opacity: var(--btn-primary-hover); }
+    .r-btn-outline { background: transparent; color: var(--page-text); border: 1.5px solid var(--btn-secondary-border); }
+    .r-btn-outline:hover:not(:disabled) { border-color: var(--accent-color); }
 
     /* Misc */
     .r-avatar-wrap { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
-    .r-avatar { width: 64px; height: 64px; border-radius: 50%; background: #333; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 600; overflow: hidden; }
+    .r-avatar { width: 64px; height: 64px; border-radius: 50%; background: var(--card-bg); color: var(--page-text); border: 1px solid var(--card-border); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 600; overflow: hidden; }
     .r-error-text { font-size: 12px; color: #dc2626; margin-top: 6px; }
     .r-saved-text { font-size: 13px; color: #16a34a; font-weight: 500; }
     .acc-table { width: 100%; border-collapse: collapse; margin-top: 24px; }
-    .acc-table th { text-align: left; padding: 16px 0; border-bottom: 1px solid #e8e8e8; font-size: 14px; font-weight: 600; color: #1a1a1a; }
-    .acc-table td { padding: 20px 0; border-bottom: 1px solid #e8e8e8; font-size: 14px; color: #555; }
+    .acc-table th { text-align: left; padding: 16px 0; border-bottom: 1px solid var(--page-border); font-size: 14px; font-weight: 600; color: var(--page-text); }
+    .acc-table td { padding: 20px 0; border-bottom: 1px solid var(--page-border); font-size: 14px; color: var(--text-muted); }
     
     /* Dropdown */
     .faire-dropdown-wrap { position: relative; display: flex; align-items: center; }
-    .faire-dropdown { position: absolute; top: 100%; right: 0; width: 220px; background: #fff; border: 1px solid #e8e8e8; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-radius: 8px; margin-top: 14px; padding: 12px 0; opacity: 0; visibility: hidden; transform: translateY(-8px); transition: all 0.2s; z-index: 200; }
+    .faire-dropdown { position: absolute; top: 100%; right: 0; width: 220px; background: var(--card-bg); border: 1px solid var(--page-border); box-shadow: 0 4px 20px rgba(0,0,0,0.18); border-radius: 8px; margin-top: 14px; padding: 12px 0; opacity: 0; visibility: hidden; transform: translateY(-8px); transition: all 0.2s; z-index: 200; }
     .faire-dropdown-wrap:hover .faire-dropdown, .faire-dropdown-wrap:focus-within .faire-dropdown { opacity: 1; visibility: visible; transform: translateY(0); }
-    .faire-dropdown::before { content: ''; position: absolute; top: -6px; right: 2px; width: 10px; height: 10px; background: #fff; border-top: 1px solid #e8e8e8; border-left: 1px solid #e8e8e8; transform: rotate(45deg); }
-    .faire-dropdown-header { padding: 8px 20px 16px; border-bottom: 1px solid #e8e8e8; margin-bottom: 8px; }
-    .faire-dropdown-header h4 { font-size: 13px; font-weight: 700; color: #1a1a1a; letter-spacing: 0.02em; margin: 0; text-transform: uppercase; }
-    .faire-dropdown-item { display: block; padding: 10px 20px; font-size: 14px; color: #1a1a1a; text-decoration: none; transition: background 0.15s; background: none; border: none; width: 100%; text-align: left; cursor: pointer; }
-    .faire-dropdown-item:hover { background: #f9f9f9; }
-    .faire-dropdown-divider { height: 1px; background: #e8e8e8; margin: 8px 0; }
+    .faire-dropdown::before { content: ''; position: absolute; top: -6px; right: 2px; width: 10px; height: 10px; background: var(--card-bg); border-top: 1px solid var(--page-border); border-left: 1px solid var(--page-border); transform: rotate(45deg); }
+    .faire-dropdown-header { padding: 8px 20px 16px; border-bottom: 1px solid var(--page-border); margin-bottom: 8px; }
+    .faire-dropdown-header h4 { font-size: 13px; font-weight: 700; color: var(--page-text); letter-spacing: 0.02em; margin: 0; text-transform: uppercase; }
+    .faire-dropdown-item { display: block; padding: 10px 20px; font-size: 14px; color: var(--page-text); text-decoration: none; transition: background 0.15s; background: none; border: none; width: 100%; text-align: left; cursor: pointer; }
+    .faire-dropdown-item:hover { background: var(--card-hover-bg); }
+    .faire-dropdown-divider { height: 1px; background: var(--page-border); margin: 8px 0; }
   `}</style>
 );
 
@@ -101,7 +103,7 @@ const SaveBar = ({ savedLabel, saving, savingLabel, saveLabel, onSave, disabled 
   </div>
 );
 
-// ── PANELS ─────────────────────────────────────────────────────────────────
+// â”€â”€ PANELS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const InfoPanel = ({ info, setInfo, profilePic, avatarError, avatarErrorMsg, onAvatarClick, avatarRef, onAvatarChange, saving, saved, dirty, onSave, lang, user, toggleLang }) => (
   <div>
@@ -351,7 +353,7 @@ const NotifsPanel = ({ notifs, setNotifs, saving, saved, dirty, onSave, lang, us
   );
 };
 
-// ── PLACEHOLDERS (To match Faire screens) ──────────────────────────────────
+// â”€â”€ PLACEHOLDERS (To match Faire screens) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const StoresPanel = ({ lang }) => (
   <div>
     <div className="acc-page-title">
@@ -417,15 +419,35 @@ const TeamPanel = ({ info, lang }) => (
   </div>
 );
 
-const PaymentPanel = ({ lang }) => (
-  <div>
-    <div className="acc-page-title">
-      {lang === 'fr' ? 'Moyens de paiement' : 'Payment methods'}
-      <button className="r-btn r-btn-dark">{lang === 'fr' ? 'Ajouter' : 'Add payment method'}</button>
+const PaymentPanel = ({ lang }) => {
+  const [showCardForm, setShowCardForm] = useState(false);
+
+  return (
+    <div>
+      <div className="acc-page-title">
+        {lang === 'fr' ? 'Moyens de paiement' : 'Payment methods'}
+        <button className="r-btn r-btn-dark" onClick={() => setShowCardForm(true)}>
+          {lang === 'fr' ? 'Ajouter' : 'Add payment method'}
+        </button>
+      </div>
+      <div className="acc-page-subtitle">{lang === 'fr' ? 'Vous serez facturé en MAD' : 'You\'ll always be charged in MAD'}</div>
+
+      {showCardForm ? (
+        <PaymentCardForm embedded lang={lang} onClose={() => setShowCardForm(false)} />
+      ) : (
+        <div style={{ marginTop: 46, maxWidth: 520, border: '1px dashed var(--page-border)', borderRadius: 8, padding: 28, color: 'var(--text-muted)' }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--page-text)', marginBottom: 8 }}>
+            {lang === 'fr' ? 'Aucun moyen de paiement ajouté' : 'No payment method added'}
+          </div>
+          <div style={{ fontSize: 14, lineHeight: 1.6 }}>
+            {lang === 'fr' ? 'Cliquez sur Ajouter pour afficher le formulaire de carte.' : 'Click Add payment method to open the card form.'}
+          </div>
+        </div>
+      )}
     </div>
-    <div className="acc-page-subtitle">{lang === 'fr' ? 'Vous serez facturé en MAD' : 'You\'ll always be charged in MAD'}</div>
-  </div>
-);
+  );
+};
+
 
 const ShippingPanel = ({ lang }) => (
   <div>
@@ -461,7 +483,7 @@ const ShippingPanel = ({ lang }) => (
   </div>
 );
 
-// ── MAIN APP ───────────────────────────────────────────────────────────────
+// â”€â”€ MAIN APP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const Account = () => {
   const { lang, toggleLang } = useAppStore();
@@ -570,20 +592,20 @@ const Account = () => {
     <>
       <GlobalStyles />
       
-      {/* ── TOP NAVIGATION ── */}
+      {/* â”€â”€ TOP NAVIGATION â”€â”€ */}
       <nav className="faire-nav">
         <div className="faire-nav-inner">
-          <Link to="/" className="faire-logo">Green<span>Leaf</span></Link>
+          <div className="faire-logo">
+            <Logo size={30} textColor="var(--page-text)" leafColor="var(--sulu)" subtextColor="var(--text-muted)" />
+          </div>
           <div style={{ flex: 1, paddingLeft: 32 }}>
-            <Link to="/browse" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: '#1a1a1a', textDecoration: 'none', fontWeight: 500, fontSize: 14 }}>
+            <Link to="/browse" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--page-text)', textDecoration: 'none', fontWeight: 500, fontSize: 14 }}>
                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"></path><polyline points="12 19 5 12 12 5"></polyline></svg>
                {lang === 'fr' ? 'Retour aux achats' : 'Back to shopping'}
             </Link>
           </div>
           <div className="faire-nav-actions">
-            <button className="faire-nav-btn" title="Notifications" style={{ padding: 0 }}>
-              <Bell size={24} strokeWidth={1.2} />
-            </button>
+            <NotificationBell buttonClassName="faire-nav-btn" buttonStyle={{ padding: 0 }} iconSize={24} />
             {isAuthenticated ? (
               <div className="faire-dropdown-wrap">
                 <button className="faire-nav-btn" title="Account" style={{ padding: 0 }}>
@@ -593,7 +615,7 @@ const Account = () => {
                   <div className="faire-dropdown-header">
                     <h4>{lang === 'fr' ? 'BONJOUR' : 'HI'}, {user?.name || 'USER'}</h4>
                   </div>
-                  <Link to="/restaurant/dashboard" className="faire-dropdown-item">{lang === 'fr' ? 'Commandes' : 'Orders'}</Link>
+                  <Link to="/restaurant/commandes" className="faire-dropdown-item">{lang === 'fr' ? 'Commandes' : 'Orders'}</Link>
                   <Link to="/restaurant/messages" className="faire-dropdown-item">{lang === 'fr' ? 'Messages' : 'Messages'}</Link>
                   <Link to="/restaurant/favorites" className="faire-dropdown-item">{lang === 'fr' ? 'Favoris' : 'Favorites'}</Link>
                   <Link to="/restaurant/settings" className="faire-dropdown-item">{lang === 'fr' ? 'Paramètres' : 'Settings'}</Link>
@@ -614,7 +636,7 @@ const Account = () => {
         </div>
       </nav>
 
-      {/* ── LAYOUT ── */}
+      {/* â”€â”€ LAYOUT â”€â”€ */}
       <div className="acc-layout">
         
         {/* Sidebar Navigation */}
