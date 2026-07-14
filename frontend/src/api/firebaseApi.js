@@ -463,8 +463,14 @@ export const handleFirebaseRequest = async (config) => {
     }
 
     if (path === '/notifications' && method === 'get') {
-      const result = await getDocs(query(collection(firestore, 'notifications'), where('user_id', '==', user.id || 'demo')));
-      return json(result.docs.map((item) => ({ id: item.id, ...item.data() })));
+      if (!user.id) return json([]);
+      try {
+        const result = await getDocs(query(collection(firestore, 'notifications'), where('user_id', '==', user.id)));
+        return json(result.docs.map((item) => ({ id: item.id, ...item.data() })));
+      } catch (error) {
+        console.warn('[Firebase API] Notifications unavailable for current user.', error);
+        return json([]);
+      }
     }
     if (path.includes('/notifications') && (method === 'patch' || method === 'put')) return json({ success: true });
 
