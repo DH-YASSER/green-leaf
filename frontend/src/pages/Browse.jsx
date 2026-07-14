@@ -9,7 +9,7 @@ import Logo from '../components/Logo';
 import {
   Search, X, ChevronDown, ChevronRight, ChevronLeft,
   ShoppingCart, Check, Star, MapPin, Package, User, BadgeCheck,
-  Truck, SlidersHorizontal, AlertCircle, RefreshCw, SearchX,
+  Truck, AlertCircle, RefreshCw, SearchX,
 } from 'lucide-react';
 
 /* â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
@@ -62,6 +62,7 @@ const CATEGORIES = [
 ];
 
 const SORT_OPTIONS = [
+  { value: 'none',       label: 'Nothing',           labelEn: 'Nothing' },
   { value: 'top-rated',  label: 'Mieux notés',       labelEn: 'Top Rated' },
   { value: 'newest',     label: 'Plus récents',      labelEn: 'Newest' },
   { value: 'price-asc',  label: 'Prix croissant',    labelEn: 'Price: Low to High' },
@@ -139,7 +140,7 @@ const SORT_BY_MAP = { 'top-rated': 'rating', 'newest': 'newest', 'price-asc': 'p
 
 const DEFAULT_FILTERS = {
   category: '', city: '', minPrice: 0, maxPrice: 1000,
-  minRating: 0, verifiedOnly: false, sortBy: 'top-rated',
+  minRating: 0, verifiedOnly: false, sortBy: 'none',
   page: 1, limit: 12, search: '',
 };
 
@@ -150,7 +151,7 @@ const filtersFromParams = (params) => ({
   maxPrice: params.has('maxPrice') ? Number(params.get('maxPrice')) : 1000,
   minRating: Number(params.get('minRating')) || 0,
   verifiedOnly: params.get('verified') === '1',
-  sortBy: SORT_OPTIONS.some(o => o.value === params.get('sort')) ? params.get('sort') : 'top-rated',
+  sortBy: SORT_OPTIONS.some(o => o.value === params.get('sort')) ? params.get('sort') : 'none',
   page: Number(params.get('page')) || 1,
   limit: 12,
   search: params.get('q') || '',
@@ -164,7 +165,7 @@ const filtersToParams = (f) => {
   if (f.maxPrice < 1000) p.set('maxPrice', f.maxPrice);
   if (f.minRating > 0) p.set('minRating', f.minRating);
   if (f.verifiedOnly) p.set('verified', '1');
-  if (f.sortBy !== 'top-rated') p.set('sort', f.sortBy);
+  if (f.sortBy !== 'none') p.set('sort', f.sortBy);
   if (f.page > 1) p.set('page', f.page);
   if (f.search) p.set('q', f.search);
   return p;
@@ -235,7 +236,6 @@ const Styles = ({ theme }) => (
     @media (prefers-reduced-motion: reduce) { .gl-ad-word, .gl-ad-img { animation:none; } }
     .gl-browse-controls { display:grid; grid-template-columns:auto minmax(0, 1fr) auto; align-items:center; gap:18px; padding:16px 0 18px; margin-bottom:18px; border-top:1px solid var(--page-border); border-bottom:1px solid var(--page-border); }
     .gl-control-group { display:flex; align-items:center; gap:10px; min-width:0; }
-    .gl-control-label { display:inline-flex; align-items:center; gap:7px; color:var(--text-low); font-size:10px; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap; }
 
     .gl-toolbar { display: flex; align-items: center; justify-content: space-between; padding-bottom: 24px; gap: 16px; flex-wrap: wrap; }
     .gl-result-count { font-size: 11px; letter-spacing: 0.06em; color: var(--text-low); text-transform: uppercase; }
@@ -320,7 +320,6 @@ const Styles = ({ theme }) => (
     .gl-state-suggestion:hover { color:var(--page-text); border-color:var(--accent-color); }
 
     .gl-filter-bar-wrap { position: relative; display: flex; align-items: center; gap: 10px; flex-wrap:wrap; min-width:0; }
-    .gl-filter-kicker { display:none; }
     .gl-filter-btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 20px; border: 1px solid var(--card-border); background: transparent; font-size: 11px; letter-spacing: 0.04em; color: var(--text-muted); cursor: pointer; transition: all 0.2s; font-family: 'DM Mono', monospace; }
     .gl-filter-btn:hover { border-color: var(--accent-color); color: var(--page-text); }
     .gl-filter-btn.active { border-color: var(--accent-color); color: var(--sulu); background: var(--suluLo); }
@@ -374,7 +373,7 @@ const Styles = ({ theme }) => (
       .gl-card-stock { display:none; }
       .gl-filter-bar-wrap { overflow-x: visible; flex-wrap:nowrap; padding-bottom: 0; scrollbar-width:none; }
       .gl-filter-bar-wrap::-webkit-scrollbar { display:none; }
-      .gl-filter-btn, .gl-filter-kicker { flex:0 0 auto; }
+      .gl-filter-btn { flex:0 0 auto; }
       .gl-filter-dropdown { position:fixed; left:16px; right:16px; top:auto; bottom:76px; min-width:0; max-height:70vh; overflow:auto; }
       .gl-ad-hero { min-height:280px; }
       .gl-ad-title { font-size:28px; max-width:250px; }
@@ -614,7 +613,7 @@ const FilterBar = ({ filters, onChange, lang }) => {
 
   return (
     <div className="gl-filter-bar-wrap" ref={wrapRef}>
-      <span className="gl-filter-kicker"><SlidersHorizontal size={13} /> {lang === 'fr' ? 'Filtres' : 'Filters'}</span>
+
       <div style={{ position: 'relative' }}>
         <button className={`gl-filter-btn${activeDropdown === 'city' || filters.city ? ' active' : ''}`}
           onClick={() => toggle('city')} aria-haspopup="true" aria-expanded={activeDropdown === 'city'}
@@ -746,7 +745,7 @@ const Browse = () => {
 
     try {
       const { data } = await axios.get('/api/products', {
-        params: { ...buildParams(f), sort_by: SORT_BY_MAP[f.sortBy] || 'newest', page: f.page },
+        params: { ...buildParams(f), ...(SORT_BY_MAP[f.sortBy] ? { sort_by: SORT_BY_MAP[f.sortBy] } : {}), page: f.page },
         signal: controller.signal,
       });
       const list = data.data || data.products || [];
@@ -949,7 +948,6 @@ const Browse = () => {
               <strong>{total}</strong> {lang === 'fr' ? 'produits' : 'products'}
             </span>
             <div className="gl-control-group filters">
-              <span className="gl-control-label"><SlidersHorizontal size={13} /> {lang === 'fr' ? 'Filtres' : 'Filters'}</span>
               <FilterBar filters={filters} onChange={handleFilterChange} lang={lang} />
             </div>
             <div className="gl-control-group sort">
