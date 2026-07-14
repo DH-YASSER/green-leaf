@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, X, ArrowRight, Globe } from 'lucide-react';
 import axios from '../api/axios';
-import { signInWithGoogle } from '../api/firebaseGoogleAuth';
+import { completeGoogleSignIn, startGoogleSignIn } from '../api/firebaseGoogleAuth';
 import { useAuthStore } from '../store/authStore';
 import { useAppStore } from '../store/appStore';
 
@@ -52,6 +52,8 @@ const LABELS = {
 const shakeVariant = {
   shake: { x: [0, -10, 10, -8, 8, -4, 4, 0], transition: { duration: 0.5, ease: 'easeInOut' } },
 };
+
+const GOOGLE_AFTER_HOST_FIX_KEY = 'gl_continue_google_after_host_fix';
 
 // LoginModal
 // Faire-style: login is a modal overlay you can open from anywhere (navbar,
@@ -172,6 +174,39 @@ const LoginModal = ({ open, onClose }) => {
     }
   }, [isAuthenticated, user, open]);
 
+  useEffect(() => {
+    if (!open || isAuthenticated) return;
+
+    let cancelled = false;
+    const finishGoogleRedirect = async () => {
+      const continueAfterHostFix = localStorage.getItem(GOOGLE_AFTER_HOST_FIX_KEY) === '1';
+      if (continueAfterHostFix) {
+        localStorage.removeItem(GOOGLE_AFTER_HOST_FIX_KEY);
+        await startGoogleSignIn();
+        return;
+      }
+
+      try {
+        const result = await completeGoogleSignIn();
+        if (!result || cancelled) return;
+        clearAttempts();
+        login(result.user, result.token);
+        const r = result.user.role?.toLowerCase() || '';
+        onClose?.();
+        navigate(r === 'admin' ? '/gl/c0ns0le' : r === 'restaurant' ? '/browse' : '/fournisseur/dashboard');
+      } catch (err) {
+        if (cancelled) return;
+        setLoginError(lang === 'fr'
+          ? `Connexion Google impossible: ${err.code || err.message || 'configuration Firebase'}`
+          : `Google sign-in failed: ${err.code || err.message || 'Firebase configuration'}`);
+        setShakeKey(k => k + 1);
+      }
+    };
+
+    finishGoogleRedirect();
+    return () => { cancelled = true; };
+  }, [open, isAuthenticated, lang]);
+
   const handleLoginChange = (e) => {
     setLoginForm(p => ({ ...p, [e.target.name]: e.target.value }));
     setLoginError('');
@@ -244,17 +279,17 @@ const LoginModal = ({ open, onClose }) => {
     setLoginLoading(true);
     setLoginError('');
     try {
-      const { user: googleUser, token } = await signInWithGoogle();
-      clearAttempts();
-      login(googleUser, token);
-      const r = googleUser.role?.toLowerCase() || '';
-      onClose?.();
-      navigate(r === 'admin' ? '/gl/c0ns0le' : r === 'restaurant' ? '/browse' : '/fournisseur/dashboard');
+      if (window.location.hostname === '127.0.0.1') {
+        localStorage.setItem(GOOGLE_AFTER_HOST_FIX_KEY, '1');
+        window.location.href = window.location.href.replace('127.0.0.1', 'localhost');
+        return;
+      }
+      await startGoogleSignIn();
     } catch (err) {
       setLoginError(
-        err.code === 'auth/popup-closed-by-user'
-          ? (lang === 'fr' ? 'Connexion Google annulée.' : 'Google sign-in cancelled.')
-          : (lang === 'fr' ? 'Connexion Google impossible. Vérifiez que Google est activé dans Firebase.' : 'Google sign-in failed. Check that Google is enabled in Firebase.')
+        lang === 'fr'
+          ? `Connexion Google impossible: ${err.code || err.message || 'configuration Firebase'}`
+          : `Google sign-in failed: ${err.code || err.message || 'Firebase configuration'}`
       );
       setShakeKey(k => k + 1);
     } finally {
