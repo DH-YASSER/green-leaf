@@ -66,6 +66,16 @@ const asArray = async (name) => {
   return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
 };
 
+const safeAsArray = async (name, fallback = []) => {
+  try {
+    const docs = await asArray(name);
+    return docs.length ? docs : fallback;
+  } catch (error) {
+    console.warn(`[Firebase API] Could not read ${name}; using fallback data.`, error);
+    return fallback;
+  }
+};
+
 const saveWithId = async (name, id, data) => {
   await setDoc(doc(firestore, name, String(id)), data, { merge: true });
   return { id: String(id), ...data };
@@ -348,12 +358,8 @@ export const handleFirebaseRequest = async (config) => {
       return json({ success: true });
     }
 
-    const supplierDocs = await asArray('suppliers');
-    const productDocs = await asArray('products');
-    const orderDocs = await asArray('orders');
-    const suppliers = supplierDocs.length ? supplierDocs : MOCK_FOURNISSEURS;
-    const products = productDocs.length ? productDocs : MOCK_PRODUCTS;
-    const orders = orderDocs.length ? orderDocs : MOCK_ORDERS;
+    const suppliers = await safeAsArray('suppliers', MOCK_FOURNISSEURS);
+    const products = await safeAsArray('products', MOCK_PRODUCTS);
     const user = currentUser() || {};
 
     if (path === '/products/category-counts' && method === 'get') return json(categoryCounts(products));
@@ -381,9 +387,11 @@ export const handleFirebaseRequest = async (config) => {
 
     if (path === '/orders' && method === 'post') return createOrder(data);
     if ((path === '/restaurant/orders' || path === '/orders') && method === 'get') {
+      const orders = await safeAsArray('orders', MOCK_ORDERS);
       return json(orders.filter((order) => !user.id || order.restaurant_id === user.id || user.role === 'admin'));
     }
     if (path === '/fournisseur/orders' && method === 'get') {
+      const orders = await safeAsArray('orders', MOCK_ORDERS);
       const supplierId = user.role === 'fournisseur' ? user.id : 'f1';
       return json(orders.filter((order) => order.fournisseur_id === supplierId));
     }
@@ -460,10 +468,10 @@ export const handleFirebaseRequest = async (config) => {
     }
     if (path.includes('/notifications') && (method === 'patch' || method === 'put')) return json({ success: true });
 
-    if (path === '/admin/users' && method === 'get') return json(await asArray('users'));
+    if (path === '/admin/users' && method === 'get') return json(await safeAsArray('users', []));
     if (path === '/admin/suppliers' && method === 'get') return json(suppliers);
     if (path === '/admin/products' && method === 'get') return json(products);
-    if (path === '/admin/orders' && method === 'get') return json(orders);
+    if (path === '/admin/orders' && method === 'get') return json(await safeAsArray('orders', MOCK_ORDERS));
     if (path.startsWith('/admin/suppliers/') && method === 'patch') {
       const id = path.split('/').pop();
       const updates = { status: data.action === 'approve' ? 'approved' : data.action || 'pending', is_verified: data.action === 'approve' };
