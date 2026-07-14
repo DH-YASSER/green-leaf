@@ -30,8 +30,8 @@ if (USE_FIREBASE || USE_MOCK) {
       return Promise.reject({
         message: error.message || 'Mock Request Error',
         response: {
-          status: error.status || 500,
-          data: { message: error.message || 'Internal Server Error' }
+          status: error.response?.status || error.status || 500,
+          data: error.response?.data || { message: error.message || 'Internal Server Error' }
         }
       });
     }

@@ -133,9 +133,8 @@ const Register = () => {
                 payload.ice_number = 'N/A';
                 payload.category = 'other';
             }
-            await axios.post('/api/register', payload);
-            const loginRes = await axios.post('/api/login', { email: regForm.email, password: regForm.password });
-            const { user, access_token, token } = loginRes.data;
+            const { data } = await axios.post('/api/register', payload);
+            const { user, access_token, token } = data;
             login(user, access_token || token);
             navigate(user.role === 'fournisseur' ? '/fournisseur/shop-setup' : '/browse');
         } catch (err) {
