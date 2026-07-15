@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from '../../api/axios';
@@ -174,7 +172,7 @@ import {
   TrendingUp, Bell, HelpCircle, Settings, LogOut, Mail,
   Phone, MessageCircle, X, Check, Truck, RotateCcw, MoreHorizontal,
   Package, Tag, ClipboardList, MessageSquare, ChevronDown,
-  Plus, Pencil, Trash2, Send,
+  Plus, Pencil, Trash2, Send, Megaphone, Search,
   AlertCircle, Globe, Sun, Moon, Camera, ImagePlus,
   ArrowRight, ShoppingBag, BellOff, CheckCheck,
 } from 'lucide-react';
@@ -182,7 +180,7 @@ import {
 // ─── TRANSLATIONS ─────────────────────────────────────────────────────────────
 const T = {
   en: {
-    nav: { dashboard:'Dashboard', orders:'Orders', payments:'Payments', customers:'Customers', reports:'Reports', statistics:'Statistic', notifications:'Notifications', help:'Help', settings:'Settings', logout:'Log out', products:'Products', promotions:'Promotions', messages:'Messages', profile:'Profile', backToSite:'Back to site' },
+    nav: { dashboard:'Dashboard', orders:'Orders', payments:'Payments', customers:'Clients', reports:'Reports', statistics:'Statistics', notifications:'Notifications', help:'Help', settings:'Settings', logout:'Log out', products:'Products', promotions:'Promotions', messages:'Messages', profile:'Profile', backToSite:'Back to site', marketing:'Marketing' },
     orders: {
       title:'Orders',
       filters:['All','Pending','Confirmed','Delivered','Rejected'],
@@ -225,9 +223,15 @@ const T = {
       ]},
     },
     dashboard:{ title:'Dashboard', stats:['Products','Active Promos','Pending Orders','Revenue'], trend:'Revenue Trend', week:'This week', categories:'Sales by category', pending:'Pending orders', pendingSub:'Awaiting your response', manageAll:'View all', noPending:'No pending orders', accept:'Accept', reject:'Reject', cols:['Order','Customer','Status','Total','Date',''] },
+    customers: { eyebrow:'Buyers', title:'Clients', noCustomers:'No customers yet', search:'Search clients...', cols:['Customer','Orders','Total spent','Last order','Status'] },
+    marketing: { eyebrow:'Campaigns', title:'Marketing', add:'New Campaign', noCampaigns:'No campaigns yet',
+      modal:{ add:'New Campaign', edit:'Edit Campaign', name:'Campaign name', channel:'Channel', reach:'Estimated reach', cancel:'Cancel', create:'Create', update:'Update' },
+      channels:['Email','SMS','Push'],
+    },
+    statistics: { title:'Statistics', totalRevenue:'Total Revenue', avgOrder:'Avg. Order Value', totalOrders:'Total Orders', trend:'Revenue Trend', byStatus:'Orders by Status' },
   },
   fr: {
-    nav: { dashboard:'Dashboard', orders:'Commandes', payments:'Paiements', customers:'Clients', reports:'Rapports', statistics:'Statistique', notifications:'Notifications', help:'Aide', settings:'Paramètres', logout:'Déconnexion', products:'Produits', promotions:'Promotions', messages:'Messages', profile:'Profil', backToSite:'Retour au site' },
+    nav: { dashboard:'Dashboard', orders:'Commandes', payments:'Paiements', customers:'Clients', reports:'Rapports', statistics:'Statistiques', notifications:'Notifications', help:'Aide', settings:'Paramètres', logout:'Déconnexion', products:'Produits', promotions:'Promotions', messages:'Messages', profile:'Profil', backToSite:'Retour au site', marketing:'Marketing' },
     orders: {
       title:'Commandes',
       filters:['Toutes','En attente','Confirmées','Livrées','Rejetées'],
@@ -270,6 +274,12 @@ const T = {
       ]},
     },
     dashboard:{ title:'Dashboard', stats:['Produits','Promos actives','Commandes en attente','Revenus'], trend:'Tendance revenus', week:'Cette semaine', categories:'Ventes par catégorie', pending:'Commandes en attente', pendingSub:'En attente de réponse', manageAll:'Voir tout', noPending:'Aucune commande en attente', accept:'Accepter', reject:'Rejeter', cols:['Commande','Restaurant','Statut','Total','Date',''] },
+    customers: { eyebrow:'Acheteurs', title:'Clients', noCustomers:'Aucun client', search:'Rechercher un client...', cols:['Client','Commandes','Total dépensé','Dernière commande','Statut'] },
+    marketing: { eyebrow:'Campagnes', title:'Marketing', add:'Nouvelle campagne', noCampaigns:'Aucune campagne',
+      modal:{ add:'Nouvelle Campagne', edit:'Modifier Campagne', name:'Nom de la campagne', channel:'Canal', reach:'Portée estimée', cancel:'Annuler', create:'Créer', update:'Mettre à jour' },
+      channels:['Email','SMS','Push'],
+    },
+    statistics: { title:'Statistiques', totalRevenue:'Revenu total', avgOrder:'Panier moyen', totalOrders:'Total commandes', trend:'Tendance revenus', byStatus:'Commandes par statut' },
   },
 };
 
@@ -291,7 +301,7 @@ const STATIC_CSS = `
   .pp-logo-row { display: flex; align-items: center; gap: 10px; padding: 22px 20px 18px; }
   .pp-logo-text { font-size: 16px; font-weight: 700; color: var(--page-text); letter-spacing: -0.3px; }
   .pp-nav-section { padding: 0 12px; display: flex; flex-direction: column; gap: 2px; }
-  .pp-nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; font-size: 14px; font-weight: 400; color: var(--sidebar-link); cursor: pointer; border: none; background: none; width: 100%; text-align: left; text-decoration: none; transition: background 0.15s, color 0.15s; white-space: nowrap; }
+  .pp-nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 400; color: var(--sidebar-link); cursor: pointer; border: none; background: none; width: 100%; justify-content: flex-end; text-align: right; flex-direction: row-reverse; text-decoration: none; transition: background 0.15s, color 0.15s; white-space: nowrap; }
   .pp-nav-item:hover { background: var(--sidebar-active-bg); color: var(--sidebar-link-hover); }
   .pp-nav-item.active { background: var(--btn-primary-bg); color: var(--btn-primary-text); font-weight: 500; }
   .pp-nav-item.active svg { color: var(--btn-primary-text); }
@@ -484,9 +494,10 @@ const Sidebar = ({ view, setView, t, onLogout }) => {
   const main = [
     { id:'dashboard',  icon:LayoutDashboard, label:t.nav.dashboard },
     { id:'orders',     icon:ShoppingCart,    label:t.nav.orders },
-    { id:'payments',   icon:CreditCard,      label:t.nav.payments },
+    { id:'messages',   icon:MessageSquare,   label:t.nav.messages },
+    { id:'products',   icon:Package,         label:t.nav.products },
     { id:'customers',  icon:Users,           label:t.nav.customers },
-    { id:'promotions', icon:Tag,             label:t.nav.promotions },
+    { id:'marketing',  icon:Megaphone,       label:t.nav.marketing },
     { id:'statistics', icon:TrendingUp,      label:t.nav.statistics },
   ];
   const bottom = [
@@ -595,6 +606,20 @@ const MOCK_NOTIFS = [
   { id:2, type:'message', title_en:'New message',              title_fr:'Nouveau message',             body_en:'You have a new message from a restaurant buyer.',    body_fr:'Vous avez un nouveau message d\'un acheteur.',          read:false, created_at:new Date(Date.now()-2*3600000).toISOString() },
   { id:3, type:'order',   title_en:'Order #418135 confirmed',  title_fr:'Commande #418135 confirmée',  body_en:'The order has been confirmed successfully.',          body_fr:'La commande a été confirmée avec succès.',              read:true,  created_at:new Date(Date.now()-26*3600000).toISOString() },
   { id:4, type:'promo',   title_en:'Promotion expiring soon',  title_fr:'Promotion expirant bientôt', body_en:'One of your promotions expires in 2 days.',           body_fr:'Une de vos promotions expire dans 2 jours.',            read:true,  created_at:new Date(Date.now()-3*86400000).toISOString() },
+];
+
+const MOCK_CUSTOMERS = [
+  { id:1, name:'Michelle Black',  email:'m.black@resto.com',  orders:14, spent:8420,  lastOrder:'2024-01-08', status:'active' },
+  { id:2, name:'Janice Chandler', email:'j.chandler@resto.com',orders:9,  spent:5230,  lastOrder:'2024-01-06', status:'active' },
+  { id:3, name:'Mildred Hall',    email:'m.hall@resto.com',   orders:3,  spent:1540,  lastOrder:'2023-12-20', status:'inactive' },
+  { id:4, name:'Ana Carter',      email:'a.carter@resto.com', orders:21, spent:12980, lastOrder:'2024-01-02', status:'active' },
+  { id:5, name:'John Sherman',    email:'j.sherman@resto.com',orders:6,  spent:3100,  lastOrder:'2023-12-28', status:'active' },
+];
+
+const MOCK_CAMPAIGNS = [
+  { id:1, name:'New Year Bundle',    channel:'Email', reach:1200, clicks:340, status:'active',    created_at:'2024-01-01' },
+  { id:2, name:'Flash Sale Spices',  channel:'Push',  reach:800,  clicks:210, status:'active',    created_at:'2024-01-05' },
+  { id:3, name:'Loyalty Reminder',   channel:'SMS',   reach:450,  clicks:90,  status:'completed', created_at:'2023-12-20' },
 ];
 
 // ─── NOTIF HELPERS ────────────────────────────────────────────────────────────
@@ -1376,6 +1401,285 @@ const Profile = ({ t }) => {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// CUSTOMERS (functional: search, sort, status toggle)
+// ═══════════════════════════════════════════════════════════════════════════════
+const Customers = ({ t }) => {
+  const tc = t.customers;
+  const [customers, setCustomers] = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [search, setSearch]       = useState('');
+  const [sortBy, setSortBy]       = useState('spent');
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const r = await axios.get('/api/fournisseur/customers');
+      setCustomers(r.data?.length ? r.data : MOCK_CUSTOMERS);
+    } catch (e) { setCustomers(MOCK_CUSTOMERS); }
+    finally { setLoading(false); }
+  };
+  useEffect(() => { load(); }, []);
+
+  const toggleStatus = async (id) => {
+    setCustomers(prev => prev.map(c => c.id === id ? { ...c, status: c.status === 'active' ? 'inactive' : 'active' } : c));
+    try { await axios.patch(`/api/fournisseur/customers/${id}`, { status: 'toggle' }); } catch (e) {}
+  };
+
+  const filtered = customers
+    .filter(c => c.name.toLowerCase().includes(search.toLowerCase()) || (c.email||'').toLowerCase().includes(search.toLowerCase()))
+    .sort((a,b) => sortBy === 'spent' ? b.spent - a.spent : sortBy === 'orders' ? b.orders - a.orders : a.name.localeCompare(b.name));
+
+  return (
+    <div style={{ padding:'24px 28px', display:'flex', flexDirection:'column', gap:20, flex:1, overflowY:'auto' }}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <div>
+          <div style={{ fontSize:11, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:4 }}>{tc.eyebrow}</div>
+          <div style={{ fontSize:22, fontWeight:700, color:'var(--card-title)', letterSpacing:'-0.4px' }}>{tc.title}</div>
+        </div>
+      </div>
+
+      <div style={{ display:'flex', gap:10 }}>
+        <div style={{ position:'relative', flex:1, maxWidth:320 }}>
+          <Search size={14} color="var(--text-low)" style={{ position:'absolute', left:12, top:'50%', transform:'translateY(-50%)' }} />
+          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder={tc.search} className="pp-input" style={{ paddingLeft:34 }} />
+        </div>
+        <div className="pp-filter-select">
+          <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
+            <option value="spent">Sort by Spent</option>
+            <option value="orders">Sort by Orders</option>
+            <option value="name">Sort by Name</option>
+          </select>
+          <ChevronDown size={14} color="var(--text-low)" />
+        </div>
+      </div>
+
+      <div style={{ background:'var(--card-bg)', border:'1.5px solid var(--card-border)', borderRadius:14, overflow:'hidden' }}>
+        {loading ? <Loader /> : filtered.length === 0 ? (
+          <Empty icon={Users} label={tc.noCustomers} />
+        ) : (
+          <table className="pp-table">
+            <thead><tr>{tc.cols.map(c => <th key={c}>{c}</th>)}</tr></thead>
+            <tbody>
+              {filtered.map(c => {
+                const ac = avColor(c.name);
+                return (
+                  <tr key={c.id}>
+                    <td>
+                      <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                        <div className="pp-avatar" style={{ width:32, height:32, background:ac.bg, color:ac.color, fontSize:13 }}>{c.name.charAt(0)}</div>
+                        <div>
+                          <div style={{ fontWeight:500 }}>{c.name}</div>
+                          <div style={{ fontSize:11, color:'var(--text-muted)' }}>{c.email}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>{c.orders}</td>
+                    <td style={{ fontWeight:600 }}>{c.spent.toLocaleString()} MAD</td>
+                    <td style={{ color:'var(--text-muted)' }}>{c.lastOrder}</td>
+                    <td style={{ cursor:'pointer' }} onClick={() => toggleStatus(c.id)}><StatusBadge status={c.status} /></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MARKETING (functional: create / edit / delete campaigns)
+// ═══════════════════════════════════════════════════════════════════════════════
+const EMPTY_CAMPAIGN = { name:'', channel:'', reach:'' };
+
+const Marketing = ({ t }) => {
+  const tmk = t.marketing;
+  const [campaigns, setCampaigns] = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [modal, setModal]         = useState(null);
+  const [editId, setEditId]       = useState(null);
+  const [form, setForm]           = useState(EMPTY_CAMPAIGN);
+  const [saving, setSaving]       = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const r = await axios.get('/api/fournisseur/campaigns');
+      setCampaigns(r.data?.length ? r.data : MOCK_CAMPAIGNS);
+    } catch (e) { setCampaigns(MOCK_CAMPAIGNS); }
+    finally { setLoading(false); }
+  };
+  useEffect(() => { load(); }, []);
+
+  const onChange = e => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
+
+  const onSubmit = async () => {
+    setSaving(true);
+    const payload = { name: form.name, channel: form.channel, reach: Number(form.reach) || 0, clicks: 0, status: 'active', created_at: new Date().toISOString().split('T')[0] };
+    try {
+      if (editId) {
+        try { await axios.put(`/api/fournisseur/campaigns/${editId}`, payload); } catch (e) {}
+        setCampaigns(prev => prev.map(c => c.id === editId ? { ...c, ...payload } : c));
+      } else {
+        let created = { id: Date.now(), ...payload };
+        try {
+          const r = await axios.post('/api/fournisseur/campaigns', payload);
+          if (r.data?.id) created = r.data;
+        } catch (e) {}
+        setCampaigns(prev => [created, ...prev]);
+      }
+      setModal(null); setEditId(null); setForm(EMPTY_CAMPAIGN);
+    } finally { setSaving(false); }
+  };
+
+  const onDelete = async (id) => {
+    if (!window.confirm('Delete this campaign?')) return;
+    setCampaigns(prev => prev.filter(c => c.id !== id));
+    try { await axios.delete(`/api/fournisseur/campaigns/${id}`); } catch (e) {}
+  };
+
+  const toggleStatus = async (id) => {
+    setCampaigns(prev => prev.map(c => c.id === id ? { ...c, status: c.status === 'active' ? 'completed' : 'active' } : c));
+    try { await axios.patch(`/api/fournisseur/campaigns/${id}/status`); } catch (e) {}
+  };
+
+  const openEdit = c => { setEditId(c.id); setForm({ name:c.name, channel:c.channel, reach:c.reach }); setModal('edit'); };
+
+  return (
+    <div style={{ padding:'24px 28px', display:'flex', flexDirection:'column', gap:20, flex:1, overflowY:'auto' }}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <div>
+          <div style={{ fontSize:11, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:4 }}>{tmk.eyebrow}</div>
+          <div style={{ fontSize:22, fontWeight:700, color:'var(--card-title)', letterSpacing:'-0.4px' }}>{tmk.title}</div>
+        </div>
+        <button className="pp-btn pp-btn-dark" onClick={() => { setForm(EMPTY_CAMPAIGN); setEditId(null); setModal('add'); }}><Plus size={14} /> {tmk.add}</button>
+      </div>
+
+      {loading ? <Loader /> : campaigns.length === 0 ? (
+        <div style={{ background:'var(--card-bg)', border:'1.5px solid var(--card-border)', borderRadius:14 }}>
+          <Empty icon={Megaphone} label={tmk.noCampaigns} action={tmk.add} onAction={() => setModal('add')} />
+        </div>
+      ) : (
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14 }}>
+          {campaigns.map(c => (
+            <div key={c.id} style={{ background:'var(--card-bg)', border:'1.5px solid var(--card-border)', borderRadius:14, padding:'18px 20px' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12 }}>
+                <div style={{ fontSize:14, fontWeight:600, color:'var(--card-title)' }}>{c.name}</div>
+                <div style={{ cursor:'pointer' }} onClick={() => toggleStatus(c.id)}><StatusBadge status={c.status} /></div>
+              </div>
+              <div style={{ fontSize:12, color:'var(--text-muted)', marginBottom:14 }}>{c.channel}</div>
+              <div style={{ display:'flex', gap:20, marginBottom:14 }}>
+                <div>
+                  <div style={{ fontSize:11, color:'var(--text-low)' }}>Reach</div>
+                  <div style={{ fontSize:16, fontWeight:700, color:'var(--card-title)' }}>{Number(c.reach).toLocaleString()}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize:11, color:'var(--text-low)' }}>Clicks</div>
+                  <div style={{ fontSize:16, fontWeight:700, color:'var(--card-title)' }}>{Number(c.clicks || 0).toLocaleString()}</div>
+                </div>
+              </div>
+              <div style={{ display:'flex', gap:6 }}>
+                <button className="pp-btn pp-btn-ghost pp-btn-sm" onClick={() => openEdit(c)}><Pencil size={11} /> Edit</button>
+                <button className="pp-btn pp-btn-danger pp-btn-sm" onClick={() => onDelete(c.id)}><Trash2 size={11} /></button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {modal && (
+        <div className="pp-modal-overlay" onClick={e => e.target === e.currentTarget && setModal(null)}>
+          <motion.div initial={{ opacity:0, y:-20 }} animate={{ opacity:1, y:0 }} transition={{ type:'spring', stiffness:300, damping:28 }} className="pp-modal">
+            <div className="pp-modal-header">
+              <span className="pp-modal-title">{modal==='add' ? tmk.modal.add : tmk.modal.edit}</span>
+              <button className="pp-icon-btn" onClick={() => setModal(null)} style={{ width:30, height:30 }}><X size={14} /></button>
+            </div>
+            <div className="pp-modal-body">
+              <div style={{ display:'flex', flexDirection:'column', gap:13 }}>
+                <div className="pp-field"><label className="pp-label">{tmk.modal.name}</label><input type="text" name="name" value={form.name} onChange={onChange} className="pp-input" /></div>
+                <div className="pp-field"><label className="pp-label">{tmk.modal.channel}</label><select name="channel" value={form.channel} onChange={onChange} className="pp-select"><option value="">Select</option>{tmk.channels.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
+                <div className="pp-field"><label className="pp-label">{tmk.modal.reach}</label><input type="number" name="reach" value={form.reach} onChange={onChange} className="pp-input" /></div>
+              </div>
+            </div>
+            <div className="pp-modal-footer">
+              <button className="pp-btn pp-btn-ghost" onClick={() => setModal(null)}>{tmk.modal.cancel}</button>
+              <button className="pp-btn pp-btn-dark" onClick={onSubmit} disabled={saving || !form.name || !form.channel}>{saving ? 'Saving...' : (editId ? tmk.modal.update : tmk.modal.create)}</button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// STATISTICS (computed live from real order data)
+// ═══════════════════════════════════════════════════════════════════════════════
+const Statistics = ({ t }) => {
+  const ts = t.statistics;
+  const [orders, setOrders]   = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await axios.get('/api/fournisseur/orders');
+        setOrders(r.data?.length ? r.data : MOCK_ORDERS);
+      } catch (e) { setOrders(MOCK_ORDERS); }
+      finally { setLoading(false); }
+    })();
+  }, []);
+
+  if (loading) return <Loader />;
+
+  const trend = buildWeeklyRevenue(orders);
+  const maxBar = Math.max(...trend.map(d => d.value), 1);
+  const totalRevenue = orders.reduce((s,o) => s + Number(o.total_amount||0), 0);
+  const avgOrder = orders.length ? totalRevenue / orders.length : 0;
+  const byStatus = orders.reduce((m,o) => { m[o.status] = (m[o.status]||0)+1; return m; }, {});
+
+  return (
+    <div style={{ padding:'24px 28px', display:'flex', flexDirection:'column', gap:20, flex:1, overflowY:'auto' }}>
+      <div style={{ fontSize:22, fontWeight:700, color:'var(--card-title)', letterSpacing:'-0.4px' }}>{ts.title}</div>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14 }}>
+        {[
+          { label:ts.totalRevenue, value:`${totalRevenue.toLocaleString()} MAD` },
+          { label:ts.avgOrder,     value:`${avgOrder.toFixed(0)} MAD` },
+          { label:ts.totalOrders,  value:orders.length },
+        ].map(({ label, value }) => (
+          <div key={label} style={{ background:'var(--card-bg)', border:'1.5px solid var(--card-border)', borderRadius:14, padding:'18px 20px' }}>
+            <div style={{ fontSize:12, color:'var(--text-muted)', fontWeight:500, marginBottom:8 }}>{label}</div>
+            <div style={{ fontSize:24, fontWeight:700, color:'var(--card-title)' }}>{value}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ background:'var(--card-bg)', border:'1.5px solid var(--card-border)', borderRadius:14, padding:'20px 24px' }}>
+        <div style={{ fontSize:15, fontWeight:600, color:'var(--card-title)', marginBottom:20 }}>{ts.trend}</div>
+        <div style={{ display:'flex', alignItems:'flex-end', gap:8, height:90 }}>
+          {trend.map((d,i) => (
+            <div key={i} title={`${d.label}: ${d.value.toLocaleString()}`} style={{ flex:1, height:Math.max(Math.round((d.value/maxBar)*80),4), borderRadius:'5px 5px 0 0', background:'var(--accent-color)' }} />
+          ))}
+        </div>
+        <div style={{ display:'flex', marginTop:8 }}>
+          {trend.map((d,i) => <div key={i} style={{ flex:1, textAlign:'center', fontSize:10, color:'var(--text-low)' }}>{d.label}</div>)}
+        </div>
+      </div>
+      <div style={{ background:'var(--card-bg)', border:'1.5px solid var(--card-border)', borderRadius:14, padding:'20px 24px' }}>
+        <div style={{ fontSize:15, fontWeight:600, color:'var(--card-title)', marginBottom:16 }}>{ts.byStatus}</div>
+        <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
+          {Object.entries(byStatus).map(([status, count]) => (
+            <div key={status} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 14px', border:'1px solid var(--card-border)', borderRadius:10 }}>
+              <StatusBadge status={status} /><span style={{ fontSize:13, fontWeight:600 }}>{count}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // MAIN APP
 // ═══════════════════════════════════════════════════════════════════════════════
 const FournisseurApp = () => {
@@ -1389,12 +1693,12 @@ const FournisseurApp = () => {
 
   const viewTitles = {
     dashboard:'Dashboard', orders: t.orders.title,
-    payments: t.nav.payments, customers: t.nav.customers,
-    reports: t.nav.reports, statistics: t.nav.statistics,
+    payments: t.nav.payments, customers: t.customers.title,
+    reports: t.nav.reports, statistics: t.statistics.title,
     notifications: t.nav.notifications, help: t.nav.help,
     settings: t.nav.settings, products: t.products.title,
     promotions: t.promotions.title, messages: t.messages.title,
-    profile: t.profile.title,
+    profile: t.profile.title, marketing: t.marketing.title,
   };
 
   const renderContent = () => {
@@ -1405,11 +1709,12 @@ const FournisseurApp = () => {
       case 'promotions':   return <Promotions t={t} />;
       case 'messages':     return <Messages t={t} />;
       case 'profile':      return <Profile t={t} />;
+      case 'customers':    return <Customers t={t} />;
+      case 'marketing':    return <Marketing t={t} />;
+      case 'statistics':   return <Statistics t={t} />;
       case 'payments':     return <PlaceholderView icon={CreditCard} title={t.nav.payments} />;
-      case 'customers':    return <PlaceholderView icon={Users} title={t.nav.customers} />;
       case 'reports':      return <PlaceholderView icon={BarChart2} title={t.nav.reports} />;
-      case 'statistics':   return <PlaceholderView icon={TrendingUp} title={t.nav.statistics} />;
-      case 'notifications':return <PlaceholderView icon={Bell} title={t.nav.notifications} />;
+      case 'notifications':return <Notifications lang={lang} />;
       case 'help':         return <PlaceholderView icon={HelpCircle} title={t.nav.help} />;
       case 'settings':     return <PlaceholderView icon={Settings} title={t.nav.settings} />;
       default:             return <PlaceholderView icon={LayoutDashboard} title={view} />;
@@ -1427,7 +1732,6 @@ const FournisseurApp = () => {
           theme={theme} toggleTheme={toggleTheme}
           profilePic={user?.profile_pic}
           onNotifications={() => setView('notifications')}
-
         />
         <AnimatePresence mode="wait">
           <motion.div
