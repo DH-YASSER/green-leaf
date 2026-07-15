@@ -147,7 +147,18 @@ const firebaseLogin = async (data, path) => {
   try {
     await signInWithEmailAndPassword(firebaseAuth, email, password);
   } catch (error) {
-    throwFirebaseAuthError(error);
+    if (email.endsWith('@demo.com')) {
+      try {
+        await createUserWithEmailAndPassword(firebaseAuth, email, password);
+      } catch (createError) {
+        if (createError.code === 'auth/operation-not-allowed') {
+          alert("ERREUR : La connexion par E-mail/Mot de passe n'est pas activée dans votre console Firebase (Authentication > Sign-in method). Veuillez l'activer pour utiliser les comptes de démo.");
+        }
+        throwFirebaseAuthError(createError);
+      }
+    } else {
+      throwFirebaseAuthError(error);
+    }
   }
 
   const uid = firebaseAuth.currentUser?.uid;

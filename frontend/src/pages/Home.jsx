@@ -273,6 +273,7 @@ const IMGS = {
     [spices, herbs],
     [nuts, beans],
     [drinks],
+    [],
   ],
 
   food: 'https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg?auto=compress&cs=tinysrgb&w=1200&h=700&fit=crop',
@@ -312,6 +313,7 @@ const T = {
         { num: '03', title: 'Épices & Herbes', desc: 'Saveurs authentiques du terroir marocain.' },
         { num: '04', title: 'Épicerie Sèche', desc: 'Céréales, farines, légumineuses et huiles.' },
         { num: '05', title: 'Boissons', desc: 'Jus frais, thés, cafés et sirops artisanaux.' },
+        { num: '06', title: 'Et bien plus encore...', desc: 'Découvrez notre catalogue complet de produits frais et artisanaux.', isMore: true, cta: 'Voir le catalogue' },
       ],
     },
     faq: {
@@ -375,6 +377,7 @@ const T = {
         { num: '03', title: 'Spices & Herbs', desc: 'Authentic flavors from the Moroccan terroir.' },
         { num: '04', title: 'Dry Goods', desc: 'Grains, flours, legumes and oils.' },
         { num: '05', title: 'Drinks', desc: 'Fresh juices, teas, coffees and artisanal syrups.' },
+        { num: '06', title: 'And so much more...', desc: 'Explore our full catalogue of fresh and artisanal products.', isMore: true, cta: 'Browse the catalogue' },
       ],
     },
     faq: {
@@ -1138,7 +1141,7 @@ const CategoriesSection = ({ t, lang }) => (
             <div style={{
               borderRadius: 36,
               border: '2px solid var(--border2)',
-              background: 'var(--bg2)',
+              background: cat.isMore ? 'var(--bg2)' : 'var(--bg2)',
               padding: 'clamp(28px, 4vw, 40px) clamp(24px, 4vw, 48px)',
               boxShadow: '0 30px 70px rgba(0,0,0,0.4)',
               display: 'flex',
@@ -1148,6 +1151,39 @@ const CategoriesSection = ({ t, lang }) => (
               position: 'relative',
               overflow: 'hidden'
             }}>
+              {cat.isMore ? (
+                /* ── "And more" special card ── */
+                <>
+                  <div style={{ position: 'absolute', inset: 0, zIndex: 0, background: 'radial-gradient(ellipse at 30% 80%, rgba(168,224,99,0.15), transparent 60%), radial-gradient(ellipse at 70% 20%, rgba(168,224,99,0.08), transparent 50%)' }} />
+                  <div style={{ position: 'absolute', inset: 0, zIndex: 0, opacity: 0.04 }}>
+                    <div style={{ position: 'absolute', top: '15%', left: '10%', width: 80, height: 80, borderRadius: '50%', border: '2px solid var(--sulu)' }} />
+                    <div style={{ position: 'absolute', top: '40%', right: '15%', width: 120, height: 120, borderRadius: '50%', border: '2px solid var(--sulu)' }} />
+                    <div style={{ position: 'absolute', bottom: '20%', left: '30%', width: 60, height: 60, borderRadius: '50%', border: '2px solid var(--sulu)' }} />
+                  </div>
+                  <div style={{ position: 'relative', zIndex: 1, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', gap: 24 }}>
+                    <span style={{ fontFamily: 'DM Serif Display,serif', fontSize: 'clamp(3rem, 7vw, 4.5rem)', color: 'var(--sulu)', lineHeight: 1 }}>+</span>
+                    <h3 style={{ fontFamily: 'DM Serif Display,serif', fontSize: 'clamp(28px, 4.5vw, 48px)', color: '#FFF', textTransform: 'uppercase', lineHeight: 1.1 }}>{cat.title}</h3>
+                    <p style={{ fontFamily: 'DM Mono,monospace', fontSize: 'clamp(12px, 1.5vw, 15px)', color: 'rgba(255,255,255,0.7)', letterSpacing: '0.04em', maxWidth: 400, lineHeight: 1.6 }}>{cat.desc}</p>
+                    <a href="#/browse" style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 10,
+                      marginTop: 12, padding: '14px 32px',
+                      background: 'var(--sulu)', color: '#030d06',
+                      borderRadius: 50, border: 'none',
+                      fontFamily: 'DM Mono,monospace', fontSize: 13, fontWeight: 600,
+                      letterSpacing: '0.06em', textTransform: 'uppercase',
+                      textDecoration: 'none',
+                      cursor: 'pointer',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      boxShadow: '0 4px 20px rgba(168,224,99,0.3)'
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.05)'; e.currentTarget.style.boxShadow = '0 6px 30px rgba(168,224,99,0.5)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(168,224,99,0.3)'; }}
+                    >{cat.cta} →</a>
+                  </div>
+                </>
+              ) : (
+                /* ── Regular category card ── */
+                <>
               <div style={{ position: 'absolute', inset: 0, zIndex: 0, display: 'flex' }} className="flex-col-mobile">
                 {IMGS.categories[i].map((imgSrc, imgIdx, arr) => (
                   <img key={imgIdx} src={imgSrc} alt="" loading="lazy" className={arr.length > 1 ? 'gl-cat-img-half' : 'gl-cat-img-full'} style={{ objectFit: 'cover', filter: 'brightness(1)' }} />
@@ -1163,6 +1199,8 @@ const CategoriesSection = ({ t, lang }) => (
                   <p style={{ fontFamily: 'DM Mono,monospace', fontSize: 'clamp(12px, 1.5vw, 15px)', color: 'rgba(255,255,255,0.7)', letterSpacing: '0.04em', maxWidth: 400, lineHeight: 1.6 }}>{cat.desc}</p>
                 </div>
               </div>
+                </>
+              )}
             </div>
           </ScrollStackItem>
         ))}

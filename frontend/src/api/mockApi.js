@@ -72,6 +72,11 @@ export const handleMockRequest = async (config) => {
   console.log(`[Mock API] ${m.toUpperCase()} ${path}`, { params, data });
 
   // ── AUTH ──────────────────────────────────────────────────────────────
+  if (path === '/auth/check-email' && m === 'post') {
+    const email = String(data.email || '').trim();
+    if (!email) return { data: { exists: false }, status: 200 };
+    return { data: { exists: true }, status: 200 };
+  }
   if ((path === '/auth/login' || path === '/login' || path === '/admin/login') && m === 'post') {
     const { email } = data;
     let user;
