@@ -175,7 +175,6 @@ import {
   Plus, Pencil, Trash2, Send, Megaphone, Search,
   AlertCircle, Globe, Sun, Moon, Camera, ImagePlus,
   ArrowRight, ShoppingBag, BellOff, CheckCheck,
-  Megaphone,
 } from 'lucide-react';
 
 // ─── TRANSLATIONS ─────────────────────────────────────────────────────────────
