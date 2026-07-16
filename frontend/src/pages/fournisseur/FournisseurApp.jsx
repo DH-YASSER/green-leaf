@@ -1,1753 +1,1572 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import axios from '../../api/axios';
-import { useAuthStore } from '../../store/authStore';
-import { useAppStore } from '../../store/appStore';
-
-const THEMES = {
-  dark: {
-    '--page-bg':               '#12100E',
-    '--page-text':             '#EDE8E2',
-    '--text-muted':            'rgba(237,232,226,0.70)',
-    '--text-low':              'rgba(237,232,226,0.40)',
-    '--page-border':           'rgba(255, 255, 255, 0.06)',
-    '--accent-color':          '#D4956A',
-    '--accent-gold':           '#E8A87C',
-    '--nav-bg':                'rgba(18,16,14,0.98)',
-    '--nav-border':            'rgba(255, 255, 255, 0.06)',
-    '--nav-link':              'rgba(237,232,226,0.70)',
-    '--nav-link-hover':        '#EDE8E2',
-    '--nav-active':            '#D4956A',
-    '--sidebar-bg':            '#1A1614',
-    '--sidebar-border':        'rgba(212, 149, 106, 0.12)',
-    '--sidebar-link':          'rgba(237,232,226,0.70)',
-    '--sidebar-link-hover':    '#EDE8E2',
-    '--sidebar-active-bg':     'rgba(212, 149, 106, 0.15)',
-    '--sidebar-active-text':   '#D4956A',
-    '--btn-primary-bg':        '#D4956A',
-    '--btn-primary-text':      '#1A1614',
-    '--btn-primary-hover':     '0.90',
-    '--btn-secondary-bg':      'transparent',
-    '--btn-secondary-text':    '#B0A89E',
-    '--btn-secondary-border':  'rgba(255, 255, 255, 0.12)',
-    '--btn-icon-border':       'rgba(255, 255, 255, 0.08)',
-    '--btn-icon-text':         '#B0A89E',
-    '--btn-icon-hover-bg':     'rgba(255, 255, 255, 0.08)',
-    '--card-bg':               '#1E1A17',
-    '--card-border':           'rgba(212, 149, 106, 0.10)',
-    '--card-title':            '#EDE8E2',
-    '--card-body':             'rgba(237,232,226,0.70)',
-    '--card-hover-bg':         'rgba(255, 255, 255, 0.04)',
-    '--input-bg':              'rgba(255, 255, 255, 0.04)',
-    '--input-border':          'rgba(212, 149, 106, 0.22)',
-    '--input-text':            '#EDE8E2',
-    '--input-placeholder':     'rgba(237,232,226,0.40)',
-    '--input-focus-border':    '#D4956A',
-    '--chat-bubble-self':      'rgba(212, 149, 106, 0.15)',
-    '--chat-bubble-other':     '#1E1A17',
-    '--chat-text-self':        '#FFFFFF',
-    '--chat-text-other':       'rgba(237,232,226,0.75)',
-    '--auth-panel-bg':         '#1E1A17',
-    '--status-pending-bg':     'rgba(255, 152, 0, 0.12)',
-    '--status-pending-text':   'rgba(255, 152, 0, 0.90)',
-    '--status-success-bg':     'rgba(212, 149, 106, 0.12)',
-    '--status-success-text':   '#D4956A',
-    '--status-failed-bg':      'rgba(244, 67, 54, 0.12)',
-    '--status-failed-text':    'rgba(244, 67, 54, 0.90)',
-    '--status-info-bg':        'rgba(33, 150, 243, 0.12)',
-    '--status-info-text':      'rgba(33, 150, 243, 0.90)',
-    '--bg':          '#12100E',
-    '--bg2':         '#1E1A17',
-    '--bg3':         '#141210',
-    '--bg4':         '#242019',
-    '--bg5':         '#2A2520',
-    '--text':        '#EDE8E2',
-    '--textMid':     'rgba(237,232,226,0.70)',
-    '--textLow':     'rgba(237,232,226,0.40)',
-    '--sulu':        '#D4956A',
-    '--suluLo':      'rgba(212, 149, 106, 0.10)',
-    '--suluMd':      'rgba(212, 149, 106, 0.20)',
-    '--silver':      '#B0A89E',
-    '--silverLo':    'rgba(255, 255, 255, 0.08)',
-    '--silverMd':    'rgba(255, 255, 255, 0.12)',
-    '--border':      'rgba(255, 255, 255, 0.06)',
-    '--border2':     'rgba(255, 255, 255, 0.10)',
-    '--navBg':       'rgba(18,16,14,0.98)',
-    '--inputBg':     'rgba(255, 255, 255, 0.04)',
-    '--danger':      'rgba(244, 67, 54, 0.90)',
-    '--dangerLo':    'rgba(244, 67, 54, 0.10)',
-    '--heroFilter':  'brightness(0.20) saturate(0.50)',
-    '--imgFilter':   'brightness(0.60) saturate(0.75)',
-    '--accent2':     '#E8A87C',
-    '--amber':       'rgba(255, 152, 0, 0.90)',
-    '--amberLo':     'rgba(255, 152, 0, 0.12)',
-    '--blue':        'rgba(33, 150, 243, 0.90)',
-    '--blueLo':      'rgba(33, 150, 243, 0.12)',
-  },
-  light: {
-    '--page-bg':               '#FAF7F4',
-    '--page-text':             '#2D2520',
-    '--text-muted':            'rgba(45,37,32,0.65)',
-    '--text-low':              'rgba(45,37,32,0.45)',
-    '--page-border':           'rgba(0, 0, 0, 0.06)',
-    '--accent-color':          '#B87341',
-    '--accent-gold':           '#C98B5A',
-    '--nav-bg':                'rgba(255,253,250,0.98)',
-    '--nav-border':            'rgba(0, 0, 0, 0.08)',
-    '--nav-link':              'rgba(45,37,32,0.65)',
-    '--nav-link-hover':        '#2D2520',
-    '--nav-active':            '#B87341',
-    '--sidebar-bg':            '#F5EDE6',
-    '--sidebar-border':        'rgba(184, 115, 65, 0.12)',
-    '--sidebar-link':          'rgba(45,37,32,0.70)',
-    '--sidebar-link-hover':    '#2D2520',
-    '--sidebar-active-bg':     'rgba(184, 115, 65, 0.12)',
-    '--sidebar-active-text':   '#B87341',
-    '--btn-primary-bg':        '#B87341',
-    '--btn-primary-text':      '#FFF9F5',
-    '--btn-primary-hover':     '0.92',
-    '--btn-secondary-bg':      'transparent',
-    '--btn-secondary-text':    '#7A6E64',
-    '--btn-secondary-border':  'rgba(0, 0, 0, 0.12)',
-    '--btn-icon-border':       'rgba(0, 0, 0, 0.08)',
-    '--btn-icon-text':         '#7A6E64',
-    '--btn-icon-hover-bg':     'rgba(0, 0, 0, 0.05)',
-    '--card-bg':               '#FFFCF9',
-    '--card-border':           'rgba(184, 115, 65, 0.10)',
-    '--card-title':            '#2D2520',
-    '--card-body':             'rgba(45,37,32,0.70)',
-    '--card-hover-bg':         'rgba(0, 0, 0, 0.02)',
-    '--input-bg':              '#FFFFFF',
-    '--input-border':          'rgba(184, 115, 65, 0.18)',
-    '--input-text':            '#2D2520',
-    '--input-placeholder':     'rgba(45,37,32,0.45)',
-    '--input-focus-border':    '#B87341',
-    '--chat-bubble-self':      'rgba(184, 115, 65, 0.15)',
-    '--chat-bubble-other':     '#F5F0EB',
-    '--chat-text-self':        '#2D2520',
-    '--chat-text-other':       'rgba(45,37,32,0.80)',
-    '--auth-panel-bg':         '#FFFFFF',
-    '--status-pending-bg':     'rgba(245,158,11,0.12)',
-    '--status-pending-text':   'rgba(200,120,0,0.95)',
-    '--status-success-bg':     'rgba(184, 115, 65, 0.12)',
-    '--status-success-text':   '#B87341',
-    '--status-failed-bg':      'rgba(220,53,69,0.12)',
-    '--status-failed-text':    'rgba(220,53,69,0.95)',
-    '--status-info-bg':        'rgba(25,118,210,0.12)',
-    '--status-info-text':      'rgba(25,118,210,0.95)',
-    '--bg':          '#FAF7F4',
-    '--bg2':         '#FFFCF9',
-    '--bg3':         '#F5F0EB',
-    '--bg4':         '#EDE6DF',
-    '--bg5':         '#E5DDD5',
-    '--text':        '#2D2520',
-    '--textMid':     'rgba(45,37,32,0.70)',
-    '--textLow':     'rgba(45,37,32,0.45)',
-    '--sulu':        '#B87341',
-    '--suluLo':      'rgba(184, 115, 65, 0.10)',
-    '--suluMd':      'rgba(184, 115, 65, 0.20)',
-    '--silver':      '#7A6E64',
-    '--silverLo':    'rgba(0, 0, 0, 0.08)',
-    '--silverMd':    'rgba(0, 0, 0, 0.12)',
-    '--border':      'rgba(0, 0, 0, 0.08)',
-    '--border2':     'rgba(0, 0, 0, 0.12)',
-    '--navBg':       'rgba(255,253,250,0.98)',
-    '--inputBg':     '#FFFFFF',
-    '--danger':      'rgba(220,53,69,0.95)',
-    '--dangerLo':    'rgba(220,53,69,0.10)',
-    '--heroFilter':  'brightness(1.05) saturate(0.9)',
-    '--imgFilter':   'brightness(0.95) saturate(1)',
-    '--accent2':     '#C98B5A',
-    '--amber':       'rgba(200,120,0,0.95)',
-    '--amberLo':     'rgba(245,158,11,0.12)',
-    '--blue':        'rgba(25,118,210,0.95)',
-    '--blueLo':      'rgba(25,118,210,0.12)',
-  }
-};
-
-import { LogoMark } from '../../components/Logo';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, ShoppingCart, CreditCard, Users, BarChart2,
-  TrendingUp, Bell, HelpCircle, Settings, LogOut, Mail,
-  Phone, MessageCircle, X, Check, Truck, RotateCcw, MoreHorizontal,
-  Package, Tag, ClipboardList, MessageSquare, ChevronDown,
-  Plus, Pencil, Trash2, Send, Megaphone, Search,
-  AlertCircle, Globe, Sun, Moon, Camera, ImagePlus,
-  ArrowRight, ShoppingBag, BellOff, CheckCheck,
+  BarChart3,
+  Box,
+  ChevronDown,
+  CircleHelp,
+  Eye,
+  FileSpreadsheet,
+  Home,
+  Image as ImageIcon,
+  LogOut,
+  Mail,
+  Megaphone,
+  MessageSquare,
+  Package,
+  Plus,
+  Search,
+  Settings,
+  ShoppingBag,
+  SlidersHorizontal,
+  Store,
+  Truck,
+  Upload,
+  Users,
+  X,
 } from 'lucide-react';
+import axios from '../../api/axios';
+import Logo from '../../components/Logo';
+import NotificationBell from '../../components/NotificationBell';
+import { useAppStore } from '../../store/appStore';
+import { useAuthStore } from '../../store/authStore';
 
-// ─── TRANSLATIONS ─────────────────────────────────────────────────────────────
-const T = {
-  en: {
-    nav: { dashboard:'Dashboard', orders:'Orders', payments:'Payments', customers:'Clients', reports:'Reports', statistics:'Statistics', notifications:'Notifications', help:'Help', settings:'Settings', logout:'Log out', products:'Products', promotions:'Promotions', messages:'Messages', profile:'Profile', backToSite:'Back to site', marketing:'Marketing' },
-    orders: {
-      title:'Orders',
-      filters:['All','Pending','Confirmed','Delivered','Rejected'],
-      filterVals:['all','pending','confirmed','delivered','rejected'],
-      noOrders:'No orders found',
-      confirm:'Confirm', reject:'Reject', deliver:'Mark delivered',
-      delivered:'Delivered', cancelled:'Cancelled',
-      subtotal:'Subtotal', discount:'Discount', tax:'Tax', total:'Total',
-      to:'To:',
-    },
-    products: {
-      eyebrow:'Catalogue', title:'Your Products', add:'Add Product', noProducts:'No products yet',
-      cols:['Product','Category','Price','Stock','Status','Actions'],
-      modal:{ add:'New Product', edit:'Edit Product', name:'Product name', category:'Category', unit:'Unit', price:'Price (MAD)', stock:'Stock', minQty:'Min order qty', delay:'Delivery delay (days)', zones:'Delivery zones', desc:'Description', images:'Product photos (max 5)', cancel:'Cancel', create:'Create product', update:'Update product' },
-      cats:[['legumes','Vegetables'],['viandes','Meats'],['boissons','Beverages'],['epices','Spices'],['secs','Dry Goods']],
-    },
-    promotions: {
-      eyebrow:'Deals & Discounts', title:'Promotions', add:'Create Promo', noPromos:'No promotions yet',
-      cols:['Product','Type','Value','Period','Usage','Status','Actions'],
-      modal:{ add:'New Promotion', edit:'Edit Promotion', product:'Product', type:'Type', value:'Value', minQty:'Min quantity', limit:'Usage limit', start:'Start date', end:'End date', cancel:'Cancel', create:'Create', update:'Update' },
-      types:[['percentage','Percentage %'],['fixed','Fixed amount MAD'],['bundle','Bundle deal'],['flash','Flash sale']],
-    },
-    messages: {
-      title:'Messages', eyebrow:'Inbox',
-      noConvs:'No conversations', noMsgs:'No messages yet',
-      select:'Select a conversation', buyer:'Restaurant buyer',
-      placeholder:'Type a message...',
-    },
-    profile: {
-      eyebrow:'Supplier', title:'Profile',
-      tabs:['Business info','Security','Notifications'],
-      tabIds:['info','security','notifications'],
-      info:{ title:'Information', businessName:'Business name', contactName:'Contact name', email:'Email', phone:'Phone', region:'Region', address:'Address', zones:'Delivery zones', bio:'About', save:'Save changes', saving:'Saving...', changePic:'Change photo' },
-      security:{ title:'Account security', current:'Current password', newPwd:'New password', confirm:'Confirm', save:'Update password', saving:'Updating...' },
-      notifs:{ title:'Notifications', save:'Save preferences', saving:'Saving...', items:[
-        { key:'new_orders', label:'New orders', sub:'Alert when a restaurant places an order' },
-        { key:'messages', label:'New messages', sub:'Alert when a buyer sends you a message' },
-        { key:'promotions', label:'Promo expiry', sub:'Reminder before a promotion ends' },
-        { key:'weekly_report', label:'Weekly report', sub:'Summary of your sales every Monday' },
-      ]},
-    },
-    dashboard:{ title:'Dashboard', stats:['Products','Active Promos','Pending Orders','Revenue'], trend:'Revenue Trend', week:'This week', categories:'Sales by category', pending:'Pending orders', pendingSub:'Awaiting your response', manageAll:'View all', noPending:'No pending orders', accept:'Accept', reject:'Reject', cols:['Order','Customer','Status','Total','Date',''] },
-    customers: { eyebrow:'Buyers', title:'Clients', noCustomers:'No customers yet', search:'Search clients...', cols:['Customer','Orders','Total spent','Last order','Status'] },
-    marketing: { eyebrow:'Campaigns', title:'Marketing', add:'New Campaign', noCampaigns:'No campaigns yet',
-      modal:{ add:'New Campaign', edit:'Edit Campaign', name:'Campaign name', channel:'Channel', reach:'Estimated reach', cancel:'Cancel', create:'Create', update:'Update' },
-      channels:['Email','SMS','Push'],
-    },
-    statistics: { title:'Statistics', totalRevenue:'Total Revenue', avgOrder:'Avg. Order Value', totalOrders:'Total Orders', trend:'Revenue Trend', byStatus:'Orders by Status' },
-  },
-  fr: {
-    nav: { dashboard:'Dashboard', orders:'Commandes', payments:'Paiements', customers:'Clients', reports:'Rapports', statistics:'Statistiques', notifications:'Notifications', help:'Aide', settings:'Paramètres', logout:'Déconnexion', products:'Produits', promotions:'Promotions', messages:'Messages', profile:'Profil', backToSite:'Retour au site', marketing:'Marketing' },
-    orders: {
-      title:'Commandes',
-      filters:['Toutes','En attente','Confirmées','Livrées','Rejetées'],
-      filterVals:['all','pending','confirmed','delivered','rejected'],
-      noOrders:'Aucune commande',
-      confirm:'Confirmer', reject:'Rejeter', deliver:'Marquer livré',
-      delivered:'Livré', cancelled:'Annulée',
-      subtotal:'Sous-total', discount:'Remise', tax:'Taxe', total:'Total',
-      to:'À:',
-    },
-    products: {
-      eyebrow:'Catalogue', title:'Vos Produits', add:'Ajouter produit', noProducts:'Aucun produit',
-      cols:['Produit','Catégorie','Prix','Stock','Statut','Actions'],
-      modal:{ add:'Nouveau Produit', edit:'Modifier Produit', name:'Nom', category:'Catégorie', unit:'Unité', price:'Prix (MAD)', stock:'Stock', minQty:'Qté min', delay:'Délai (j)', zones:'Zones livraison', desc:'Description', images:'Photos (max 5)', cancel:'Annuler', create:'Créer', update:'Mettre à jour' },
-      cats:[['legumes','Légumes'],['viandes','Viandes'],['boissons','Boissons'],['epices','Épices'],['secs','Épicerie sèche']],
-    },
-    promotions: {
-      eyebrow:'Deals & Réductions', title:'Promotions', add:'Créer promo', noPromos:'Aucune promotion',
-      cols:['Produit','Type','Valeur','Période','Usage','Statut','Actions'],
-      modal:{ add:'Nouvelle Promotion', edit:'Modifier Promotion', product:'Produit', type:'Type', value:'Valeur', minQty:'Qté minimum', limit:'Limite usage', start:'Date début', end:'Date fin', cancel:'Annuler', create:'Créer', update:'Mettre à jour' },
-      types:[['percentage','Pourcentage %'],['fixed','Montant fixe MAD'],['bundle','Lot groupé'],['flash','Vente flash']],
-    },
-    messages: {
-      title:'Messages', eyebrow:'Boîte de réception',
-      noConvs:'Aucune conversation', noMsgs:'Aucun message',
-      select:'Sélectionnez une conversation', buyer:'Acheteur restaurant',
-      placeholder:'Tapez votre message...',
-    },
-    profile: {
-      eyebrow:'Fournisseur', title:'Profil',
-      tabs:['Infos business','Sécurité','Notifications'],
-      tabIds:['info','security','notifications'],
-      info:{ title:'Informations', businessName:"Nom de l'entreprise", contactName:'Nom du contact', email:'Email', phone:'Téléphone', region:'Région', address:'Adresse', zones:'Zones de livraison', bio:'À propos', save:'Enregistrer', saving:'Enregistrement...', changePic:'Changer photo' },
-      security:{ title:'Sécurité du compte', current:'Mot de passe actuel', newPwd:'Nouveau mot de passe', confirm:'Confirmer', save:'Mettre à jour', saving:'Mise à jour...' },
-      notifs:{ title:'Notifications', save:'Enregistrer', saving:'Enregistrement...', items:[
-        { key:'new_orders', label:'Nouvelles commandes', sub:'Alerte quand un restaurant passe une commande' },
-        { key:'messages', label:'Nouveaux messages', sub:'Alerte quand un acheteur vous contacte' },
-        { key:'promotions', label:'Expiration promos', sub:'Rappel avant fin de promotion' },
-        { key:'weekly_report', label:'Rapport hebdo', sub:'Résumé de vos ventes chaque lundi' },
-      ]},
-    },
-    dashboard:{ title:'Dashboard', stats:['Produits','Promos actives','Commandes en attente','Revenus'], trend:'Tendance revenus', week:'Cette semaine', categories:'Ventes par catégorie', pending:'Commandes en attente', pendingSub:'En attente de réponse', manageAll:'Voir tout', noPending:'Aucune commande en attente', accept:'Accepter', reject:'Rejeter', cols:['Commande','Restaurant','Statut','Total','Date',''] },
-    customers: { eyebrow:'Acheteurs', title:'Clients', noCustomers:'Aucun client', search:'Rechercher un client...', cols:['Client','Commandes','Total dépensé','Dernière commande','Statut'] },
-    marketing: { eyebrow:'Campagnes', title:'Marketing', add:'Nouvelle campagne', noCampaigns:'Aucune campagne',
-      modal:{ add:'Nouvelle Campagne', edit:'Modifier Campagne', name:'Nom de la campagne', channel:'Canal', reach:'Portée estimée', cancel:'Annuler', create:'Créer', update:'Mettre à jour' },
-      channels:['Email','SMS','Push'],
-    },
-    statistics: { title:'Statistiques', totalRevenue:'Revenu total', avgOrder:'Panier moyen', totalOrders:'Total commandes', trend:'Tendance revenus', byStatus:'Commandes par statut' },
-  },
+const CATEGORY_OPTIONS = [
+  { id: 1, label: 'Fruits & Vegetables' },
+  { id: 2, label: 'Meat & Fish' },
+  { id: 3, label: 'Spices & Condiments' },
+  { id: 4, label: 'Dairy Products' },
+  { id: 5, label: 'Cereals & Legumes' },
+  { id: 6, label: 'Drinks' },
+  { id: 7, label: 'Bakery' },
+  { id: 8, label: 'Frozen' },
+];
+
+const UNITS = [
+  { value: 'kg', label: 'kg' },
+  { value: 'litre', label: 'litre' },
+  { value: 'caisse', label: 'case' },
+  { value: 'piece', label: 'piece' },
+];
+
+const CITY_OPTIONS = ['Casablanca', 'Rabat', 'Marrakech', 'Fes', 'Tanger', 'Agadir'];
+
+const emptyProduct = {
+  name: '',
+  description: '',
+  category_id: '1',
+  product_type: '',
+  price: '',
+  unit: 'kg',
+  min_order_qty: '1',
+  stock: '0',
+  delivery_delay: '2',
+  delivery_zones: ['Casablanca'],
+  has_options: 'no',
 };
 
-const REGIONS = ['Casablanca-Settat','Souss-Massa','Marrakech-Safi','Fès-Meknès','Tanger-Tétouan-Al Hoceïma','Rabat-Salé-Kénitra','Oriental','Béni Mellal-Khénifra','Drâa-Tafilalet','Guelmim-Oued Noun'];
-
-// ─── STATIC CSS ──────────────────────────────────────────────────────────────
-const STATIC_CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body, #root { height: 100%; }
-  body { font-family: 'Inter', system-ui, sans-serif; font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; background: var(--page-bg); color: var(--page-text); transition: background 0.3s, color 0.3s; }
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--btn-icon-border, #d4d4d4); border-radius: 99px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .spin { animation: spin 0.7s linear infinite; display:inline-block; }
-
-  .pp-sidebar { width: 240px; min-width: 240px; background: var(--sidebar-bg); border-right: 1px solid var(--sidebar-border); display: flex; flex-direction: column; height: 100%; border-radius: 16px; overflow: hidden; flex-shrink: 0; position: relative; transition: background 0.3s, border-color 0.3s; }
-  .pp-logo-row { display: flex; align-items: center; gap: 10px; padding: 22px 20px 18px; }
-  .pp-logo-text { font-size: 16px; font-weight: 700; color: var(--page-text); letter-spacing: -0.3px; }
-  .pp-nav-section { padding: 0 12px; display: flex; flex-direction: column; gap: 2px; }
-  .pp-nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 400; color: var(--sidebar-link); cursor: pointer; border: none; background: none; width: 100%; justify-content: flex-end; text-align: right; flex-direction: row-reverse; text-decoration: none; transition: background 0.15s, color 0.15s; white-space: nowrap; }
-  .pp-nav-item:hover { background: var(--sidebar-active-bg); color: var(--sidebar-link-hover); }
-  .pp-nav-item.active { background: var(--btn-primary-bg); color: var(--btn-primary-text); font-weight: 500; }
-  .pp-nav-item.active svg { color: var(--btn-primary-text); }
-  .pp-nav-divider { height: 1px; background: var(--sidebar-border); margin: 10px 12px; }
-  .pp-nav-bottom { padding: 12px 12px 16px; position: absolute; bottom: 0; width: 100%; }
-
-  .pp-main { flex: 1; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; min-width: 0; transition: background 0.3s, border-color 0.3s; }
-
-  .pp-topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 28px; border-bottom: 1px solid var(--card-border); flex-shrink: 0; }
-  .pp-topbar-title { font-size: 22px; font-weight: 700; color: var(--card-title); letter-spacing: -0.4px; }
-  .pp-topbar-right { display: flex; align-items: center; gap: 10px; }
-  .pp-icon-btn { width: 36px; height: 36px; border: 1px solid var(--btn-icon-border); border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--btn-icon-hover-bg); cursor: pointer; color: var(--btn-icon-text); transition: all 0.15s; position: relative; }
-  .pp-icon-btn:hover { background: var(--btn-icon-hover-bg); color: var(--page-text); border-color: var(--accent-color); }
-  .pp-dot { position: absolute; top: -2px; right: -2px; width: 9px; height: 9px; border-radius: 50%; background: #dc2626; border: 2px solid var(--card-bg); }
-  .pp-user-chip { display: flex; align-items: center; gap: 8px; padding: 4px; cursor: pointer; }
-  .pp-user-name { font-size: 13px; font-weight: 600; color: var(--page-text); }
-  .pp-user-email { font-size: 11px; color: var(--text-muted); }
-
-  .pp-filterbar { display: flex; align-items: center; gap: 10px; padding: 16px 24px; border-bottom: 1px solid var(--card-border); flex-shrink: 0; }
-  .pp-filter-select { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border: 1px solid var(--input-border); border-radius: 10px; font-size: 13px; font-weight: 500; color: var(--input-text); background: var(--input-bg); cursor: pointer; transition: border-color 0.15s; white-space: nowrap; }
-  .pp-filter-select:hover { border-color: var(--input-focus-border); }
-  .pp-filter-select select { border: none; outline: none; background: transparent; font-size: 13px; font-weight: 500; color: var(--input-text); cursor: pointer; appearance: none; -webkit-appearance: none; }
-
-  .pp-table { width: 100%; border-collapse: collapse; }
-  .pp-table thead th { padding: 12px 16px; text-align: left; font-size: 13px; font-weight: 500; color: var(--text-low); border-bottom: 1px solid var(--card-border); }
-  .pp-table tbody td { padding: 14px 16px; border-bottom: 1px solid var(--page-border); font-size: 14px; color: var(--page-text); vertical-align: middle; }
-  .pp-table tbody tr:last-child td { border-bottom: none; }
-  .pp-table tbody tr { transition: background 0.1s; cursor: pointer; }
-  .pp-table tbody tr:hover { background: var(--card-hover-bg); }
-  .pp-table tbody tr.row-selected { background: var(--sidebar-active-bg); }
-
-  .pp-checkbox { width: 20px; height: 20px; border: 1.5px solid var(--input-border); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; background: var(--input-bg); cursor: pointer; }
-  .pp-checkbox.checked { background: var(--btn-primary-bg); border-color: var(--btn-primary-bg); }
-  .pp-checkbox.minus { background: var(--btn-primary-bg); border-color: var(--btn-primary-bg); }
-
-  .pp-badge { display: inline-block; padding: 4px 10px; border-radius: 8px; font-size: 13px; font-weight: 500; border: 1px solid transparent; }
-  .pp-badge-paid      { background: var(--status-pending-bg); color: var(--status-pending-text); border-color: var(--status-pending-text); }
-  .pp-badge-delivered { background: var(--status-info-bg); color: var(--status-info-text); border-color: var(--status-info-text); }
-  .pp-badge-completed { background: var(--status-success-bg); color: var(--status-success-text); border-color: var(--status-success-text); }
-  .pp-badge-pending   { background: var(--status-pending-bg); color: var(--status-pending-text); border-color: var(--status-pending-text); }
-  .pp-badge-confirmed { background: var(--status-info-bg); color: var(--status-info-text); border-color: var(--status-info-text); }
-  .pp-badge-rejected  { background: var(--status-failed-bg); color: var(--status-failed-text); border-color: var(--status-failed-text); }
-  .pp-badge-active    { background: var(--status-success-bg); color: var(--status-success-text); border-color: var(--status-success-text); }
-  .pp-badge-inactive  { background: var(--status-failed-bg); color: var(--status-failed-text); border-color: var(--status-failed-text); }
-
-  .pp-detail-panel { width: 280px; min-width: 280px; border-left: 1px solid var(--card-border); display: flex; flex-direction: column; background: var(--card-bg); flex-shrink: 0; overflow-y: auto; }
-  .pp-avatar { border-radius: 50%; object-fit: cover; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 600; overflow: hidden; }
-
-  .pp-btn-track { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; background: var(--btn-primary-bg); color: var(--btn-primary-text); border: none; border-radius: 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
-  .pp-btn-track:hover { opacity: var(--btn-primary-hover); }
-  .pp-btn-refund { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; background: var(--accent-gold); color: #000; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
-  .pp-btn-refund:hover { opacity: 0.85; }
-
-  .pp-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-  .pp-modal { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; box-shadow: 0 24px 64px rgba(0,0,0,0.15); width: 520px; max-width: 95vw; overflow: hidden; }
-  .pp-modal-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 22px; border-bottom: 1px solid var(--card-border); }
-  .pp-modal-title { font-size: 16px; font-weight: 600; color: var(--card-title); }
-  .pp-modal-body { padding: 22px; }
-  .pp-modal-footer { padding: 16px 22px; border-top: 1px solid var(--card-border); display: flex; justify-content: flex-end; gap: 10px; }
-
-  .pp-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 5px; }
-  .pp-input, .pp-select, .pp-textarea { width: 100%; padding: 9px 12px; border: 1px solid var(--input-border); border-radius: 9px; font-family: 'Inter', sans-serif; font-size: 13px; color: var(--input-text); background: var(--input-bg); transition: border-color 0.15s; outline: none; }
-  .pp-input:focus, .pp-select:focus, .pp-textarea:focus { border-color: var(--input-focus-border); }
-  .pp-input::placeholder, .pp-textarea::placeholder { color: var(--input-placeholder); }
-  .pp-select { appearance: none; }
-  .pp-field { display: flex; flex-direction: column; }
-
-  .pp-btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; white-space: nowrap; }
-  .pp-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-  .pp-btn-dark { background: var(--btn-primary-bg); color: var(--btn-primary-text); }
-  .pp-btn-dark:hover:not(:disabled) { opacity: var(--btn-primary-hover); }
-  .pp-btn-ghost { background: var(--btn-secondary-bg); color: var(--btn-secondary-text); border: 1px solid var(--btn-secondary-border); }
-  .pp-btn-ghost:hover:not(:disabled) { background: var(--btn-icon-hover-bg); color: var(--page-text); }
-  .pp-btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 8px; }
-  .pp-btn-danger { background: var(--status-failed-bg); color: var(--status-failed-text); border: 1.5px solid var(--status-failed-text); }
-  .pp-btn-danger:hover:not(:disabled) { opacity: 0.85; }
-
-  .pp-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 56px 20px; text-align: center; color: var(--text-low); }
-
-  .pp-notif-tab { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; border: none; background: none; cursor: pointer; color: var(--text-muted); transition: all 0.15s; white-space: nowrap; }
-  .pp-notif-tab.on { background: var(--btn-primary-bg); color: var(--btn-primary-text); }
-  .pp-notif-tab:hover:not(.on) { background: var(--card-hover-bg); color: var(--page-text); }
-`;
-
-let ppStaticInjected = false;
-
-const GlobalStyles = ({ theme }) => {
-  useEffect(() => {
-    if (!ppStaticInjected) {
-      const el = document.createElement('style');
-      el.id = 'pp-static';
-      el.textContent = STATIC_CSS;
-      document.head.appendChild(el);
-      ppStaticInjected = true;
-    }
-    let dynEl = document.getElementById('pp-dynamic');
-    if (!dynEl) {
-      dynEl = document.createElement('style');
-      dynEl.id = 'pp-dynamic';
-      document.head.appendChild(dynEl);
-    }
-    dynEl.textContent = `:root { ${Object.entries(THEMES[theme]).map(([k,v])=>`${k}: ${v};`).join(' ')} }`;
-  }, [theme]);
-  return null;
-};
-
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
-function buildWeeklyRevenue(orders = []) {
-  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  const map = {};
-  days.forEach(d => { map[d] = 0; });
-  orders.forEach(o => {
-    const d = new Date(o.created_at);
-    const day = days[d.getDay() === 0 ? 6 : d.getDay() - 1];
-    if (day !== undefined) map[day] = (map[day] || 0) + Number(o.total_amount || 0);
-  });
-  return days.map(l => ({ label: l, value: map[l] }));
+function normalizeProducts(payload) {
+  const rows = payload?.data || payload || [];
+  return Array.isArray(rows) ? rows : [];
 }
 
-const AV_COLORS = [
-  { bg:'#fef3c7', color:'#92400e' }, { bg:'#dbeafe', color:'#1e40af' },
-  { bg:'#d1fae5', color:'#065f46' }, { bg:'#fce7f3', color:'#9d174d' },
-  { bg:'#ede9fe', color:'#5b21b6' }, { bg:'#fee2e2', color:'#991b1b' },
-  { bg:'#e0f2fe', color:'#075985' }, { bg:'#fef9c3', color:'#713f12' },
-];
-const avColor = (name = '') => AV_COLORS[(name.charCodeAt(0) || 0) % AV_COLORS.length];
+function productImage(product) {
+  const first = product?.images?.[0];
+  if (typeof first === 'string') return first;
+  return first?.url || first?.image_url || first?.image_path || '';
+}
 
-const StatusBadge = ({ status }) => {
-  const map = {
-    paid:      ['pp-badge-paid',      'Paid'],
-    pending:   ['pp-badge-pending',   'Pending'],
-    confirmed: ['pp-badge-confirmed', 'Confirmed'],
-    delivered: ['pp-badge-delivered', 'Delivered'],
-    rejected:  ['pp-badge-rejected',  'Rejected'],
-    completed: ['pp-badge-completed', 'Completed'],
-    active:    ['pp-badge-active',    'Active'],
-    inactive:  ['pp-badge-inactive',  'Inactive'],
+function categoryName(product) {
+  if (product?.category?.name) return product.category.name;
+  const id = Number(product?.category_id || product?.category?.id);
+  return CATEGORY_OPTIONS.find((item) => item.id === id)?.label || 'Food';
+}
+
+function cx(...items) {
+  return items.filter(Boolean).join(' ');
+}
+
+function profileAsset(path) {
+  if (!path) return '';
+  if (/^https?:\/\//i.test(path)) return path;
+  const base = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000').replace(/\/$/, '');
+  return `${base}/storage/${String(path).replace(/^\/?storage\//, '').replace(/^\//, '')}`;
+}
+
+function initials(value) {
+  return String(value || 'GL').trim().slice(0, 2).toUpperCase();
+}
+
+function updateStoredUser(setUser, nextUser) {
+  if (nextUser) setUser(nextUser);
+}
+
+async function saveSupplierProfile(data, setUser) {
+  const form = new FormData();
+  const appendValue = (key, value) => {
+    if (Array.isArray(value)) {
+      value.forEach((item, index) => appendValue(`${key}[${index}]`, item));
+    } else if (typeof value === 'object' && value !== null && !(value instanceof File)) {
+      Object.entries(value).forEach(([childKey, childValue]) => appendValue(`${key}[${childKey}]`, childValue));
+    } else {
+      form.append(key, value ?? '');
+    }
   };
-  const [cls, label] = map[status] || ['pp-badge-inactive', status || '—'];
-  return <span className={`pp-badge ${cls}`}>{label}</span>;
-};
+  Object.entries(data).forEach(([key, value]) => {
+    appendValue(key, value);
+  });
+  const response = await axios.put('/api/fournisseur/shop-setup/page', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+  updateStoredUser(setUser, response.data?.user);
+  return response.data;
+}
 
-const Loader = () => (
-  <div style={{ display:'flex', justifyContent:'center', alignItems:'center', height:80 }}>
-    <svg className="spin" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="var(--text-low)" strokeWidth={2}>
-      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-    </svg>
-  </div>
-);
-
-const Empty = ({ icon: Icon, label, action, onAction }) => (
-  <div className="pp-empty">
-    <Icon size={40} strokeWidth={1.2} style={{ marginBottom:12, color:'var(--text-low)' }} />
-    <div style={{ fontSize:14, color:'var(--text-muted)', marginBottom: action ? 16 : 0 }}>{label}</div>
-    {action && onAction && <button className="pp-btn pp-btn-dark pp-btn-sm" onClick={onAction}>{action}</button>}
-  </div>
-);
-
-// ─── IMAGE UPLOADER ───────────────────────────────────────────────────────────
-const ImageUploader = ({ images, setImages, max = 5 }) => {
-  const ref = useRef();
-  const add = e => {
-    const files = Array.from(e.target.files);
-    const next = [...images];
-    files.forEach(f => { if (next.length < max) next.push({ file: f, url: URL.createObjectURL(f) }); });
-    setImages(next);
-  };
+function Field({ label, children, hint }) {
   return (
-    <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginTop:4 }}>
-      {images.map((img, i) => (
-        <div key={i} style={{ position:'relative', width:60, height:60, borderRadius:9, overflow:'hidden', border:'1.5px solid var(--input-border)' }}>
-          <img src={img.url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-          <button onClick={() => setImages(images.filter((_,j)=>j!==i))} style={{ position:'absolute', top:2, right:2, width:17, height:17, borderRadius:'50%', background:'rgba(0,0,0,0.55)', color:'#fff', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, lineHeight:1 }}>×</button>
-        </div>
-      ))}
-      {images.length < max && (
-        <>
-          <input ref={ref} type="file" accept="image/*" multiple style={{ display:'none' }} onChange={add} />
-          <button onClick={() => ref.current?.click()} style={{ width:60, height:60, borderRadius:9, border:'1.5px dashed var(--input-border)', background:'var(--input-bg)', color:'var(--text-muted)', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:3, fontSize:10 }}>
-            <ImagePlus size={15} /> Add
-          </button>
-        </>
-      )}
-    </div>
+    <label className="fd-field">
+      <span>{label}</span>
+      {children}
+      {hint && <small>{hint}</small>}
+    </label>
   );
-};
+}
 
-// ─── SIDEBAR ──────────────────────────────────────────────────────────────────
-const Sidebar = ({ view, setView, t, onLogout }) => {
-  const main = [
-    { id:'dashboard',  icon:LayoutDashboard, label:t.nav.dashboard },
-    { id:'orders',     icon:ShoppingCart,    label:t.nav.orders },
-    { id:'messages',   icon:MessageSquare,   label:t.nav.messages },
-    { id:'products',   icon:Package,         label:t.nav.products },
-    { id:'customers',  icon:Users,           label:t.nav.customers },
-    { id:'marketing',  icon:Megaphone,       label:t.nav.marketing || 'Marketing' },
-    { id:'statistics', icon:TrendingUp,      label:t.nav.statistics },
-  ];
-  const bottom = [
-    { id:'help',     icon:HelpCircle, label:t.nav.help },
-    { id:'settings', icon:Settings,   label:t.nav.settings },
-  ];
+function Toggle({ checked, onChange, label }) {
   return (
-    <div className="pp-sidebar">
-      <div className="pp-logo-row" style={{ paddingBottom: 22, marginBottom: 6 }}>
-        <LogoMark size={28} />
-        <span className="pp-logo-text" style={{ fontFamily:'DM Serif Display, Georgia, serif', textTransform:'uppercase', fontSize:15, letterSpacing:'0.04em' }}>Green<span style={{ color:'var(--sulu)' }}>Leaf</span></span>
+    <button className={cx('fd-toggle', checked && 'on')} type="button" onClick={() => onChange?.(!checked)}>
+      <span />
+      {label && <em>{checked ? 'On' : 'Off'}</em>}
+    </button>
+  );
+}
+
+function Sidebar({ view, setView, user, onLogout, lang }) {
+  const label = {
+    home: lang === 'fr' ? 'Accueil' : 'Home',
+    orders: lang === 'fr' ? 'Commandes' : 'Orders',
+    messages: lang === 'fr' ? 'Messages' : 'Messages',
+    products: lang === 'fr' ? 'Produits' : 'Products',
+    customers: lang === 'fr' ? 'Clients' : 'Customers',
+    marketing: lang === 'fr' ? 'Marketing' : 'Marketing',
+    analytics: lang === 'fr' ? 'Statistiques' : 'Analytics',
+    shop: lang === 'fr' ? 'Ma boutique' : 'My shop',
+    settings: lang === 'fr' ? 'Parametres' : 'Settings',
+    shopSettings: lang === 'fr' ? 'Parametres boutique' : 'Shop settings',
+    shipping: lang === 'fr' ? 'Livraison' : 'Shipping tools',
+    account: lang === 'fr' ? 'Compte' : 'Account settings',
+    team: lang === 'fr' ? 'Equipe' : 'Team',
+    viewShop: lang === 'fr' ? 'Voir boutique' : 'View shop',
+    help: lang === 'fr' ? 'Aide' : 'Help Center',
+    logout: lang === 'fr' ? 'Deconnexion' : 'Log out',
+  };
+  const [settingsOpen, setSettingsOpen] = useState(true);
+  const nav = [
+    { id: 'home', label: label.home, icon: Home },
+    { id: 'orders', label: label.orders, icon: ShoppingBag, caret: true },
+    { id: 'messages', label: label.messages, icon: MessageSquare },
+    { id: 'products', label: label.products, icon: Package, caret: true },
+    { id: 'customers', label: label.customers, icon: Users, caret: true },
+    { id: 'marketing', label: label.marketing, icon: Megaphone, caret: true },
+    { id: 'analytics', label: label.analytics, icon: BarChart3, caret: true },
+    { id: 'shop', label: label.shop, icon: Store },
+  ];
+
+  const settingsNav = [
+    { id: 'shop-settings', label: label.shopSettings, icon: Settings },
+    { id: 'shipping', label: label.shipping, icon: Truck },
+    { id: 'account', label: label.account, icon: SlidersHorizontal },
+    { id: 'team', label: label.team, icon: Users },
+  ];
+  const settingsActive = settingsNav.some((item) => item.id === view);
+
+  const profile = user?.fournisseur_profile || {};
+  const avatar = profile.company_name || user?.name || 'GL';
+  const avatarImage = profileAsset(profile.profile_photo);
+
+  return (
+    <aside className="fd-sidebar">
+      <div className="fd-sidebar-head">
+        <div className="fd-brand">
+          <Logo size={28} />
+        </div>
+        <NotificationBell buttonClassName="fd-bell-btn" iconSize={16} />
+        <div className="fd-avatar" style={avatarImage ? { backgroundImage: `url(${avatarImage})` } : undefined}>{!avatarImage && initials(avatar)}</div>
       </div>
-      <div className="pp-nav-section" style={{ paddingLeft: 16 }}>
-        {main.map(({ id, icon: Icon, label }) => (
-          <button key={id} className={`pp-nav-item ${view === id ? 'active' : ''}`} onClick={() => setView(id)}>
-            <Icon size={17} strokeWidth={1.8} /><span>{label}</span>
+
+      <nav className="fd-nav">
+        {nav.map(({ id, label, icon: Icon, caret }) => (
+          <button key={id} className={cx(view === id && 'active')} type="button" onClick={() => setView(id)}>
+            <Icon size={15} />
+            <span>{label}</span>
+            {caret && <ChevronDown size={13} />}
           </button>
         ))}
-      </div>
-      <div className="pp-nav-divider" />
-      <div className="pp-nav-section" style={{ paddingLeft: 16 }}>
-        {bottom.map(({ id, icon: Icon, label }) => (
-          <button key={id} className={`pp-nav-item ${view === id ? 'active' : ''}`} onClick={() => setView(id)}>
-            <Icon size={17} strokeWidth={1.8} /><span>{label}</span>
-          </button>
-        ))}
-      </div>
-      <div className="pp-nav-bottom" style={{ display:'flex', justifyContent:'center' }}>
-        <button onClick={onLogout} style={{ display:'flex', alignItems:'center', justifyContent:'flex-start', width:'45px', height:'45px', border:'none', borderRadius:'50%', cursor:'pointer', position:'relative', overflow:'hidden', transition:'width 0.3s, border-radius 0.3s', boxShadow:'2px 2px 10px rgba(0,0,0,0.199)', backgroundColor:'rgb(200, 50, 50, 0.75)' }}
-          onMouseEnter={e => { e.currentTarget.style.width='125px'; e.currentTarget.style.borderRadius='40px'; e.currentTarget.querySelector('.lo-sign').style.width='30%'; e.currentTarget.querySelector('.lo-sign').style.paddingLeft='20px'; e.currentTarget.querySelector('.lo-text').style.opacity='1'; e.currentTarget.querySelector('.lo-text').style.width='70%'; }}
-          onMouseLeave={e => { e.currentTarget.style.width='45px'; e.currentTarget.style.borderRadius='50%'; e.currentTarget.querySelector('.lo-sign').style.width='100%'; e.currentTarget.querySelector('.lo-sign').style.paddingLeft='0px'; e.currentTarget.querySelector('.lo-text').style.opacity='0'; e.currentTarget.querySelector('.lo-text').style.width='0%'; }}
-          onMouseDown={e => e.currentTarget.style.transform='translate(2px, 2px)'}
-          onMouseUp={e => e.currentTarget.style.transform='translate(0, 0)'}
-        >
-          <div className="lo-sign" style={{ width:'100%', transition:'0.3s', display:'flex', alignItems:'center', justifyContent:'center' }}>
-            <LogOut size={17} color="white" strokeWidth={2.2} />
-          </div>
-          <div className="lo-text" style={{ position:'absolute', right:0, width:'0%', opacity:0, color:'white', fontSize:'1em', fontWeight:600, transition:'0.3s', whiteSpace:'nowrap', overflow:'hidden' }}>
-            {t.nav.logout}
-          </div>
+        <button className={cx('fd-parent-row', settingsActive && 'active', settingsOpen && 'open')} type="button" onClick={() => setSettingsOpen((open) => !open)}>
+          <Settings size={15} />
+          <span>{label.settings}</span>
+          <ChevronDown size={13} />
         </button>
+        {settingsOpen && (
+          <div className="fd-subnav">
+            {settingsNav.map(({ id, label, icon: Icon }) => (
+              <button key={id} className={cx(view === id && 'active')} type="button" onClick={() => setView(id)}>
+                <Icon size={15} />
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </nav>
+
+      <div className="fd-side-bottom">
+        <button type="button" onClick={() => setView('shop-preview')}><Eye size={14} /> {label.viewShop}</button>
+        <button type="button"><CircleHelp size={14} /> {label.help}</button>
+        <button type="button" onClick={onLogout}><LogOut size={14} /> {label.logout}</button>
       </div>
-    </div>
+    </aside>
   );
-};
+}
 
-// ─── TOP BAR ──────────────────────────────────────────────────────────────────
-const TopBar = ({ title, lang, toggleLang, theme, toggleTheme, profilePic, onNotifications, unreadCount }) => (
-  <div className="pp-topbar">
-    <span className="pp-topbar-title">{title}</span>
-    <div className="pp-topbar-right">
-      <button className="pp-icon-btn" onClick={toggleLang} style={{ fontSize:11, fontWeight:600, gap:2, width:'auto', padding:'0 10px' }}>
-        <Globe size={14} /> {lang === 'fr' ? 'EN' : 'FR'}
-      </button>
-      <button className="pp-icon-btn" onClick={onNotifications} title="Notifications">
-        <Bell size={15} />
-        {unreadCount > 0 && <span className="pp-dot" />}
-      </button>
-      <button className="pp-icon-btn" onClick={toggleTheme} title={theme === 'dark' ? 'Light mode' : 'Dark mode'} style={{ background: theme === 'dark' ? 'rgba(232, 168, 124, 0.12)' : 'rgba(184, 115, 65, 0.10)', borderColor: theme === 'dark' ? 'rgba(232, 168, 124, 0.25)' : 'rgba(184, 115, 65, 0.20)' }}>
-        {theme === 'dark' ? <Sun size={15} style={{ color:'#E8A87C' }} /> : <Moon size={15} style={{ color:'#B87341' }} />}
-      </button>
-      <div className="pp-user-chip" style={{ border:'1.5px solid var(--card-border)', borderRadius:10, padding:'4px 8px' }}>
-        <div className="pp-avatar" style={{ width:32, height:32, background:'#c8b99a', fontSize:13, color:'#5c4a2a', fontWeight:700 }}>
-          {profilePic
-            ? <img src={profilePic} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:'50%' }} />
-            : 'K'}
-        </div>
-        <div>
-          <div className="pp-user-name">Kristina Evans</div>
-          <div className="pp-user-email">kris.evans@gmail.com</div>
-        </div>
-      </div>
-    </div>
-  </div>
-);
+function HomeView({ setView, products, user, onboardingStatus }) {
+  const profile = user?.fournisseur_profile || {};
+  const shopReady = Boolean(profile.shop_setup_completed_at);
+  const checks = onboardingStatus?.checks || {};
+  const checklist = [
+    ['shop_information', 'Shop information'],
+    ['cover_and_profile_images', 'Cover and profile images'],
+    ['order_preferences', 'Order preferences'],
+    ['two_products', 'At least 2 products'],
+  ];
 
-// ─── PLACEHOLDER VIEW ─────────────────────────────────────────────────────────
-const PlaceholderView = ({ icon: Icon, title }) => (
-  <div style={{ flex:1, display:'flex', flexDirection:'column', padding:28, gap:20 }}>
-    <div style={{ fontSize:22, fontWeight:700, color:'var(--card-title)', letterSpacing:'-0.4px' }}>{title}</div>
-    <div style={{ flex:1, border:'1.5px solid var(--card-border)', borderRadius:14, display:'flex', alignItems:'center', justifyContent:'center' }}>
-      <Empty icon={Icon} label={`${title} — coming soon`} />
-    </div>
-  </div>
-);
-
-// ─── MOCK DATA ────────────────────────────────────────────────────────────────
-const MOCK_ORDERS = [
-  { id:'390561', restaurant_name:'Michelle Black',  status:'paid',      total_amount:'780.00',  created_at:'2024-01-08T13:52:00Z', items:[{product_name:'Ryobi ONE drill/driver',unit_price:'409.00'},{product_name:'Socket Systeme Electric',unit_price:'238.00'},{product_name:'DVB-T2 receiver bbk',unit_price:'139.00'}] },
-  { id:'663334', restaurant_name:'Janice Chandler', status:'delivered', total_amount:'1250.00', created_at:'2024-01-06T10:00:00Z', items:[] },
-  { id:'418135', restaurant_name:'Mildred Hall',    status:'paid',      total_amount:'540.95',  created_at:'2024-01-05T09:00:00Z', items:[] },
-  { id:'801999', restaurant_name:'Ana Carter',      status:'paid',      total_amount:'1489.00', created_at:'2024-01-02T08:00:00Z', items:[] },
-  { id:'517783', restaurant_name:'John Sherman',    status:'completed', total_amount:'925.00',  created_at:'2023-12-28T07:00:00Z', items:[] },
-  { id:'602992', restaurant_name:'James Miller',    status:'paid',      total_amount:'1620.00', created_at:'2023-12-26T06:00:00Z', items:[{product_name:'Ryobi ONE drill/driver',unit_price:'409.00'},{product_name:'Socket Systeme Electric',unit_price:'238.00'},{product_name:'DVB-T2 receiver bbk',unit_price:'139.00'},{product_name:'Inforce oil-free compressor',unit_price:'135.00'},{product_name:'TIG-200 welding inverter',unit_price:'699.00'}] },
-  { id:'730345', restaurant_name:'Travis French',   status:'paid',      total_amount:'315.50',  created_at:'2023-12-22T05:00:00Z', items:[] },
-  { id:'126955', restaurant_name:'Ralph Hall',      status:'paid',      total_amount:'1267.45', created_at:'2023-12-20T04:00:00Z', items:[] },
-  { id:'045321', restaurant_name:'Gary Gilbert',    status:'completed', total_amount:'287.00',  created_at:'2023-12-18T03:00:00Z', items:[] },
-  { id:'082848', restaurant_name:'Frances Howell',  status:'delivered', total_amount:'1740.00', created_at:'2023-12-17T02:00:00Z', items:[] },
-  { id:'646072', restaurant_name:'Herbert Boyd',    status:'paid',      total_amount:'714.00',  created_at:'2023-12-14T01:00:00Z', items:[] },
-  { id:'432019', restaurant_name:'Alan White',      status:'paid',      total_amount:'267.65',  created_at:'2023-12-13T00:00:00Z', items:[] },
-  { id:'985927', restaurant_name:'Julie Martin',    status:'delivered', total_amount:'389.00',  created_at:'2023-12-11T23:00:00Z', items:[] },
-];
-
-const MOCK_NOTIFS = [
-  { id:1, type:'order',   title_en:'New order received',       title_fr:'Nouvelle commande reçue',     body_en:'Restaurant James Miller placed a new order.',        body_fr:'Le restaurant James Miller a passé une commande.',      read:false, created_at:new Date(Date.now()-5*60000).toISOString() },
-  { id:2, type:'message', title_en:'New message',              title_fr:'Nouveau message',             body_en:'You have a new message from a restaurant buyer.',    body_fr:'Vous avez un nouveau message d\'un acheteur.',          read:false, created_at:new Date(Date.now()-2*3600000).toISOString() },
-  { id:3, type:'order',   title_en:'Order #418135 confirmed',  title_fr:'Commande #418135 confirmée',  body_en:'The order has been confirmed successfully.',          body_fr:'La commande a été confirmée avec succès.',              read:true,  created_at:new Date(Date.now()-26*3600000).toISOString() },
-  { id:4, type:'promo',   title_en:'Promotion expiring soon',  title_fr:'Promotion expirant bientôt', body_en:'One of your promotions expires in 2 days.',           body_fr:'Une de vos promotions expire dans 2 jours.',            read:true,  created_at:new Date(Date.now()-3*86400000).toISOString() },
-];
-
-const MOCK_CUSTOMERS = [
-  { id:1, name:'Michelle Black',  email:'m.black@resto.com',  orders:14, spent:8420,  lastOrder:'2024-01-08', status:'active' },
-  { id:2, name:'Janice Chandler', email:'j.chandler@resto.com',orders:9,  spent:5230,  lastOrder:'2024-01-06', status:'active' },
-  { id:3, name:'Mildred Hall',    email:'m.hall@resto.com',   orders:3,  spent:1540,  lastOrder:'2023-12-20', status:'inactive' },
-  { id:4, name:'Ana Carter',      email:'a.carter@resto.com', orders:21, spent:12980, lastOrder:'2024-01-02', status:'active' },
-  { id:5, name:'John Sherman',    email:'j.sherman@resto.com',orders:6,  spent:3100,  lastOrder:'2023-12-28', status:'active' },
-];
-
-const MOCK_CAMPAIGNS = [
-  { id:1, name:'New Year Bundle',    channel:'Email', reach:1200, clicks:340, status:'active',    created_at:'2024-01-01' },
-  { id:2, name:'Flash Sale Spices',  channel:'Push',  reach:800,  clicks:210, status:'active',    created_at:'2024-01-05' },
-  { id:3, name:'Loyalty Reminder',   channel:'SMS',   reach:450,  clicks:90,  status:'completed', created_at:'2023-12-20' },
-];
-
-// ─── NOTIF HELPERS ────────────────────────────────────────────────────────────
-const NotifIcon = ({ type }) => {
-  const map = {
-    order:   { Icon: ShoppingCart,  bg:'#eff6ff', color:'#1d4ed8' },
-    message: { Icon: MessageSquare, bg:'#ecfdf5', color:'#15803d' },
-    promo:   { Icon: Tag,           bg:'#fef9c3', color:'#a16207' },
-  };
-  const { Icon, bg, color } = map[type] || { Icon: Bell, bg:'var(--sidebar-active-bg)', color:'var(--accent-color)' };
   return (
-    <div style={{ width:38, height:38, borderRadius:10, background:bg, color, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-      <Icon size={17} />
-    </div>
+    <section className="fd-page fd-home">
+      <p className="fd-kicker">Hi {user?.name?.split(' ')?.[0] || 'supplier'},</p>
+      <h1>{shopReady ? 'Keep building your GreenLeaf shop' : "Let's finish setting up your shop"}</h1>
+      <p className="fd-sub">Add at least 2 products to go live to restaurants on GreenLeaf.</p>
+
+      <div className="fd-card fd-upload-card">
+        <div>
+          <h3>Upload a spreadsheet <span>Easiest</span></h3>
+          <p>Import your catalog by uploading a catalog file or fill out our catalog template.</p>
+          <button className="fd-dark-btn" type="button"><Upload size={14} /> Upload file</button>
+        </div>
+        <FileSpreadsheet size={54} strokeWidth={1.2} />
+      </div>
+
+      <div className="fd-home-grid">
+        <div className="fd-card">
+          <h3>Import from Shopify</h3>
+          <p>Seamlessly import your product catalog from Shopify. Choose which products to import and keep your catalog safe.</p>
+          <button className="fd-light-btn" type="button">Import from Shopify</button>
+        </div>
+        <div className="fd-card">
+          <h3>Add products individually <Plus size={22} /></h3>
+          <p>Create new products one by one using a simple product creation form.</p>
+          <button className="fd-light-btn" type="button" onClick={() => setView('new-product')}>Add product</button>
+        </div>
+      </div>
+
+      <div className="fd-card fd-mini-status">
+        <strong>{onboardingStatus?.review_status === 'approved' ? 'Shop approved' : `${products.length}/2 products added`}</strong>
+        <div><span style={{ width: `${Math.min(products.length / 2, 1) * 100}%` }} /></div>
+        <ul className="fd-status-list">
+          {checklist.map(([key, label]) => (
+            <li className={checks[key] ? 'done' : ''} key={key}>
+              <span>{checks[key] ? '✓' : '•'}</span>{label}
+            </li>
+          ))}
+        </ul>
+        <p className="fd-status-note">
+          {onboardingStatus?.review_status === 'pending'
+            ? 'Submitted. Admin review is in progress.'
+            : onboardingStatus?.review_status === 'approved'
+              ? 'Your shop is visible to restaurants.'
+              : 'Complete these steps, then submit your shop for review.'}
+        </p>
+      </div>
+    </section>
   );
-};
+}
 
-const timeAgo = (ts, lang) => {
-  const diff = Math.max(0, Date.now() - new Date(ts).getTime());
-  const min = Math.floor(diff / 60000);
-  if (min < 1) return lang === 'fr' ? "À l'instant" : 'Just now';
-  if (min < 60) return `${min}${lang === 'fr' ? ' min' : 'm ago'}`;
-  const h = Math.floor(min / 60);
-  if (h < 24) return `${h}${lang === 'fr' ? 'h' : 'h ago'}`;
-  return `${Math.floor(h / 24)}${lang === 'fr' ? 'j' : 'd ago'}`;
-};
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// NOTIFICATIONS
-// ═══════════════════════════════════════════════════════════════════════════════
-const Notifications = ({ lang, onUnreadChange }) => {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all');
-
-  const tn = lang === 'fr'
-    ? { all:'Toutes', unread:'Non lues', markAllRead:'Tout marquer comme lu', noNotifs:'Aucune notification', noUnread:'Aucune non lue', title:'Notifications', eyebrow:'Centre de notifications' }
-    : { all:'All', unread:'Unread', markAllRead:'Mark all as read', noNotifs:'No notifications', noUnread:'No unread notifications', title:'Notifications', eyebrow:'Notification center' };
-
-  const load = async () => {
-    setLoading(true);
+function ProductsView({ products, loading, setView, refresh, user, setUser, onboardingStatus }) {
+  const published = products.filter((item) => item.is_active !== false).length;
+  const drafts = products.length - published;
+  const profile = user?.fournisseur_profile || {};
+  const profileComplete = Boolean(onboardingStatus?.ready_for_review);
+  const [reviewMessage, setReviewMessage] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const submitReview = async () => {
+    setSubmittingReview(true);
+    setReviewMessage('');
     try {
-      const r = await axios.get('/api/notifications');
-      setItems(r.data && r.data.length ? r.data : MOCK_NOTIFS);
-    } catch (e) { setItems(MOCK_NOTIFS); }
-    finally { setLoading(false); }
+      const response = await axios.post('/api/fournisseur/shop-setup/submit-review');
+      updateStoredUser(setUser, response.data?.user);
+      await refresh();
+      setReviewMessage('Submitted. Admin will review your shop.');
+    } catch (err) {
+      setReviewMessage(err.response?.data?.message || 'Could not submit your shop for review.');
+    } finally {
+      setSubmittingReview(false);
+    }
   };
-  useEffect(() => { load(); }, []);
-  useEffect(() => { if (onUnreadChange) onUnreadChange(items.filter(n => !n.read).length); }, [items]);
-
-  const markRead = async id => {
-    setItems(prev => prev.map(n => n.id === id ? { ...n, read:true } : n));
-    try { await axios.patch(`/api/notifications/${id}`, { read:true }); } catch (e) {}
-  };
-  const markAllRead = async () => {
-    setItems(prev => prev.map(n => ({ ...n, read:true })));
-    try { await axios.patch('/api/notifications/read-all'); } catch (e) {}
-  };
-
-  const filtered = filter === 'unread' ? items.filter(n => !n.read) : items;
-  const unreadCount = items.filter(n => !n.read).length;
 
   return (
-    <div style={{ padding:'24px 28px', display:'flex', flexDirection:'column', gap:20, flex:1, overflowY:'auto' }}>
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end' }}>
+    <section className="fd-page">
+      <div className="fd-page-head">
         <div>
-          <div style={{ fontSize:11, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:4 }}>{tn.eyebrow}</div>
-          <div style={{ fontSize:22, fontWeight:700, color:'var(--card-title)', letterSpacing:'-0.4px' }}>{tn.title}</div>
+          <h1>Products</h1>
+          <p>Upload a minimum of 2 published products to activate your shop on GreenLeaf.</p>
         </div>
-        {unreadCount > 0 && (
-          <button className="pp-btn pp-btn-ghost pp-btn-sm" onClick={markAllRead}>
-            <CheckCheck size={13} /> {tn.markAllRead}
+        <div className="fd-actions">
+          <button className={profileComplete ? 'fd-dark-btn' : 'fd-muted-btn'} disabled={submittingReview || !profileComplete || profile.review_status === 'pending' || profile.review_status === 'approved'} type="button" onClick={submitReview}>
+            {submittingReview ? 'Submitting...' : profile.review_status === 'pending' ? 'Submitted for review' : 'Submit for review'}
           </button>
+          <button className="fd-dark-btn" type="button" onClick={() => setView('new-product')}>Add products <ChevronDown size={14} /></button>
+        </div>
+      </div>
+      {reviewMessage && <div className={reviewMessage.startsWith('Could') ? 'fd-error' : 'fd-success'}>{reviewMessage}</div>}
+
+      <div className="fd-board">
+        <div className="fd-tabs">
+          <button className="active">All <span>{products.length}</span></button>
+          <button>Published <span>{published}</span></button>
+          <button>Unpublished <span>0</span></button>
+          <button>Drafts <span>{drafts}</span></button>
+        </div>
+        <div className="fd-toolbar">
+          <label><Search size={15} /><input placeholder="Search products" /></label>
+          <button type="button">Sort: A-Z</button>
+          <button type="button"><SlidersHorizontal size={14} /> Filter</button>
+        </div>
+
+        {loading ? (
+          <div className="fd-empty">Loading products...</div>
+        ) : products.length === 0 ? (
+          <div className="fd-empty">
+            <h3>No products yet</h3>
+            <p>Add at least 2 products to go live to restaurants on GreenLeaf.</p>
+            <div>
+              <button className="fd-dark-btn" type="button" onClick={() => setView('new-product')}>Add product</button>
+              <button className="fd-light-btn" type="button"><Upload size={14} /> Bulk upload</button>
+            </div>
+          </div>
+        ) : (
+          <div className="fd-product-list">
+            {products.map((product) => (
+              <article key={product.id}>
+                <div className="fd-product-thumb">
+                  {productImage(product) ? <img src={productImage(product)} alt="" /> : <Package size={18} />}
+                </div>
+                <div>
+                  <strong>{product.name}</strong>
+                  <span>{categoryName(product)} · {product.unit || 'unit'}</span>
+                </div>
+                <b>{Number(product.price || 0).toFixed(2)} MAD</b>
+                <span>{product.stock ?? 0} in stock</span>
+                <button className="fd-light-btn" type="button" onClick={refresh}>Refresh</button>
+              </article>
+            ))}
+          </div>
         )}
       </div>
+    </section>
+  );
+}
 
-      <div style={{ display:'flex', gap:6 }}>
-        {[['all', tn.all], ['unread', `${tn.unread}${unreadCount > 0 ? ` (${unreadCount})` : ''}`]].map(([val, label]) => (
-          <button key={val} className={`pp-notif-tab${filter === val ? ' on' : ''}`} onClick={() => setFilter(val)}>
-            {label}
+function NewProductView({ setView, onSaved }) {
+  const [form, setForm] = useState(emptyProduct);
+  const [images, setImages] = useState([]);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const fileRef = useRef(null);
+
+  const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
+
+  const addImages = (event) => {
+    const files = Array.from(event.target.files || []);
+    setImages((current) => [...current, ...files].slice(0, 5));
+  };
+
+  const save = async (publish = true) => {
+    setSaving(true);
+    setError('');
+    try {
+      const data = new FormData();
+      data.append('name', form.name);
+      data.append('description', form.description);
+      data.append('category_id', form.category_id);
+      data.append('price', form.price);
+      data.append('unit', form.unit);
+      data.append('min_order_qty', form.min_order_qty);
+      data.append('stock', form.stock);
+      data.append('delivery_delay', form.delivery_delay);
+      data.append('is_active', publish ? '1' : '0');
+      form.delivery_zones.forEach((zone, index) => data.append(`delivery_zones[${index}]`, zone));
+      images.forEach((image) => data.append('images[]', image));
+      await axios.post('/api/fournisseur/products', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+      await onSaved();
+      setView('products');
+    } catch (err) {
+      const errors = err.response?.data?.errors;
+      setError(errors ? Object.values(errors)[0][0] : err.response?.data?.message || 'Could not save product.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <section className="fd-page fd-new-product">
+      <button className="fd-back" type="button" onClick={() => setView('products')}>‹ Products</button>
+      <div className="fd-page-head sticky">
+        <div>
+          <h1>New product</h1>
+          <div className="fd-actions left">
+            <button className="fd-dark-btn" type="button" disabled={saving} onClick={() => save(true)}>Publish product</button>
+            <button className="fd-link-btn" type="button" disabled={saving} onClick={() => save(false)}>Save as draft</button>
+          </div>
+        </div>
+      </div>
+
+      {error && <div className="fd-error">{error}</div>}
+
+      <div className="fd-section">
+        <h2>Basic information</h2>
+        <p>Build buyer confidence with a clear, detailed product listing.</p>
+        <Field label="Name">
+          <input value={form.name} maxLength={60} placeholder="Make your name concise and searchable" onChange={(event) => update('name', event.target.value)} />
+          <em>{form.name.length}/60</em>
+        </Field>
+        <Field label="Description">
+          <textarea value={form.description} maxLength={3000} placeholder="Tell buyers the materials and details that make this product stand out" onChange={(event) => update('description', event.target.value)} />
+          <em>{form.description.length}/3000</em>
+        </Field>
+      </div>
+
+      <div className="fd-section">
+        <h2>Images <button type="button">Edit images</button></h2>
+        <p>Use a neutral background and include all product options. Images must be at least 600 x 600 pixels.</p>
+        <div className="fd-image-grid">
+          <button className="fd-feature-upload" type="button" onClick={() => fileRef.current?.click()}>
+            <Upload size={28} />
+            <strong>Upload featured image</strong>
+            <span>Supported files .png, .jpg, .webp</span>
           </button>
-        ))}
-      </div>
-
-      <div style={{ background:'var(--card-bg)', border:'1px solid var(--card-border)', borderRadius:14, overflow:'hidden' }}>
-        {loading ? <Loader /> : filtered.length === 0 ? (
-          <Empty icon={BellOff} label={filter === 'unread' ? tn.noUnread : tn.noNotifs} />
-        ) : filtered.map((n, i) => (
-          <div
-            key={n.id}
-            onClick={() => !n.read && markRead(n.id)}
-            style={{ display:'flex', gap:14, alignItems:'flex-start', padding:'16px 20px', borderBottom: i < filtered.length - 1 ? '1px solid var(--page-border)' : 'none', background: n.read ? 'transparent' : 'var(--sidebar-active-bg)', cursor: n.read ? 'default' : 'pointer', transition:'background 0.15s' }}
-          >
-            <NotifIcon type={n.type} />
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ display:'flex', justifyContent:'space-between', gap:10 }}>
-                <span style={{ fontSize:13, fontWeight: n.read ? 500 : 700, color:'var(--card-title)' }}>
-                  {lang === 'fr' ? n.title_fr : n.title_en}
-                </span>
-                <span style={{ fontSize:11, color:'var(--text-low)', whiteSpace:'nowrap' }}>{timeAgo(n.created_at, lang)}</span>
-              </div>
-              <div style={{ fontSize:12, color:'var(--text-muted)', marginTop:3, lineHeight:1.5 }}>
-                {lang === 'fr' ? n.body_fr : n.body_en}
-              </div>
-            </div>
-            {!n.read && <div style={{ width:8, height:8, borderRadius:'50%', background:'var(--accent-color)', marginTop:4, flexShrink:0 }} />}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// ORDERS
-// ═══════════════════════════════════════════════════════════════════════════════
-const Orders = ({ t }) => {
-  const to = t.orders;
-  const [orders, setOrders]             = useState([]);
-  const [loading, setLoading]           = useState(true);
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [priceFilter, setPriceFilter]   = useState('$100—$1500');
-  const [sortBy, setSortBy]             = useState('date');
-  const [selected, setSelected]         = useState(null);
-  const [checkedIds, setCheckedIds]     = useState(new Set(['418135','602992','730345','045321']));
-
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      try {
-        const r = await axios.get('/api/fournisseur/orders');
-        const data = r.data || [];
-        const merged = data.length > 0 ? data : MOCK_ORDERS;
-        setOrders(merged);
-        setSelected(merged.find(o => o.id === '602992') || merged[0]);
-      } catch(e) {
-        setOrders(MOCK_ORDERS);
-        setSelected(MOCK_ORDERS.find(o => o.id === '602992') || MOCK_ORDERS[0]);
-      } finally { setLoading(false); }
-    })();
-  }, []);
-
-  const handleStatus = async (id, status) => {
-    try { await axios.patch(`/api/fournisseur/orders/${id}/status`, { status }); } catch(e) {}
-    setOrders(p => p.map(o => o.id === id ? { ...o, status } : o));
-    if (selected?.id === id) setSelected(s => ({ ...s, status }));
-  };
-
-  const toggleCheck = (id, e) => {
-    e.stopPropagation();
-    setCheckedIds(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
-  };
-
-  const priceRanges = { 'Any price':[0,Infinity], '$100—$1500':[100,1500], '$1500+':[1500,Infinity], 'Under $100':[0,100] };
-
-  const filtered = orders.filter(o => {
-    if (statusFilter !== 'all' && o.status !== statusFilter) return false;
-    const [mn, mx] = priceRanges[priceFilter] || [0, Infinity];
-    if (Number(o.total_amount) < mn || Number(o.total_amount) > mx) return false;
-    return true;
-  });
-
-  const formatDate = ts => new Date(ts).toLocaleDateString('en-US', { month:'short', day:'numeric' });
-  const sel = selected;
-  const selAv = sel ? avColor(sel.restaurant_name) : {};
-  const allChecked = filtered.length > 0 && filtered.every(o => checkedIds.has(o.id));
-
-  return (
-    <div style={{ flex:1, display:'flex', overflow:'hidden' }}>
-      <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 }}>
-        <div className="pp-filterbar">
-          <div className="pp-filter-select">
-            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-              <option value="all">Any status</option>
-              {to.filters.slice(1).map((f,i) => <option key={f} value={to.filterVals[i+1]}>{f}</option>)}
-            </select>
-            <ChevronDown size={14} color="var(--text-low)" />
-          </div>
-          <div className="pp-filter-select">
-            <select value={priceFilter} onChange={e => setPriceFilter(e.target.value)}>
-              {Object.keys(priceRanges).map(k => <option key={k} value={k}>{k}</option>)}
-            </select>
-            <ChevronDown size={14} color="var(--text-low)" />
-          </div>
-          <div style={{ flex:1 }} />
-          <div className="pp-filter-select">
-            <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
-              <option value="date">Sort by Date</option>
-              <option value="total">Sort by Total</option>
-              <option value="name">Sort by Name</option>
-            </select>
-            <ChevronDown size={14} color="var(--text-low)" />
-          </div>
-        </div>
-        <div style={{ flex:1, overflowY:'auto' }}>
-          {loading ? <Loader /> : (
-            <table className="pp-table">
-              <thead>
-                <tr>
-                  <th style={{ width:52, paddingLeft:20 }}>
-                    <div className={`pp-checkbox ${allChecked ? 'minus' : ''}`} onClick={() => allChecked ? setCheckedIds(new Set()) : setCheckedIds(new Set(filtered.map(o => o.id)))}>
-                      {allChecked && <span style={{ width:10, height:2, background:'#fff', display:'block', borderRadius:2 }} />}
-                    </div>
-                  </th>
-                  <th>Order</th><th>Customer</th><th>Status</th><th>Total</th><th>Date</th><th style={{ width:48 }}></th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.length === 0
-                  ? <tr><td colSpan={7}><Empty icon={ClipboardList} label={to.noOrders} /></td></tr>
-                  : filtered.map(o => {
-                    const checked = checkedIds.has(o.id);
-                    const isSelected = sel?.id === o.id;
-                    const ac = avColor(o.restaurant_name);
-                    return (
-                      <tr key={o.id} className={isSelected ? 'row-selected' : ''} onClick={() => setSelected(o)}>
-                        <td style={{ paddingLeft:20, paddingRight:0 }} onClick={e => toggleCheck(o.id, e)}>
-                          <div className={`pp-checkbox ${checked ? 'checked' : ''}`}>
-                            {checked && <Check size={12} color="#fff" strokeWidth={3} />}
-                          </div>
-                        </td>
-                        <td style={{ fontWeight:500 }}>#{o.id}</td>
-                        <td>
-                          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                            <div className="pp-avatar" style={{ width:32, height:32, background:ac.bg, color:ac.color, fontSize:13 }}>{o.restaurant_name.charAt(0)}</div>
-                            <span style={{ fontWeight:500 }}>{o.restaurant_name}</span>
-                          </div>
-                        </td>
-                        <td><StatusBadge status={o.status} /></td>
-                        <td style={{ fontWeight:500 }}>${Number(o.total_amount).toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 })}</td>
-                        <td style={{ color:'var(--text-muted)' }}>{formatDate(o.created_at)}</td>
-                        <td><button style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-low)', padding:6, display:'flex' }} onClick={e => e.stopPropagation()}><MoreHorizontal size={17} /></button></td>
-                      </tr>
-                    );
-                  })
-                }
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
-
-      {sel && (
-        <div className="pp-detail-panel">
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', padding:'20px 20px 0' }}>
-            <div>
-              <div style={{ fontSize:18, fontWeight:700, color:'var(--card-title)', letterSpacing:'-0.4px', marginBottom:8 }}>Order #{sel.id}</div>
-              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                <StatusBadge status={sel.status} />
-                <span style={{ fontSize:13, color:'var(--text-muted)' }}>{formatDate(sel.created_at)}, {new Date(sel.created_at).toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' })}</span>
-              </div>
-            </div>
-            <button style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', padding:4 }} onClick={() => setSelected(null)}><X size={18} /></button>
-          </div>
-          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'20px 20px 16px', borderBottom:'1px solid var(--card-border)' }}>
-            <div className="pp-avatar" style={{ width:64, height:64, background:selAv.bg, color:selAv.color, fontSize:22, marginBottom:10 }}>{sel.restaurant_name.charAt(0)}</div>
-            <div style={{ fontSize:15, fontWeight:600, color:'var(--card-title)', marginBottom:12 }}>{sel.restaurant_name}</div>
-            <div style={{ display:'flex', gap:10 }}>
-              <button className="pp-icon-btn"><Mail size={16} /></button>
-              <button className="pp-icon-btn"><Phone size={16} /></button>
-              <button className="pp-icon-btn"><MessageCircle size={16} /></button>
-            </div>
-          </div>
-          <div style={{ flex:1, overflowY:'auto' }}>
-            <div style={{ padding:'16px 20px 0' }}>
-              <div style={{ fontSize:14, fontWeight:600, color:'var(--card-title)', marginBottom:14 }}>Order items</div>
-              {(sel.items || []).length === 0
-                ? <div style={{ fontSize:13, color:'var(--text-low)', textAlign:'center', padding:'16px 0' }}>No items</div>
-                : (sel.items || []).map((item, i) => (
-                  <div key={i} style={{ display:'flex', alignItems:'center', gap:12, marginBottom:14 }}>
-                    <div style={{ width:42, height:42, borderRadius:10, background:'var(--sidebar-active-bg)', border:'1px solid var(--card-border)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, overflow:'hidden' }}>
-                      {item.image ? <img src={item.image} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : <Package size={16} color="var(--text-low)" strokeWidth={1.5} />}
-                    </div>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:13, fontWeight:500, color:'var(--card-title)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{item.product_name}</div>
-                      <div style={{ fontSize:13, color:'var(--text-muted)', marginTop:1 }}>${item.unit_price}</div>
-                    </div>
-                  </div>
-                ))
-              }
-            </div>
-          </div>
-          <div style={{ padding:'16px 20px', borderTop:'1px solid var(--card-border)' }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
-              <span style={{ fontSize:14, fontWeight:500, color:'var(--card-title)' }}>Total</span>
-              <span style={{ fontSize:22, fontWeight:700, color:'var(--card-title)', letterSpacing:'-0.5px' }}>${Number(sel.total_amount).toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 })}</span>
-            </div>
-            <div style={{ display:'flex', gap:10 }}>
-              {sel.status === 'pending' ? (
-                <>
-                  <button className="pp-btn-track" onClick={() => handleStatus(sel.id, 'confirmed')}><Check size={16} /> Confirm</button>
-                  <button className="pp-btn-refund" onClick={() => handleStatus(sel.id, 'rejected')}><X size={16} /> Reject</button>
-                </>
-              ) : sel.status === 'confirmed' ? (
-                <>
-                  <button className="pp-btn-track" onClick={() => handleStatus(sel.id, 'delivered')}><Truck size={16} strokeWidth={2} /> Track</button>
-                  <button className="pp-btn-refund" onClick={() => handleStatus(sel.id, 'rejected')}><RotateCcw size={16} strokeWidth={2} /> Refund</button>
-                </>
-              ) : (
-                <>
-                  <button className="pp-btn-track"><Settings size={16} strokeWidth={2} /> Track</button>
-                  <button className="pp-btn-refund"><RotateCcw size={16} strokeWidth={2} /> Refund</button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// DASHBOARD
-// ═══════════════════════════════════════════════════════════════════════════════
-const Dashboard = ({ setView, t }) => {
-  const td = t.dashboard;
-  const [stats, setStats]     = useState({ totalProducts:0, activePromos:0, pendingOrders:0, totalRevenue:0 });
-  const [orders, setOrders]   = useState([]);
-  const [trend, setTrend]     = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const [s, o] = await Promise.all([axios.get('/api/fournisseur/dashboard/stats'), axios.get('/api/fournisseur/orders')]);
-        const raw = s.data || {};
-        setStats({ totalProducts: raw.totalProducts ?? 0, activePromos: raw.activePromos ?? 0, pendingOrders: raw.pendingOrders ?? 0, totalRevenue: raw.totalRevenue ?? 0 });
-        const all = o.data || [];
-        setOrders(all.slice(0, 8));
-        setTrend(buildWeeklyRevenue(all));
-      } catch(e) {}
-      finally { setLoading(false); }
-    })();
-  }, []);
-
-  if (loading) return <Loader />;
-
-  const chartBars = trend.length ? trend : ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(l => ({ label:l, value:0 }));
-  const maxBar = Math.max(...chartBars.map(d => d.value), 1);
-  const formatDate = ts => new Date(ts).toLocaleDateString('en-US', { month:'short', day:'numeric' });
-
-  return (
-    <div style={{ padding:'24px 28px', display:'flex', flexDirection:'column', gap:20, overflowY:'auto', flex:1 }}>
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:14 }}>
-        {[
-          { label:'Total Products', value:stats.totalProducts,              delta:'+4 this week',        c:'var(--status-success-text)' },
-          { label:'Active Promos',  value:stats.activePromos,               delta:'2 expire soon',       c:'var(--status-pending-text)' },
-          { label:'Pending Orders', value:stats.pendingOrders,              delta:'Needs response',      c:'var(--status-failed-text)'  },
-          { label:'Revenue (MAD)',  value:stats.totalRevenue.toLocaleString(), delta:'↑ 12% vs last week', c:'var(--status-success-text)' },
-        ].map(({ label, value, delta, c }) => (
-          <div key={label} style={{ background:'var(--card-bg)', border:'1.5px solid var(--card-border)', borderRadius:14, padding:'18px 20px' }}>
-            <div style={{ fontSize:12, color:'var(--text-muted)', fontWeight:500, marginBottom:8 }}>{label}</div>
-            <div style={{ fontSize:26, fontWeight:700, color:'var(--card-title)', letterSpacing:'-0.5px', lineHeight:1, marginBottom:6 }}>{value}</div>
-            <div style={{ fontSize:11, fontWeight:500, color:c }}>{delta}</div>
-          </div>
-        ))}
-      </div>
-      <div style={{ background:'var(--card-bg)', border:'1.5px solid var(--card-border)', borderRadius:14, padding:'20px 24px' }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
-          <div>
-            <div style={{ fontSize:15, fontWeight:600, color:'var(--card-title)' }}>{td.trend}</div>
-            <div style={{ fontSize:12, color:'var(--text-muted)', marginTop:2 }}>{td.week}</div>
-          </div>
-          <button className="pp-btn pp-btn-ghost pp-btn-sm" onClick={() => setView('orders')}>View orders <ArrowRight size={12} /></button>
-        </div>
-        <div style={{ display:'flex', alignItems:'flex-end', gap:8, height:90 }}>
-          {chartBars.map((d, i) => {
-            const h = Math.max(Math.round((d.value / maxBar) * 80), 4);
+          {Array.from({ length: 8 }).map((_, index) => {
+            const image = images[index];
             return (
-              <motion.div key={i} initial={{ height:0 }} animate={{ height:h }} transition={{ delay:i*0.05, duration:0.35 }}
-                title={`${d.label}: ${d.value.toLocaleString()}`}
-                style={{ flex:1, borderRadius:'5px 5px 0 0', background:'var(--accent-color)', transformOrigin:'bottom', cursor:'pointer', minWidth:0 }}
-              />
+              <div className="fd-image-slot" key={index}>
+                {image ? <img src={URL.createObjectURL(image)} alt="" /> : <ImageIcon size={20} />}
+              </div>
             );
           })}
         </div>
-        <div style={{ display:'flex', marginTop:8 }}>
-          {chartBars.map((d,i) => <div key={i} style={{ flex:1, textAlign:'center', fontSize:10, color:'var(--text-low)' }}>{d.label}</div>)}
-        </div>
-      </div>
-      <div style={{ background:'var(--card-bg)', border:'1.5px solid var(--card-border)', borderRadius:14, overflow:'hidden' }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'16px 20px', borderBottom:'1px solid var(--card-border)' }}>
-          <span style={{ fontSize:15, fontWeight:600, color:'var(--card-title)' }}>Recent Orders</span>
-          <button className="pp-btn pp-btn-ghost pp-btn-sm" onClick={() => setView('orders')}>View all <ArrowRight size={12} /></button>
-        </div>
-        <table className="pp-table">
-          <thead><tr><th>Order</th><th>Customer</th><th>Status</th><th>Total</th><th>Date</th><th style={{ width:40 }}></th></tr></thead>
-          <tbody>
-            {orders.length === 0
-              ? <tr><td colSpan={6}><Empty icon={ShoppingBag} label={td.noPending} /></td></tr>
-              : orders.map(o => {
-                const ac = avColor(o.restaurant_name || '');
-                return (
-                  <tr key={o.id}>
-                    <td style={{ fontWeight:500 }}>#{o.id}</td>
-                    <td>
-                      <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                        <div className="pp-avatar" style={{ width:30, height:30, background:ac.bg, color:ac.color, fontSize:12 }}>{(o.restaurant_name||'?').charAt(0)}</div>
-                        <span style={{ fontWeight:500 }}>{o.restaurant_name||'—'}</span>
-                      </div>
-                    </td>
-                    <td><StatusBadge status={o.status} /></td>
-                    <td style={{ fontWeight:500 }}>${Number(o.total_amount||0).toFixed(2)}</td>
-                    <td style={{ color:'var(--text-muted)' }}>{formatDate(o.created_at)}</td>
-                    <td><button style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-low)', padding:6, display:'flex' }}><MoreHorizontal size={16} /></button></td>
-                  </tr>
-                );
-              })
-            }
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-};
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// PRODUCTS
-// ═══════════════════════════════════════════════════════════════════════════════
-const EMPTY_P = { name:'', category:'', description:'', price:'', unit:'', min_order_qty:'', stock:'', delivery_zones:'', delivery_delay:'' };
-
-const Products = ({ t }) => {
-  const tp = t.products;
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [modal, setModal]       = useState(null);
-  const [editId, setEditId]     = useState(null);
-  const [form, setForm]         = useState(EMPTY_P);
-  const [images, setImages]     = useState([]);
-  const [saving, setSaving]     = useState(false);
-
-  const load = async () => { setLoading(true); try { const r = await axios.get('/api/fournisseur/products'); setProducts(r.data.data || r.data || []); } catch(e){} finally { setLoading(false); } };
-  useEffect(() => { load(); }, []);
-  const onChange = e => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
-  const onSubmit = async () => {
-    setSaving(true);
-    try {
-      const fd = new FormData();
-      Object.entries(form).forEach(([k,v]) => fd.append(k,v));
-      images.forEach(img => img.file && fd.append('images[]', img.file));
-      if (editId) {
-        fd.append('_method', 'PUT');
-        await axios.post(`/api/fournisseur/products/${editId}`, fd, { headers:{'Content-Type':'multipart/form-data'} });
-      } else {
-        await axios.post('/api/fournisseur/products', fd, { headers:{'Content-Type':'multipart/form-data'} });
-      }
-      setModal(null); setEditId(null); setForm(EMPTY_P); setImages([]); load();
-    } catch(e){} finally { setSaving(false); }
-  };
-  const onDelete = async id => { if (!window.confirm('Delete?')) return; try { await axios.delete(`/api/fournisseur/products/${id}`); load(); } catch(e){} };
-  const openEdit = p => { setEditId(p.id); setForm({ name:p.name, category:p.category, description:p.description||'', price:p.price, unit:p.unit||'', min_order_qty:p.min_order_qty||'', stock:p.stock||'', delivery_zones:p.delivery_zones||'', delivery_delay:p.delivery_delay||'' }); setImages(p.images ? p.images.map(u=>({url:u})) : []); setModal('edit'); };
-
-  return (
-    <div style={{ padding:'24px 28px', display:'flex', flexDirection:'column', gap:20, flex:1, overflowY:'auto' }}>
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-        <div>
-          <div style={{ fontSize:11, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:4 }}>{tp.eyebrow}</div>
-          <div style={{ fontSize:22, fontWeight:700, color:'var(--card-title)', letterSpacing:'-0.4px' }}>{tp.title}</div>
-        </div>
-        <button className="pp-btn pp-btn-dark" onClick={() => { setForm(EMPTY_P); setImages([]); setEditId(null); setModal('add'); }}><Plus size={14} /> {tp.add}</button>
-      </div>
-      <div style={{ background:'var(--card-bg)', border:'1.5px solid var(--card-border)', borderRadius:14, overflow:'hidden' }}>
-        {loading ? <Loader /> : products.length === 0 ? <Empty icon={Package} label={tp.noProducts} action={tp.add} onAction={() => setModal('add')} /> : (
-          <div style={{ overflowX:'auto' }}>
-            <table className="pp-table">
-              <thead><tr>{tp.cols.map(c => <th key={c}>{c}</th>)}</tr></thead>
-              <tbody>
-                {products.map(p => (
-                  <tr key={p.id}>
-                    <td>
-                      <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                        <div style={{ width:38, height:38, borderRadius:10, background:'var(--sidebar-active-bg)', border:'1px solid var(--card-border)', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden', flexShrink:0 }}>
-                          {p.images?.[0] ? <img src={p.images[0]} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : <Package size={15} color="var(--text-low)" strokeWidth={1.5} />}
-                        </div>
-                        <div>
-                          <div style={{ fontWeight:500, color:'var(--card-title)' }}>{p.name}</div>
-                          <div style={{ fontSize:11, color:'var(--text-muted)' }}>{p.unit || 'unit'}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td style={{ color:'var(--text-muted)' }}>{p.category}</td>
-                    <td style={{ fontWeight:600, color:'var(--card-title)' }}>{p.price} MAD</td>
-                    <td style={{ color:'var(--text-muted)' }}>{p.stock ?? '—'}</td>
-                    <td><StatusBadge status={p.status || 'active'} /></td>
-                    <td>
-                      <div style={{ display:'flex', gap:6 }}>
-                        <button className="pp-btn pp-btn-ghost pp-btn-sm" onClick={() => openEdit(p)}><Pencil size={11} /> Edit</button>
-                        <button className="pp-btn pp-btn-danger pp-btn-sm" onClick={() => onDelete(p.id)}><Trash2 size={11} /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-      {modal && (
-        <div className="pp-modal-overlay" onClick={e => e.target === e.currentTarget && setModal(null)}>
-          <motion.div initial={{ opacity:0, y:-20 }} animate={{ opacity:1, y:0 }} transition={{ type:'spring', stiffness:300, damping:28 }} className="pp-modal">
-            <div className="pp-modal-header">
-              <span className="pp-modal-title">{modal==='add' ? tp.modal.add : tp.modal.edit}</span>
-              <button className="pp-icon-btn" onClick={() => setModal(null)} style={{ width:30, height:30 }}><X size={14} /></button>
-            </div>
-            <div className="pp-modal-body">
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:13, marginBottom:13 }}>
-                <div className="pp-field"><label className="pp-label">{tp.modal.name}</label><input type="text" name="name" value={form.name} onChange={onChange} className="pp-input" /></div>
-                <div className="pp-field"><label className="pp-label">{tp.modal.category}</label><select name="category" value={form.category} onChange={onChange} className="pp-select"><option value="">Select</option>{tp.cats.map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select></div>
-                <div className="pp-field"><label className="pp-label">{tp.modal.unit}</label><input type="text" name="unit" value={form.unit} onChange={onChange} className="pp-input" /></div>
-                <div className="pp-field"><label className="pp-label">{tp.modal.price}</label><input type="number" name="price" value={form.price} onChange={onChange} className="pp-input" /></div>
-                <div className="pp-field"><label className="pp-label">{tp.modal.stock}</label><input type="number" name="stock" value={form.stock} onChange={onChange} className="pp-input" /></div>
-                <div className="pp-field"><label className="pp-label">{tp.modal.minQty}</label><input type="number" name="min_order_qty" value={form.min_order_qty} onChange={onChange} className="pp-input" /></div>
-                <div className="pp-field"><label className="pp-label">{tp.modal.delay}</label><input type="number" name="delivery_delay" value={form.delivery_delay} onChange={onChange} className="pp-input" /></div>
-                <div className="pp-field"><label className="pp-label">{tp.modal.zones}</label><select name="delivery_zones" value={form.delivery_zones} onChange={onChange} className="pp-select"><option value="">Select zone</option>{REGIONS.map(r => <option key={r} value={r}>{r}</option>)}</select></div>
-              </div>
-              <div className="pp-field" style={{ marginBottom:13 }}><label className="pp-label">{tp.modal.desc}</label><textarea name="description" value={form.description} onChange={onChange} className="pp-textarea" rows={3} /></div>
-              <div className="pp-field"><label className="pp-label">{tp.modal.images}</label><ImageUploader images={images} setImages={setImages} max={5} /></div>
-            </div>
-            <div className="pp-modal-footer">
-              <button className="pp-btn pp-btn-ghost" onClick={() => setModal(null)}>{tp.modal.cancel}</button>
-              <button className="pp-btn pp-btn-dark" onClick={onSubmit} disabled={saving}>{saving ? 'Saving...' : (editId ? tp.modal.update : tp.modal.create)}</button>
-            </div>
-          </motion.div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// PROMOTIONS
-// ═══════════════════════════════════════════════════════════════════════════════
-const EMPTY_PROMO = { product_id:'', type:'', value:'', min_quantity:'', usage_limit:'', start_date:'', end_date:'' };
-
-const Promotions = ({ t }) => {
-  const tpm = t.promotions;
-  const [promos, setPromos]     = useState([]);
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [modal, setModal]       = useState(null);
-  const [editId, setEditId]     = useState(null);
-  const [form, setForm]         = useState(EMPTY_PROMO);
-  const [saving, setSaving]     = useState(false);
-
-  const load = async () => { setLoading(true); try { const [p,pr] = await Promise.all([axios.get('/api/fournisseur/promotions'),axios.get('/api/fournisseur/products')]); setPromos(p.data.data||p.data||[]); setProducts(pr.data.data||pr.data||[]); } catch(e){} finally { setLoading(false); } };
-  useEffect(() => { load(); }, []);
-  const onChange = e => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
-  const onSubmit = async () => { setSaving(true); try { if(editId) await axios.put(`/api/fournisseur/promotions/${editId}`,form); else await axios.post('/api/fournisseur/promotions',form); setModal(null); setEditId(null); setForm(EMPTY_PROMO); load(); } catch(e){} finally { setSaving(false); } };
-  const onDelete = async id => { if(!window.confirm('Delete?')) return; try { await axios.delete(`/api/fournisseur/promotions/${id}`); load(); } catch(e){} };
-  const openEdit = p => { setEditId(p.id); setForm({ product_id:p.product_id, type:p.type, value:p.value, min_quantity:p.min_quantity||'', usage_limit:p.usage_limit||'', start_date:p.start_date?.split('T')[0]||'', end_date:p.end_date?.split('T')[0]||'' }); setModal('edit'); };
-
-  return (
-    <div style={{ padding:'24px 28px', display:'flex', flexDirection:'column', gap:20, flex:1, overflowY:'auto' }}>
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-        <div>
-          <div style={{ fontSize:11, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:4 }}>{tpm.eyebrow}</div>
-          <div style={{ fontSize:22, fontWeight:700, color:'var(--card-title)', letterSpacing:'-0.4px' }}>{tpm.title}</div>
-        </div>
-        <button className="pp-btn pp-btn-dark" onClick={() => { setForm(EMPTY_PROMO); setEditId(null); setModal('add'); }}><Plus size={14} /> {tpm.add}</button>
-      </div>
-      <div style={{ background:'var(--card-bg)', border:'1.5px solid var(--card-border)', borderRadius:14, overflow:'hidden' }}>
-        {loading ? <Loader /> : promos.length === 0 ? <Empty icon={Tag} label={tpm.noPromos} action={tpm.add} onAction={() => setModal('add')} /> : (
-          <div style={{ overflowX:'auto' }}>
-            <table className="pp-table">
-              <thead><tr>{tpm.cols.map(c => <th key={c}>{c}</th>)}</tr></thead>
-              <tbody>
-                {promos.map(p => (
-                  <tr key={p.id}>
-                    <td style={{ fontWeight:500 }}>{products.find(pr=>pr.id===p.product_id)?.name||'—'}</td>
-                    <td style={{ color:'var(--text-muted)' }}>{p.type}</td>
-                    <td style={{ fontWeight:600 }}>{p.value}{p.type==='percentage'?'%':' MAD'}</td>
-                    <td style={{ color:'var(--text-muted)', fontSize:12 }}>{p.start_date?.split('T')[0]} – {p.end_date?.split('T')[0]}</td>
-                    <td style={{ color:'var(--text-muted)' }}>{p.usage_limit||'N/A'}</td>
-                    <td><StatusBadge status={p.status||'active'} /></td>
-                    <td><div style={{ display:'flex', gap:6 }}><button className="pp-btn pp-btn-ghost pp-btn-sm" onClick={() => openEdit(p)}><Pencil size={11} /> Edit</button><button className="pp-btn pp-btn-danger pp-btn-sm" onClick={() => onDelete(p.id)}><Trash2 size={11} /></button></div></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-      {modal && (
-        <div className="pp-modal-overlay" onClick={e => e.target===e.currentTarget && setModal(null)}>
-          <motion.div initial={{ opacity:0, y:-20 }} animate={{ opacity:1, y:0 }} transition={{ type:'spring', stiffness:300, damping:28 }} className="pp-modal">
-            <div className="pp-modal-header"><span className="pp-modal-title">{modal==='add'?tpm.modal.add:tpm.modal.edit}</span><button className="pp-icon-btn" onClick={()=>setModal(null)} style={{width:30,height:30}}><X size={14}/></button></div>
-            <div className="pp-modal-body">
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:13 }}>
-                <div className="pp-field"><label className="pp-label">{tpm.modal.product}</label><select name="product_id" value={form.product_id} onChange={onChange} className="pp-select"><option value="">Select product</option>{products.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
-                <div className="pp-field"><label className="pp-label">{tpm.modal.type}</label><select name="type" value={form.type} onChange={onChange} className="pp-select"><option value="">Select type</option>{tpm.types.map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></div>
-                <div className="pp-field"><label className="pp-label">{tpm.modal.value}</label><input type="number" name="value" value={form.value} onChange={onChange} className="pp-input"/></div>
-                <div className="pp-field"><label className="pp-label">{tpm.modal.minQty}</label><input type="number" name="min_quantity" value={form.min_quantity} onChange={onChange} className="pp-input"/></div>
-                <div className="pp-field"><label className="pp-label">{tpm.modal.limit}</label><input type="number" name="usage_limit" value={form.usage_limit} onChange={onChange} className="pp-input"/></div>
-                <div className="pp-field"><label className="pp-label">{tpm.modal.start}</label><input type="date" name="start_date" value={form.start_date} onChange={onChange} className="pp-input"/></div>
-                <div className="pp-field" style={{gridColumn:'1/-1'}}><label className="pp-label">{tpm.modal.end}</label><input type="date" name="end_date" value={form.end_date} onChange={onChange} className="pp-input"/></div>
-              </div>
-            </div>
-            <div className="pp-modal-footer"><button className="pp-btn pp-btn-ghost" onClick={()=>setModal(null)}>{tpm.modal.cancel}</button><button className="pp-btn pp-btn-dark" onClick={onSubmit} disabled={saving}>{saving?'Saving...':(editId?tpm.modal.update:tpm.modal.create)}</button></div>
-          </motion.div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// MESSAGES
-// ═══════════════════════════════════════════════════════════════════════════════
-const Messages = ({ t }) => {
-  const tm = t.messages;
-  const [convs, setConvs]     = useState([]);
-  const [msgs, setMsgs]       = useState([]);
-  const [selId, setSelId]     = useState(null);
-  const [input, setInput]     = useState('');
-  const [loading, setLoading] = useState(true);
-  const endRef = useRef(null);
-
-  const fetchConvs = async () => { try { const r = await axios.get('/api/messages'); const d = r.data||[]; setConvs(d); if(d.length>0&&!selId) setSelId(d[0].id); } catch(e){} finally { setLoading(false); } };
-  useEffect(() => { fetchConvs(); }, []);
-  useEffect(() => { if(!selId) return; (async()=>{ try{ const r=await axios.get(`/api/messages/${selId}`); setMsgs(r.data||[]); }catch(e){} })(); }, [selId]);
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior:'smooth' }); }, [msgs]);
-
-  const send = async e => { e.preventDefault(); if(!input.trim()||!selId) return; try{ const r=await axios.post('/api/messages',{conversationId:selId,content:input}); setMsgs(p=>[...p,r.data]); setInput(''); fetchConvs(); }catch(e){} };
-  const active = convs.find(c=>c.id===selId);
-
-  return (
-    <div style={{ flex:1, display:'flex', overflow:'hidden' }}>
-      <div style={{ width:260, borderRight:'1px solid var(--card-border)', display:'flex', flexDirection:'column', flexShrink:0 }}>
-        <div style={{ padding:'16px 18px', borderBottom:'1px solid var(--card-border)' }}>
-          <div style={{ fontSize:15, fontWeight:600, color:'var(--card-title)' }}>{tm.title}</div>
-          <div style={{ fontSize:11, color:'var(--text-muted)', marginTop:2 }}>{tm.eyebrow}</div>
-        </div>
-        <div style={{ flex:1, overflowY:'auto' }}>
-          {loading ? <Loader /> : convs.length===0 ? <Empty icon={MessageSquare} label={tm.noConvs} /> : convs.map(c=>(
-            <div key={c.id} onClick={()=>setSelId(c.id)} style={{ display:'flex', flexDirection:'column', padding:'13px 16px', borderBottom:'1px solid var(--page-border)', cursor:'pointer', background:selId===c.id?'var(--sidebar-active-bg)':'transparent', transition:'background 0.1s' }}>
-              <div style={{ display:'flex', alignItems:'center', gap:9, marginBottom:4 }}>
-                <div className="pp-avatar" style={{ width:28,height:28,background:'var(--sidebar-active-bg)',color:'var(--text-muted)',fontSize:12 }}>{c.contact_name?.charAt(0)?.toUpperCase()||'?'}</div>
-                <span style={{ fontSize:13,fontWeight:500,color:'var(--card-title)',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{c.contact_name||'—'}</span>
-                {c.unread_count>0 && <span style={{ background:'var(--accent-color)',color:'#fff',fontSize:10,fontWeight:700,padding:'1px 7px',borderRadius:99 }}>{c.unread_count}</span>}
-              </div>
-              <div style={{ fontSize:11,color:'var(--text-muted)',paddingLeft:37,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{c.last_message_preview||'—'}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div style={{ flex:1,display:'flex',flexDirection:'column',overflow:'hidden',minWidth:0 }}>
-        {!selId ? (
-          <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:10 }}>
-            <MessageSquare size={32} color="var(--text-low)" strokeWidth={1.5} />
-            <span style={{ fontSize:13,color:'var(--text-muted)' }}>{tm.select}</span>
-          </div>
-        ) : (
-          <>
-            <div style={{ padding:'14px 20px',borderBottom:'1px solid var(--card-border)',display:'flex',alignItems:'center',gap:12 }}>
-              <div className="pp-avatar" style={{ width:36,height:36,background:'var(--sidebar-active-bg)',color:'var(--text-muted)',fontSize:14 }}>{active?.contact_name?.charAt(0)?.toUpperCase()}</div>
-              <div>
-                <div style={{ fontSize:14,fontWeight:600,color:'var(--card-title)' }}>{active?.contact_name}</div>
-                <div style={{ display:'flex',alignItems:'center',gap:5,marginTop:2 }}>
-                  <div style={{ width:6,height:6,borderRadius:'50%',background:'#22c55e' }}/>
-                  <span style={{ fontSize:11,color:'var(--text-muted)' }}>{tm.buyer}</span>
-                </div>
-              </div>
-            </div>
-            <div style={{ flex:1,overflowY:'auto',padding:'16px 20px',display:'flex',flexDirection:'column',gap:10 }}>
-              {msgs.length===0 ? <div style={{ textAlign:'center',paddingTop:40,fontSize:13,color:'var(--text-low)' }}>{tm.noMsgs}</div>
-                : msgs.map((msg,i)=>(
-                  <div key={i} style={{ alignSelf:msg.sender==='self'?'flex-end':'flex-start' }}>
-                    <div style={{ maxWidth:'75%',padding:'10px 14px',borderRadius:18,fontSize:13,lineHeight:1.5,background:msg.sender==='self'?'var(--accent-color)':'var(--sidebar-active-bg)',color:msg.sender==='self'?'#fff':'var(--card-title)',borderBottomRightRadius:msg.sender==='self'?4:18,borderBottomLeftRadius:msg.sender==='self'?18:4 }}>{msg.content}</div>
-                    <div style={{ fontSize:10,color:'var(--text-low)',marginTop:4,textAlign:msg.sender==='self'?'right':'left' }}>{new Date(msg.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
-                  </div>
-                ))
-              }
-              <div ref={endRef}/>
-            </div>
-            <div style={{ padding:'14px 20px',borderTop:'1px solid var(--card-border)' }}>
-              <form onSubmit={send} style={{ display:'flex',gap:10 }}>
-                <input type="text" value={input} onChange={e=>setInput(e.target.value)} placeholder={tm.placeholder} className="pp-input" style={{ flex:1 }}/>
-                <button type="submit" className="pp-btn pp-btn-dark" disabled={!input.trim()}><Send size={14}/> Send</button>
-              </form>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// PROFILE
-// ═══════════════════════════════════════════════════════════════════════════════
-const Profile = ({ t }) => {
-  const tp = t.profile;
-  const [activeTab, setActiveTab] = useState('info');
-  const [form, setForm]   = useState({});
-  const [saving, setSaving] = useState(false);
-  const [profilePic, setProfilePic] = useState(null);
-
-  useEffect(()=>{ (async()=>{ try{ const r=await axios.get('/api/fournisseur/profile'); setForm(r.data||{}); setProfilePic(r.data?.profile_pic); }catch(e){} })(); },[]);
-  const onChange = e => setForm(p=>({...p,[e.target.name]:e.target.value}));
-  const onSaveInfo = async ()=>{ setSaving(true); try{ const fd=new FormData(); Object.entries(form).forEach(([k,v])=>fd.append(k,v)); if(profilePic instanceof File) fd.append('profile_pic',profilePic); fd.append('_method', 'PUT'); await axios.post('/api/fournisseur/profile',fd,{headers:{'Content-Type':'multipart/form-data'}}); }catch(e){} finally{ setSaving(false); } };
-  const onSaveSecurity = async ()=>{ setSaving(true); try{ await axios.patch('/api/fournisseur/profile/security',form); }catch(e){} finally{ setSaving(false); } };
-  const onSaveNotifs = async ()=>{ setSaving(true); try{ await axios.patch('/api/fournisseur/profile/notifications',form); }catch(e){} finally{ setSaving(false); } };
-
-  return (
-    <div style={{ padding:'24px 28px',display:'flex',flexDirection:'column',gap:20,flex:1,overflowY:'auto' }}>
-      <div>
-        <div style={{ fontSize:11,color:'#8e8e93',textTransform:'uppercase',letterSpacing:'0.07em',marginBottom:4 }}>{tp.eyebrow}</div>
-        <div style={{ fontSize:22,fontWeight:700,color:'#1c1c1e',letterSpacing:'-0.4px' }}>{tp.title}</div>
-      </div>
-      <div style={{ background:'#fff',border:'1.5px solid #f2f2f2',borderRadius:14,overflow:'hidden' }}>
-        <div style={{ display:'flex',borderBottom:'1px solid #f2f2f2' }}>
-          {tp.tabs.map((tab,i)=>(
-            <button key={tp.tabIds[i]} onClick={()=>setActiveTab(tp.tabIds[i])} style={{ padding:'14px 22px',fontSize:13,fontWeight:500,border:'none',background:'none',cursor:'pointer',color:activeTab===tp.tabIds[i]?'#1c1c1e':'#8e8e93',borderBottom:activeTab===tp.tabIds[i]?'2px solid #1c1c1e':'2px solid transparent',transition:'all 0.15s' }}>{tab}</button>
-          ))}
-        </div>
-        <div style={{ padding:22 }}>
-          {activeTab==='info' && (
-            <div>
-              <div style={{ fontSize:14,fontWeight:600,color:'#1c1c1e',marginBottom:18 }}>{tp.info.title}</div>
-              <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,marginBottom:18 }}>
-                <div className="pp-field"><label className="pp-label">{tp.info.businessName}</label><input type="text" name="business_name" value={form.business_name||''} onChange={onChange} className="pp-input"/></div>
-                <div className="pp-field"><label className="pp-label">{tp.info.contactName}</label><input type="text" name="contact_name" value={form.contact_name||''} onChange={onChange} className="pp-input"/></div>
-                <div className="pp-field"><label className="pp-label">{tp.info.email}</label><input type="email" name="email" value={form.email||''} onChange={onChange} className="pp-input" disabled style={{opacity:0.6}}/></div>
-                <div className="pp-field"><label className="pp-label">{tp.info.phone}</label><input type="text" name="phone" value={form.phone||''} onChange={onChange} className="pp-input"/></div>
-                <div className="pp-field"><label className="pp-label">{tp.info.region}</label><select name="region" value={form.region||''} onChange={onChange} className="pp-select"><option value="">Select</option>{REGIONS.map(r=><option key={r} value={r}>{r}</option>)}</select></div>
-                <div className="pp-field"><label className="pp-label">{tp.info.address}</label><input type="text" name="address" value={form.address||''} onChange={onChange} className="pp-input"/></div>
-                <div className="pp-field" style={{gridColumn:'1/-1'}}><label className="pp-label">{tp.info.zones}</label><input type="text" name="delivery_zones" value={form.delivery_zones||''} onChange={onChange} className="pp-input"/></div>
-              </div>
-              <div className="pp-field" style={{marginBottom:18}}><label className="pp-label">{tp.info.bio}</label><textarea name="bio" value={form.bio||''} onChange={onChange} className="pp-textarea" rows={3}/></div>
-              <div style={{ display:'flex',alignItems:'center',gap:16 }}>
-                <div className="pp-avatar" style={{ width:60,height:60,background:'#f0f0f0',color:'#666',fontSize:22 }}>
-                  {profilePic ? <img src={typeof profilePic==='string'?profilePic:URL.createObjectURL(profilePic)} alt="" style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'50%'}}/> : (form.contact_name?.charAt(0)?.toUpperCase()||'F')}
-                </div>
-                <div>
-                  <input type="file" id="pp-pic" style={{display:'none'}} onChange={e=>e.target.files?.[0]&&setProfilePic(e.target.files[0])} accept="image/*"/>
-                  <button className="pp-btn pp-btn-ghost pp-btn-sm" onClick={()=>document.getElementById('pp-pic').click()}><Camera size={13}/> {tp.info.changePic}</button>
-                </div>
-                <button className="pp-btn pp-btn-dark" onClick={onSaveInfo} disabled={saving} style={{marginLeft:'auto'}}>{saving?tp.info.saving:tp.info.save}</button>
-              </div>
-            </div>
-          )}
-          {activeTab==='security' && (
-            <div>
-              <div style={{ fontSize:14,fontWeight:600,color:'#1c1c1e',marginBottom:18 }}>{tp.security.title}</div>
-              <div style={{ display:'flex',flexDirection:'column',gap:14,maxWidth:420 }}>
-                <div className="pp-field"><label className="pp-label">{tp.security.current}</label><input type="password" name="current_password" value={form.current_password||''} onChange={onChange} className="pp-input"/></div>
-                <div className="pp-field"><label className="pp-label">{tp.security.newPwd}</label><input type="password" name="new_password" value={form.new_password||''} onChange={onChange} className="pp-input"/></div>
-                <div className="pp-field"><label className="pp-label">{tp.security.confirm}</label><input type="password" name="confirm_password" value={form.confirm_password||''} onChange={onChange} className="pp-input"/></div>
-                <button className="pp-btn pp-btn-dark" onClick={onSaveSecurity} disabled={saving} style={{alignSelf:'flex-start'}}>{saving?tp.security.saving:tp.security.save}</button>
-              </div>
-            </div>
-          )}
-          {activeTab==='notifications' && (
-            <div>
-              <div style={{ fontSize:14,fontWeight:600,color:'#1c1c1e',marginBottom:18 }}>{tp.notifs.title}</div>
-              <div style={{ display:'flex',flexDirection:'column',maxWidth:520 }}>
-                {tp.notifs.items.map((item,i)=>(
-                  <div key={item.key} style={{ display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 0',borderBottom:i<tp.notifs.items.length-1?'1px solid #f2f2f2':'none' }}>
-                    <div>
-                      <div style={{ fontSize:14,fontWeight:500,color:'#1c1c1e' }}>{item.label}</div>
-                      <div style={{ fontSize:12,color:'#8e8e93',marginTop:2 }}>{item.sub}</div>
-                    </div>
-                    <button onClick={()=>setForm(p=>({...p,[item.key]:!p[item.key]}))} style={{ background:'none',border:'none',cursor:'pointer',padding:0 }}>
-                      <div style={{ width:44,height:24,borderRadius:99,background:form[item.key]?'#1c1c1e':'#e0e0e0',position:'relative',transition:'background 0.2s' }}>
-                        <div style={{ position:'absolute',top:3,left:form[item.key]?23:3,width:18,height:18,borderRadius:'50%',background:'#fff',transition:'left 0.2s',boxShadow:'0 1px 3px rgba(0,0,0,0.2)' }}/>
-                      </div>
-                    </button>
-                  </div>
-                ))}
-                <button className="pp-btn pp-btn-dark" onClick={onSaveNotifs} disabled={saving} style={{alignSelf:'flex-start',marginTop:20}}>{saving?tp.notifs.saving:tp.notifs.save}</button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// CUSTOMERS (functional: search, sort, status toggle)
-// ═══════════════════════════════════════════════════════════════════════════════
-const Customers = ({ t }) => {
-  const tc = t.customers;
-  const [customers, setCustomers] = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [search, setSearch]       = useState('');
-  const [sortBy, setSortBy]       = useState('spent');
-
-  const load = async () => {
-    setLoading(true);
-    try {
-      const r = await axios.get('/api/fournisseur/customers');
-      setCustomers(r.data?.length ? r.data : MOCK_CUSTOMERS);
-    } catch (e) { setCustomers(MOCK_CUSTOMERS); }
-    finally { setLoading(false); }
-  };
-  useEffect(() => { load(); }, []);
-
-  const toggleStatus = async (id) => {
-    setCustomers(prev => prev.map(c => c.id === id ? { ...c, status: c.status === 'active' ? 'inactive' : 'active' } : c));
-    try { await axios.patch(`/api/fournisseur/customers/${id}`, { status: 'toggle' }); } catch (e) {}
-  };
-
-  const filtered = customers
-    .filter(c => c.name.toLowerCase().includes(search.toLowerCase()) || (c.email||'').toLowerCase().includes(search.toLowerCase()))
-    .sort((a,b) => sortBy === 'spent' ? b.spent - a.spent : sortBy === 'orders' ? b.orders - a.orders : a.name.localeCompare(b.name));
-
-  return (
-    <div style={{ padding:'24px 28px', display:'flex', flexDirection:'column', gap:20, flex:1, overflowY:'auto' }}>
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-        <div>
-          <div style={{ fontSize:11, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:4 }}>{tc.eyebrow}</div>
-          <div style={{ fontSize:22, fontWeight:700, color:'var(--card-title)', letterSpacing:'-0.4px' }}>{tc.title}</div>
-        </div>
+        <input ref={fileRef} hidden type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={addImages} />
+        <input className="fd-wide-input" placeholder="Press Ctrl+V to paste an image or image URL" />
       </div>
 
-      <div style={{ display:'flex', gap:10 }}>
-        <div style={{ position:'relative', flex:1, maxWidth:320 }}>
-          <Search size={14} color="var(--text-low)" style={{ position:'absolute', left:12, top:'50%', transform:'translateY(-50%)' }} />
-          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder={tc.search} className="pp-input" style={{ paddingLeft:34 }} />
-        </div>
-        <div className="pp-filter-select">
-          <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
-            <option value="spent">Sort by Spent</option>
-            <option value="orders">Sort by Orders</option>
-            <option value="name">Sort by Name</option>
+      <div className="fd-section">
+        <h2>Product type*</h2>
+        <p>Choose a product type that best categorizes this product.</p>
+        <Field label="Product type">
+          <input value={form.product_type} placeholder="Example: Tomatoes, Olive oil, Cheese" onChange={(event) => update('product_type', event.target.value)} />
+        </Field>
+        <Field label="Category">
+          <select value={form.category_id} onChange={(event) => update('category_id', event.target.value)}>
+            {CATEGORY_OPTIONS.map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}
           </select>
-          <ChevronDown size={14} color="var(--text-low)" />
+        </Field>
+      </div>
+
+      <div className="fd-section">
+        <h2>Product options*</h2>
+        <p>Manage any variations of this product, like sizes, units, or packaging.</p>
+        <label className="fd-radio"><input type="radio" checked={form.has_options === 'yes'} onChange={() => update('has_options', 'yes')} /> This product has options</label>
+        <label className="fd-radio"><input type="radio" checked={form.has_options === 'no'} onChange={() => update('has_options', 'no')} /> This product doesn't have options</label>
+      </div>
+
+      <div className="fd-section">
+        <h2>Pricing & inventory</h2>
+        <div className="fd-form-grid">
+          <Field label="Price (MAD)"><input type="number" min="0" value={form.price} onChange={(event) => update('price', event.target.value)} /></Field>
+          <Field label="Unit"><select value={form.unit} onChange={(event) => update('unit', event.target.value)}>{UNITS.map((unit) => <option key={unit.value} value={unit.value}>{unit.label}</option>)}</select></Field>
+          <Field label="Stock"><input type="number" min="0" value={form.stock} onChange={(event) => update('stock', event.target.value)} /></Field>
+          <Field label="Minimum order quantity"><input type="number" min="1" value={form.min_order_qty} onChange={(event) => update('min_order_qty', event.target.value)} /></Field>
+          <Field label="Lead time (days)"><input type="number" min="0" value={form.delivery_delay} onChange={(event) => update('delivery_delay', event.target.value)} /></Field>
+        </div>
+        <div className="fd-zones">
+          {CITY_OPTIONS.map((city) => (
+            <button
+              className={form.delivery_zones.includes(city) ? 'selected' : ''}
+              key={city}
+              type="button"
+              onClick={() => update('delivery_zones', form.delivery_zones.includes(city) ? form.delivery_zones.filter((item) => item !== city) : [...form.delivery_zones, city])}
+            >
+              {city}
+            </button>
+          ))}
         </div>
       </div>
-
-      <div style={{ background:'var(--card-bg)', border:'1.5px solid var(--card-border)', borderRadius:14, overflow:'hidden' }}>
-        {loading ? <Loader /> : filtered.length === 0 ? (
-          <Empty icon={Users} label={tc.noCustomers} />
-        ) : (
-          <table className="pp-table">
-            <thead><tr>{tc.cols.map(c => <th key={c}>{c}</th>)}</tr></thead>
-            <tbody>
-              {filtered.map(c => {
-                const ac = avColor(c.name);
-                return (
-                  <tr key={c.id}>
-                    <td>
-                      <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                        <div className="pp-avatar" style={{ width:32, height:32, background:ac.bg, color:ac.color, fontSize:13 }}>{c.name.charAt(0)}</div>
-                        <div>
-                          <div style={{ fontWeight:500 }}>{c.name}</div>
-                          <div style={{ fontSize:11, color:'var(--text-muted)' }}>{c.email}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td>{c.orders}</td>
-                    <td style={{ fontWeight:600 }}>{c.spent.toLocaleString()} MAD</td>
-                    <td style={{ color:'var(--text-muted)' }}>{c.lastOrder}</td>
-                    <td style={{ cursor:'pointer' }} onClick={() => toggleStatus(c.id)}><StatusBadge status={c.status} /></td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </div>
-    </div>
+    </section>
   );
-};
+}
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// MARKETING (functional: create / edit / delete campaigns)
-// ═══════════════════════════════════════════════════════════════════════════════
-const EMPTY_CAMPAIGN = { name:'', channel:'', reach:'' };
+function ShopPageView({ user, setView, setUser, onStatusChange }) {
+  const profile = user?.fournisseur_profile || {};
+  const company = profile.company_name || user?.name || 'GreenLeaf Shop';
+  const city = user?.city || 'Casablanca';
+  const country = profile.headquartered_in || profile.products_made_in || 'Morocco';
+  const [form, setForm] = useState({
+    company_name: company,
+    description: profile.description || '',
+    year_established: profile.year_established || '',
+    products_made_in: profile.products_made_in || country,
+    headquartered_in: profile.headquartered_in || country,
+    instagram_handle: profile.instagram_handle || '',
+    brand_values: Array.isArray(profile.brand_values) ? profile.brand_values : [],
+  });
+  const [files, setFiles] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+  const coverPreview = files.cover_photo ? URL.createObjectURL(files.cover_photo) : profileAsset(profile.cover_photo_url || profile.cover_photo);
+  const avatarPreview = files.profile_photo ? URL.createObjectURL(files.profile_photo) : profileAsset(profile.profile_photo_url || profile.profile_photo);
+  const featurePreview = files.feature_image ? URL.createObjectURL(files.feature_image) : profileAsset(profile.feature_image_url || profile.feature_image);
+  const logoPreview = files.logo_image ? URL.createObjectURL(files.logo_image) : profileAsset(profile.logo_image_url || profile.logo_image);
+  const additionalPreview = files.additional_images?.[0] ? URL.createObjectURL(files.additional_images[0]) : profileAsset(profile.additional_image_urls?.[0] || profile.additional_images?.[0]);
 
-const Marketing = ({ t }) => {
-  const tmk = t.marketing;
-  const [campaigns, setCampaigns] = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [modal, setModal]         = useState(null);
-  const [editId, setEditId]       = useState(null);
-  const [form, setForm]           = useState(EMPTY_CAMPAIGN);
-  const [saving, setSaving]       = useState(false);
-
-  const load = async () => {
-    setLoading(true);
-    try {
-      const r = await axios.get('/api/fournisseur/campaigns');
-      setCampaigns(r.data?.length ? r.data : MOCK_CAMPAIGNS);
-    } catch (e) { setCampaigns(MOCK_CAMPAIGNS); }
-    finally { setLoading(false); }
+  const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
+  const pickFile = (key, event) => {
+    const selected = Array.from(event.target.files || []);
+    if (!selected.length) return;
+    setFiles((current) => ({ ...current, [key]: key === 'additional_images' ? selected.slice(0, 2) : selected[0] }));
   };
-  useEffect(() => { load(); }, []);
 
-  const onChange = e => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
+  const toggleTag = (tag) => {
+    update('brand_values', form.brand_values.includes(tag)
+      ? form.brand_values.filter((item) => item !== tag)
+      : [...form.brand_values, tag]);
+  };
 
-  const onSubmit = async () => {
+  const save = async () => {
     setSaving(true);
-    const payload = { name: form.name, channel: form.channel, reach: Number(form.reach) || 0, clicks: 0, status: 'active', created_at: new Date().toISOString().split('T')[0] };
+    setMessage('');
     try {
-      if (editId) {
-        try { await axios.put(`/api/fournisseur/campaigns/${editId}`, payload); } catch (e) {}
-        setCampaigns(prev => prev.map(c => c.id === editId ? { ...c, ...payload } : c));
-      } else {
-        let created = { id: Date.now(), ...payload };
-        try {
-          const r = await axios.post('/api/fournisseur/campaigns', payload);
-          if (r.data?.id) created = r.data;
-        } catch (e) {}
-        setCampaigns(prev => [created, ...prev]);
-      }
-      setModal(null); setEditId(null); setForm(EMPTY_CAMPAIGN);
-    } finally { setSaving(false); }
+      const data = new FormData();
+      Object.entries(form).forEach(([key, value]) => {
+        if (key === 'brand_values') {
+          value.forEach((item, index) => data.append(`brand_values[${index}]`, item));
+        } else {
+          data.append(key, value ?? '');
+        }
+      });
+      ['profile_photo', 'cover_photo', 'feature_image', 'logo_image'].forEach((key) => {
+        if (files[key]) data.append(key, files[key]);
+      });
+      (files.additional_images || []).forEach((image, index) => data.append(`additional_images[${index}]`, image));
+      const response = await axios.put('/api/fournisseur/shop-setup/page', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+      updateStoredUser(setUser, response.data?.user);
+      onStatusChange?.();
+      setFiles({});
+      setMessage('Saved. Your shop preview is updated.');
+    } catch (err) {
+      const errors = err.response?.data?.errors;
+      setMessage(errors ? Object.values(errors)[0][0] : 'Could not save your shop page.');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const onDelete = async (id) => {
-    if (!window.confirm('Delete this campaign?')) return;
-    setCampaigns(prev => prev.filter(c => c.id !== id));
-    try { await axios.delete(`/api/fournisseur/campaigns/${id}`); } catch (e) {}
-  };
-
-  const toggleStatus = async (id) => {
-    setCampaigns(prev => prev.map(c => c.id === id ? { ...c, status: c.status === 'active' ? 'completed' : 'active' } : c));
-    try { await axios.patch(`/api/fournisseur/campaigns/${id}/status`); } catch (e) {}
-  };
-
-  const openEdit = c => { setEditId(c.id); setForm({ name:c.name, channel:c.channel, reach:c.reach }); setModal('edit'); };
-
-  return (
-    <div style={{ padding:'24px 28px', display:'flex', flexDirection:'column', gap:20, flex:1, overflowY:'auto' }}>
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-        <div>
-          <div style={{ fontSize:11, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'0.07em', marginBottom:4 }}>{tmk.eyebrow}</div>
-          <div style={{ fontSize:22, fontWeight:700, color:'var(--card-title)', letterSpacing:'-0.4px' }}>{tmk.title}</div>
-        </div>
-        <button className="pp-btn pp-btn-dark" onClick={() => { setForm(EMPTY_CAMPAIGN); setEditId(null); setModal('add'); }}><Plus size={14} /> {tmk.add}</button>
-      </div>
-
-      {loading ? <Loader /> : campaigns.length === 0 ? (
-        <div style={{ background:'var(--card-bg)', border:'1.5px solid var(--card-border)', borderRadius:14 }}>
-          <Empty icon={Megaphone} label={tmk.noCampaigns} action={tmk.add} onAction={() => setModal('add')} />
-        </div>
-      ) : (
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14 }}>
-          {campaigns.map(c => (
-            <div key={c.id} style={{ background:'var(--card-bg)', border:'1.5px solid var(--card-border)', borderRadius:14, padding:'18px 20px' }}>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12 }}>
-                <div style={{ fontSize:14, fontWeight:600, color:'var(--card-title)' }}>{c.name}</div>
-                <div style={{ cursor:'pointer' }} onClick={() => toggleStatus(c.id)}><StatusBadge status={c.status} /></div>
-              </div>
-              <div style={{ fontSize:12, color:'var(--text-muted)', marginBottom:14 }}>{c.channel}</div>
-              <div style={{ display:'flex', gap:20, marginBottom:14 }}>
-                <div>
-                  <div style={{ fontSize:11, color:'var(--text-low)' }}>Reach</div>
-                  <div style={{ fontSize:16, fontWeight:700, color:'var(--card-title)' }}>{Number(c.reach).toLocaleString()}</div>
-                </div>
-                <div>
-                  <div style={{ fontSize:11, color:'var(--text-low)' }}>Clicks</div>
-                  <div style={{ fontSize:16, fontWeight:700, color:'var(--card-title)' }}>{Number(c.clicks || 0).toLocaleString()}</div>
-                </div>
-              </div>
-              <div style={{ display:'flex', gap:6 }}>
-                <button className="pp-btn pp-btn-ghost pp-btn-sm" onClick={() => openEdit(c)}><Pencil size={11} /> Edit</button>
-                <button className="pp-btn pp-btn-danger pp-btn-sm" onClick={() => onDelete(c.id)}><Trash2 size={11} /></button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {modal && (
-        <div className="pp-modal-overlay" onClick={e => e.target === e.currentTarget && setModal(null)}>
-          <motion.div initial={{ opacity:0, y:-20 }} animate={{ opacity:1, y:0 }} transition={{ type:'spring', stiffness:300, damping:28 }} className="pp-modal">
-            <div className="pp-modal-header">
-              <span className="pp-modal-title">{modal==='add' ? tmk.modal.add : tmk.modal.edit}</span>
-              <button className="pp-icon-btn" onClick={() => setModal(null)} style={{ width:30, height:30 }}><X size={14} /></button>
-            </div>
-            <div className="pp-modal-body">
-              <div style={{ display:'flex', flexDirection:'column', gap:13 }}>
-                <div className="pp-field"><label className="pp-label">{tmk.modal.name}</label><input type="text" name="name" value={form.name} onChange={onChange} className="pp-input" /></div>
-                <div className="pp-field"><label className="pp-label">{tmk.modal.channel}</label><select name="channel" value={form.channel} onChange={onChange} className="pp-select"><option value="">Select</option>{tmk.channels.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-                <div className="pp-field"><label className="pp-label">{tmk.modal.reach}</label><input type="number" name="reach" value={form.reach} onChange={onChange} className="pp-input" /></div>
-              </div>
-            </div>
-            <div className="pp-modal-footer">
-              <button className="pp-btn pp-btn-ghost" onClick={() => setModal(null)}>{tmk.modal.cancel}</button>
-              <button className="pp-btn pp-btn-dark" onClick={onSubmit} disabled={saving || !form.name || !form.channel}>{saving ? 'Saving...' : (editId ? tmk.modal.update : tmk.modal.create)}</button>
-            </div>
-          </motion.div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// STATISTICS (computed live from real order data)
-// ═══════════════════════════════════════════════════════════════════════════════
-const Statistics = ({ t }) => {
-  const ts = t.statistics;
-  const [orders, setOrders]   = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const r = await axios.get('/api/fournisseur/orders');
-        setOrders(r.data?.length ? r.data : MOCK_ORDERS);
-      } catch (e) { setOrders(MOCK_ORDERS); }
-      finally { setLoading(false); }
-    })();
-  }, []);
-
-  if (loading) return <Loader />;
-
-  const trend = buildWeeklyRevenue(orders);
-  const maxBar = Math.max(...trend.map(d => d.value), 1);
-  const totalRevenue = orders.reduce((s,o) => s + Number(o.total_amount||0), 0);
-  const avgOrder = orders.length ? totalRevenue / orders.length : 0;
-  const byStatus = orders.reduce((m,o) => { m[o.status] = (m[o.status]||0)+1; return m; }, {});
-
-  return (
-    <div style={{ padding:'24px 28px', display:'flex', flexDirection:'column', gap:20, flex:1, overflowY:'auto' }}>
-      <div style={{ fontSize:22, fontWeight:700, color:'var(--card-title)', letterSpacing:'-0.4px' }}>{ts.title}</div>
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14 }}>
-        {[
-          { label:ts.totalRevenue, value:`${totalRevenue.toLocaleString()} MAD` },
-          { label:ts.avgOrder,     value:`${avgOrder.toFixed(0)} MAD` },
-          { label:ts.totalOrders,  value:orders.length },
-        ].map(({ label, value }) => (
-          <div key={label} style={{ background:'var(--card-bg)', border:'1.5px solid var(--card-border)', borderRadius:14, padding:'18px 20px' }}>
-            <div style={{ fontSize:12, color:'var(--text-muted)', fontWeight:500, marginBottom:8 }}>{label}</div>
-            <div style={{ fontSize:24, fontWeight:700, color:'var(--card-title)' }}>{value}</div>
-          </div>
-        ))}
-      </div>
-      <div style={{ background:'var(--card-bg)', border:'1.5px solid var(--card-border)', borderRadius:14, padding:'20px 24px' }}>
-        <div style={{ fontSize:15, fontWeight:600, color:'var(--card-title)', marginBottom:20 }}>{ts.trend}</div>
-        <div style={{ display:'flex', alignItems:'flex-end', gap:8, height:90 }}>
-          {trend.map((d,i) => (
-            <div key={i} title={`${d.label}: ${d.value.toLocaleString()}`} style={{ flex:1, height:Math.max(Math.round((d.value/maxBar)*80),4), borderRadius:'5px 5px 0 0', background:'var(--accent-color)' }} />
-          ))}
-        </div>
-        <div style={{ display:'flex', marginTop:8 }}>
-          {trend.map((d,i) => <div key={i} style={{ flex:1, textAlign:'center', fontSize:10, color:'var(--text-low)' }}>{d.label}</div>)}
-        </div>
-      </div>
-      <div style={{ background:'var(--card-bg)', border:'1.5px solid var(--card-border)', borderRadius:14, padding:'20px 24px' }}>
-        <div style={{ fontSize:15, fontWeight:600, color:'var(--card-title)', marginBottom:16 }}>{ts.byStatus}</div>
-        <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
-          {Object.entries(byStatus).map(([status, count]) => (
-            <div key={status} style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 14px', border:'1px solid var(--card-border)', borderRadius:10 }}>
-              <StatusBadge status={status} /><span style={{ fontSize:13, fontWeight:600 }}>{count}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// MAIN APP
-// ═══════════════════════════════════════════════════════════════════════════════
-const FournisseurApp = () => {
-  const { user, logout } = useAuthStore();
-  const { theme, toggleTheme, lang, toggleLang } = useAppStore();
-  const [view, setView] = useState('orders');
-  const navigate = useNavigate();
-
-  const t = T[lang] || T.en;
-  const onLogout = () => { logout(); navigate('/login'); };
-
-  const viewTitles = {
-    dashboard:'Dashboard', orders: t.orders.title,
-    payments: t.nav.payments, customers: t.customers.title,
-    reports: t.nav.reports, statistics: t.statistics.title,
-    notifications: t.nav.notifications, help: t.nav.help,
-    settings: t.nav.settings, products: t.products.title,
-    promotions: t.promotions.title, messages: t.messages.title,
-    profile: t.profile.title, marketing: t.marketing.title,
-  };
-
-  const renderContent = () => {
-    switch(view) {
-      case 'dashboard':    return <Dashboard setView={setView} t={t} />;
-      case 'orders':       return <Orders t={t} />;
-      case 'products':     return <Products t={t} />;
-      case 'promotions':   return <Promotions t={t} />;
-      case 'messages':     return <Messages t={t} />;
-      case 'profile':      return <Profile t={t} />;
-      case 'customers':    return <Customers t={t} />;
-      case 'marketing':    return <Marketing t={t} />;
-      case 'statistics':   return <Statistics t={t} />;
-      case 'payments':     return <PlaceholderView icon={CreditCard} title={t.nav.payments} />;
-      case 'reports':      return <PlaceholderView icon={BarChart2} title={t.nav.reports} />;
-      case 'notifications':return <Notifications lang={lang} />;
-      case 'help':         return <PlaceholderView icon={HelpCircle} title={t.nav.help} />;
-      case 'settings':     return <PlaceholderView icon={Settings} title={t.nav.settings} />;
-      default:             return <PlaceholderView icon={LayoutDashboard} title={view} />;
+  const removeMedia = async (field, index) => {
+    setSaving(true);
+    setMessage('');
+    try {
+      const url = index === undefined
+        ? `/api/fournisseur/shop-setup/media/${field}`
+        : `/api/fournisseur/shop-setup/media/${field}/${index}`;
+      const response = await axios.delete(url);
+      updateStoredUser(setUser, response.data?.user);
+      onStatusChange?.();
+      setMessage('Removed. Your shop preview is updated.');
+    } catch (err) {
+      setMessage(err.response?.data?.message || 'Could not remove this file.');
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
-    <div style={{ display:'flex', height:'100vh', padding:16, gap:12, background:'var(--page-bg)', overflow:'hidden', transition: 'background 0.3s' }}>
-      <GlobalStyles theme={theme} />
-      <Sidebar view={view} setView={setView} t={t} onLogout={onLogout} />
-      <div className="pp-main">
-        <TopBar
-          title={viewTitles[view] || view}
-          lang={lang} toggleLang={toggleLang}
-          theme={theme} toggleTheme={toggleTheme}
-          profilePic={user?.profile_pic}
-          onNotifications={() => setView('notifications')}
-        />
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={view}
-            initial={{ opacity:0, y:6 }}
-            animate={{ opacity:1, y:0 }}
-            exit={{ opacity:0, y:-6 }}
-            transition={{ duration:0.15 }}
-            style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}
-          >
-            {renderContent()}
-          </motion.div>
-        </AnimatePresence>
+    <section className="fd-page fd-shop-page">
+      <div className="fd-page-head">
+        <div><h1>Shop page</h1><p>Customize your brand's shop page on GreenLeaf.</p></div>
+        <div className="fd-actions"><button className="fd-dark-btn" disabled={saving} type="button" onClick={save}>{saving ? 'Saving...' : 'Save'}</button><button className="fd-link-btn" type="button" onClick={() => setView('shop-preview')}>View shop</button></div>
       </div>
+      {message && <div className={message.startsWith('Could') ? 'fd-error' : 'fd-success'}>{message}</div>}
+
+      <div className="fd-shop-panel">
+        <div className="fd-shop-section">
+          <h2>Cover image & profile image</h2>
+          <p>These images are featured at the top of your brand's shop page.</p>
+          <div className="fd-cover-wrap">
+            <div className="fd-cover-preview" style={coverPreview ? { backgroundImage: `url(${coverPreview})` } : undefined}>
+              <label><ImageIcon size={16} /><input hidden type="file" accept="image/*" onChange={(event) => pickFile('cover_photo', event)} /></label>
+              {coverPreview && <button className="fd-remove-media" type="button" onClick={() => removeMedia('cover_photo')}><X size={14} /></button>}
+            </div>
+            <label className="fd-profile-bubble" style={avatarPreview ? { backgroundImage: `url(${avatarPreview})` } : undefined}>
+              {!avatarPreview && initials(form.company_name)}
+              <input hidden type="file" accept="image/*" onChange={(event) => pickFile('profile_photo', event)} />
+            </label>
+            {avatarPreview && <button className="fd-remove-avatar" type="button" onClick={() => removeMedia('profile_photo')}><X size={14} /></button>}
+          </div>
+          <small>Note: Images may be edited or replaced to meet our safety guidelines.</small>
+        </div>
+
+        <div className="fd-shop-section fd-feature-row">
+          <div>
+            <h2>Feature image</h2>
+            <p>This image will be used to showcase your brand in the marketplace and in marketing emails.</p>
+            <label className="fd-feature-image">
+              {featurePreview ? <img src={featurePreview} alt="" /> : <ImageIcon size={34} />}
+              <span><ImageIcon size={15} /></span>
+              <input hidden type="file" accept="image/*" onChange={(event) => pickFile('feature_image', event)} />
+              {featurePreview && <button className="fd-remove-media" type="button" onClick={(event) => { event.preventDefault(); removeMedia('feature_image'); }}><X size={14} /></button>}
+            </label>
+            <small>Note: Images may be edited or replaced to meet our safety guidelines.</small>
+          </div>
+          <p>For your feature image to be approved, please choose a photo that shows your product(s) in use and contains no text, watermarks, or logos. We'll review your submission within 5-10 business days.</p>
+        </div>
+
+        <div className="fd-shop-section fd-logo-section">
+          <h2>Logo</h2>
+          <p>Your logo will appear in shop pages and at the top of any marketing email campaigns you send to restaurants.</p>
+          <label className="fd-logo-picker" style={logoPreview ? { backgroundImage: `url(${logoPreview})` } : undefined}>
+            {!logoPreview && <ImageIcon size={16} />}
+            <input hidden type="file" accept="image/*" onChange={(event) => pickFile('logo_image', event)} />
+          </label>
+          {logoPreview && <button className="fd-remove-logo" type="button" onClick={() => removeMedia('logo_image')}><X size={14} /></button>}
+        </div>
+
+        <div className="fd-shop-section">
+          <h2>Your brand story</h2>
+          <textarea value={form.description} placeholder="Tell restaurants what makes your brand special." onChange={(event) => update('description', event.target.value)} />
+        </div>
+
+        <div className="fd-shop-section">
+          <h2>Additional images</h2>
+          <p>Share photos of your process, studio, or other lifestyle imagery. <button className="fd-inline-link" type="button">See Guidelines</button></p>
+          <div className="fd-radio-row">
+            <label><input type="radio" name="extraImageFormat" defaultChecked /> 1 Rectangle Image</label>
+            <label><input type="radio" name="extraImageFormat" /> 2 Square Images</label>
+          </div>
+          <label className="fd-extra-upload" style={additionalPreview ? { backgroundImage: `url(${additionalPreview})` } : undefined}>
+            {!additionalPreview && <><Upload size={24} /><span>Minimum 790x390 pixels</span></>}
+            <input hidden type="file" accept="image/*" multiple onChange={(event) => pickFile('additional_images', event)} />
+            {additionalPreview && <button className="fd-remove-media" type="button" onClick={(event) => { event.preventDefault(); removeMedia('additional_images', 0); }}><X size={14} /></button>}
+          </label>
+        </div>
+
+        <div className="fd-shop-section">
+          <h2>About your brand</h2>
+          <div className="fd-form-grid">
+            <Field label="Company name"><input value={form.company_name} onChange={(event) => update('company_name', event.target.value)} /></Field>
+            <Field label="Year established"><input value={form.year_established} onChange={(event) => update('year_established', event.target.value)} /></Field>
+            <Field label="Products made in"><select value={form.products_made_in} onChange={(event) => update('products_made_in', event.target.value)}><option>Morocco</option><option>Bosnia and Herzegovina</option><option>France</option></select></Field>
+            <Field label="Headquartered in"><select value={form.headquartered_in} onChange={(event) => update('headquartered_in', event.target.value)}><option>Morocco</option><option>Bosnia and Herzegovina</option><option>France</option></select></Field>
+            <Field label="City"><input value={city} disabled /></Field>
+            <Field label="Instagram link"><input placeholder="instagram.com/" value={form.instagram_handle} onChange={(event) => update('instagram_handle', event.target.value)} /></Field>
+          </div>
+        </div>
+
+        <div className="fd-shop-section">
+          <h2>Brand practice tags</h2>
+          <p>Choose any tags that accurately reflect your brand's actions. These tags are completely optional and will be displayed on your shop page.</p>
+          <div className="fd-tag-row">
+            {['Organic', 'Local', 'Sustainable packaging', 'Family owned'].map((tag) => <button className={form.brand_values.includes(tag) ? 'selected' : ''} key={tag} type="button" onClick={() => toggleTag(tag)}>{tag}</button>)}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ShopPreviewView({ user, products, setView }) {
+  const profile = user?.fournisseur_profile || {};
+  const company = profile.company_name || user?.name || 'GreenLeaf Shop';
+  const city = user?.city || 'Casablanca';
+  const country = profile.headquartered_in || profile.products_made_in || 'Morocco';
+  const minimum = profile.first_order_minimum || 0;
+  const cover = profileAsset(profile.cover_photo);
+  const avatar = profileAsset(profile.profile_photo);
+  const logo = profileAsset(profile.logo_image);
+
+  return (
+    <section className="fd-public-shop">
+      <div className="fd-preview-bar">
+        Previewing your shop. When you're ready, you can activate this page from your portal.
+        <button type="button" onClick={() => setView('shop')}>Go to portal</button>
+      </div>
+
+      <header className="fd-public-brand">{logo ? <img src={logo} alt={company} /> : <Logo size={26} />}</header>
+      <div className={cx('fd-public-cover', cover && 'has-image')} style={cover ? { backgroundImage: `url(${cover})` } : undefined}>
+        <button type="button"><ImageIcon size={16} /></button>
+      </div>
+
+      <main className="fd-public-main">
+        <div className="fd-public-profile">
+          <div className="fd-public-avatar" style={avatar ? { backgroundImage: `url(${avatar})` } : undefined}>{!avatar && initials(company)}</div>
+          <div>
+            <h1>{company}</h1>
+            <p>{city}, {country} · {minimum} min</p>
+            <button type="button">Get it by Jul 16 · Shipping details</button>
+          </div>
+        </div>
+
+        <label className="fd-public-search">
+          <Search size={14} />
+          <input placeholder={`Search ${company}`} />
+        </label>
+
+        <div className="fd-public-products-head">
+          <h2>All products</h2>
+          <button type="button"><SlidersHorizontal size={14} /> {products.length}</button>
+        </div>
+
+        {products.length ? (
+          <div className="fd-public-grid">
+            {products.map((product) => (
+              <article key={product.id}>
+                <div>{productImage(product) ? <img src={productImage(product)} alt="" /> : <Package size={22} />}</div>
+                <strong>{product.name}</strong>
+                <span>{Number(product.price || 0).toFixed(2)} MAD · {product.unit || 'unit'}</span>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="fd-public-empty">
+            <Search size={22} />
+            <strong>No products found</strong>
+            <span>Don't see what you're looking for?</span>
+            <button type="button">Request unlisted product</button>
+          </div>
+        )}
+      </main>
+
+      <section className="fd-public-cta">
+        <h2>The best selection of local suppliers for your restaurant, all in one place</h2>
+        <div><button type="button">Sign up to buy</button><button type="button">Sign up to sell</button></div>
+      </section>
+
+      <footer className="fd-public-footer">
+        <div>
+          <h3>Company</h3>
+          {['About us', 'Newsroom', 'Careers', 'Affiliates', 'Blog', 'Hub'].map((item) => <button key={item} type="button">{item}</button>)}
+        </div>
+        <div>
+          <h3>Explore</h3>
+          {['Help center', 'GreenLeaf Markets', 'Sign up to sell', 'POS integration', 'How GreenLeaf works', 'Large retailers', 'Refer a brand'].map((item) => <button key={item} type="button">{item}</button>)}
+        </div>
+        <small>©2026 GreenLeaf Wholesale, Inc.</small>
+      </footer>
+    </section>
+  );
+}
+
+function ShopSettingsView({ user, setView, setUser, onStatusChange }) {
+  const profile = user?.fournisseur_profile || {};
+  const settings = profile.shop_settings || {};
+  const [form, setForm] = useState({
+    company_name: profile.company_name || '',
+    category: profile.category || 'legumes',
+    fulfillment_email: profile.fulfillment_email || user?.email || '',
+    marketing_email: profile.marketing_email || `sales+${(profile.company_name || 'supplier').toLowerCase().replace(/\s+/g, '')}@greenleaf.ma`,
+    first_order_minimum: profile.first_order_minimum || '',
+    reorder_minimum: profile.reorder_minimum || '',
+    lead_time_days: profile.lead_time_days || '',
+  });
+  const [leadAuto, setLeadAuto] = useState(Boolean(settings.lead_auto));
+  const [scheduled, setScheduled] = useState(settings.scheduled_orders ?? true);
+  const [onlineOnly, setOnlineOnly] = useState(settings.online_only ?? true);
+  const [social, setSocial] = useState(settings.social_sellers ?? true);
+  const [businessUse, setBusinessUse] = useState(settings.business_use_buyers ?? true);
+  const [preorders, setPreorders] = useState(settings.qualified_preorders ?? true);
+  const [defaultMinimums, setDefaultMinimums] = useState(Boolean(settings.default_minimums));
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+  const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
+
+  const save = async () => {
+    setSaving(true);
+    setMessage('');
+    try {
+      const data = new FormData();
+      Object.entries(form).forEach(([key, value]) => data.append(key, value ?? ''));
+      ['Casablanca'].forEach((zone, index) => data.append(`delivery_zones[${index}]`, zone));
+      Object.entries({
+        lead_auto: leadAuto,
+        scheduled_orders: scheduled,
+        online_only: onlineOnly,
+        social_sellers: social,
+        business_use_buyers: businessUse,
+        qualified_preorders: preorders,
+        default_minimums: defaultMinimums,
+      }).forEach(([key, value]) => data.append(`shop_settings[${key}]`, value ? '1' : '0'));
+      const response = await axios.put('/api/fournisseur/shop-setup/page', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+      updateStoredUser(setUser, response.data?.user);
+      onStatusChange?.();
+      setMessage('Saved. Your settings are updated.');
+    } catch (err) {
+      const errors = err.response?.data?.errors;
+      setMessage(errors ? Object.values(errors)[0][0] : 'Could not save settings.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <section className="fd-page fd-settings">
+      <div className="fd-page-head">
+        <div><h1>Shop settings</h1><p>Edit your shop information, order options, and more.</p></div>
+        <div className="fd-actions"><button className="fd-dark-btn" disabled={saving} type="button" onClick={save}>{saving ? 'Saving...' : 'Save'}</button><button className="fd-link-btn" type="button" onClick={() => setView('shop-preview')}>View shop</button></div>
+      </div>
+      {message && <div className={message.startsWith('Could') ? 'fd-error' : 'fd-success'}>{message}</div>}
+
+      <div className="fd-section">
+        <h2>Shop information</h2>
+        <div className="fd-form-grid">
+          <Field label="Company name"><input value={form.company_name} onChange={(event) => update('company_name', event.target.value)} /></Field>
+          <Field label="Fulfillment email"><input value={form.fulfillment_email} onChange={(event) => update('fulfillment_email', event.target.value)} /></Field>
+          <Field label="Primary category"><select value={form.category} onChange={(event) => update('category', event.target.value)}><option value="legumes">Fresh produce</option><option value="viandes">Meat & fish</option><option value="boissons">Drinks</option><option value="epices">Spices</option><option value="produits_secs">Dry goods</option><option value="other">Food products</option></select></Field>
+        </div>
+      </div>
+
+      <div className="fd-section">
+        <h2>Connected accounts</h2>
+        <p>Third-party accounts you have authorized GreenLeaf to access on your behalf.</p>
+        <div className="fd-connected">
+          <Field label="Marketing email address"><input value={form.marketing_email} onChange={(event) => update('marketing_email', event.target.value)} /></Field>
+          <button className="fd-dark-btn" type="button" onClick={save}>Update email</button>
+        </div>
+      </div>
+
+      <div className="fd-section">
+        <h2>Shop lead time</h2>
+        <p>Tell customers how long it takes to prepare an order before shipping.</p>
+        <label className="fd-radio"><input type="radio" checked={leadAuto} onChange={() => setLeadAuto(true)} /> Automatically adjusted</label>
+        <label className="fd-radio"><input type="radio" checked={!leadAuto} onChange={() => setLeadAuto(false)} /> Manually set</label>
+      </div>
+
+      <div className="fd-section fd-split-lines">
+        <h2>Fulfillment options</h2>
+        <div><strong>Scheduled orders</strong><p>Allow restaurants to schedule orders up to 6 months in advance.</p><Toggle checked={scheduled} onChange={setScheduled} label /></div>
+      </div>
+
+      <div className="fd-section fd-split-lines">
+        <h2>Restaurant options</h2>
+        <div><strong>Sell to online-only restaurants</strong><Toggle checked={onlineOnly} onChange={setOnlineOnly} label /></div>
+        <div><strong>Sell to social sellers</strong><p>These are sellers who exclusively sell on social media platforms.</p><Toggle checked={social} onChange={setSocial} label /></div>
+        <div><strong>Sell to business-use buyers</strong><p>Hotels, restaurants, and corporate buyers purchasing for their own use.</p><Toggle checked={businessUse} onChange={setBusinessUse} label /></div>
+        <div><strong>Sell preorders to qualified restaurants only</strong><Toggle checked={preorders} onChange={setPreorders} label /></div>
+      </div>
+
+      <div className="fd-section">
+        <h2>Order minimums</h2>
+        <p>Set your first order and reorder minimums.</p>
+        <div className="fd-form-grid">
+          <Field label="First order minimum"><input value={form.first_order_minimum} placeholder="MAD -" onChange={(event) => update('first_order_minimum', event.target.value)} /></Field>
+          <Field label="Reorder minimum"><input value={form.reorder_minimum} placeholder="MAD -" onChange={(event) => update('reorder_minimum', event.target.value)} /></Field>
+          <Field label="Lead time days"><input value={form.lead_time_days} placeholder="2" onChange={(event) => update('lead_time_days', event.target.value)} /></Field>
+        </div>
+        <div className="fd-line-toggle"><span>Apply default order minimums to all regions</span><Toggle checked={defaultMinimums} onChange={setDefaultMinimums} label /></div>
+      </div>
+
+      <div className="fd-section">
+        <h2>Custom catalog translations</h2>
+        <p>Add languages you would like to provide manual translations for.</p>
+        <Field label="Add language"><select><option>English (default)</option><option>French</option><option>Arabic</option></select></Field>
+      </div>
+
+      <div className="fd-section">
+        <h2>Pause mode</h2>
+        <p>Pause mode lets you temporarily put your shop on hold. Your products are still visible, but you will not receive new orders.</p>
+        <div className="fd-form-grid">
+          <Field label="Start Date"><input type="date" /></Field>
+          <Field label="End Date"><input type="date" /></Field>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ShippingToolsView({ user, setUser, onStatusChange }) {
+  const profile = user?.fournisseur_profile || {};
+  const settings = profile.shop_settings || {};
+  const [handling, setHandling] = useState(Boolean(settings.handling_fee_enabled));
+  const [freeShipping, setFreeShipping] = useState(Boolean(settings.free_shipping_enabled));
+  const [flatRate, setFlatRate] = useState(settings.flat_rate || '24');
+  const [origin, setOrigin] = useState(settings.shipping_origin || user?.city || 'Casablanca');
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+  const save = async () => {
+    setSaving(true);
+    setMessage('');
+    try {
+      await saveSupplierProfile({
+        shop_settings: { ...settings, handling_fee_enabled: handling, free_shipping_enabled: freeShipping, flat_rate: flatRate, shipping_origin: origin },
+      }, setUser);
+      onStatusChange?.();
+      setMessage('Saved. Shipping tools are updated.');
+    } catch (err) {
+      setMessage(err.response?.data?.message || 'Could not save shipping settings.');
+    } finally {
+      setSaving(false);
+    }
+  };
+  return (
+    <section className="fd-page fd-shipping">
+      <div className="fd-shipping-hero">
+        <div>
+          <p>Shipping tools</p>
+          <h1>Offer free and predictable shipping to restaurants across Morocco</h1>
+          <span>Simplify checkout with predictable delivery prices and clear shipping zones.</span>
+          <div><button className="fd-dark-btn" type="button" onClick={() => setFreeShipping(true)}>Set up free shipping</button><button className="fd-light-btn" type="button" onClick={save}>{saving ? 'Saving...' : 'Save shipping'}</button></div>
+        </div>
+        <div className="fd-checkout-card"><strong>Checkout</strong><span /><span /><b>Shipping MAD 24.00</b></div>
+      </div>
+      {message && <div className={message.startsWith('Could') ? 'fd-error' : 'fd-success'}>{message}</div>}
+
+      <div className="fd-tabs under"><button className="active">Your shipping zones</button><button>Preferences</button></div>
+      <div className="fd-section">
+        <h2>Your shipping zones</h2>
+        <p>Customize your shipping rates for the regions you sell to.</p>
+        <button className="fd-zone-create" type="button"><Plus size={18} /> Create a shipping zone</button>
+      </div>
+      <div className="fd-faq">
+        <h2>You may be wondering...</h2>
+        {[
+          "How does shipping work if I don't set up any shipping zones?",
+          'What if I have a free shipping minimum and a free shipping promotion?',
+          'How do free shipping minimums work with GreenLeaf shipping?',
+          'What if my actual shipping costs are different from my flat rates?',
+        ].map((question) => <button key={question} type="button">{question}<ChevronDown size={17} /></button>)}
+      </div>
+      <div className="fd-section">
+        <h2>Shipping origins</h2>
+        <p>Add the locations that you ship products from.</p>
+        <Field label="Shipping origin"><input value={origin} onChange={(event) => setOrigin(event.target.value)} /></Field>
+        <h2>Packing and handling fee</h2>
+        <Field label="Flat rate shipping (MAD)"><input value={flatRate} onChange={(event) => setFlatRate(event.target.value)} /></Field>
+        <div className="fd-line-toggle"><span>Charge a handling fee</span><Toggle checked={handling} onChange={setHandling} label /></div>
+        <div className="fd-line-toggle"><span>Offer free shipping</span><Toggle checked={freeShipping} onChange={setFreeShipping} label /></div>
+        <div className="fd-note">Adding a handling fee increases shipping cost and can impact free shipping coverage.</div>
+      </div>
+    </section>
+  );
+}
+
+function AccountSettingsView({ user, setUser }) {
+  const [tab, setTab] = useState('payout');
+  const profile = user?.fournisseur_profile || {};
+  const saved = profile.shop_settings || {};
+  const [digest, setDigest] = useState(true);
+  const [skipQuiet, setSkipQuiet] = useState(true);
+  const [exclusiveHome, setExclusiveHome] = useState(true);
+  const [exclusiveDigest, setExclusiveDigest] = useState(true);
+  const [qrCode, setQrCode] = useState(true);
+  const [images, setImages] = useState(false);
+  const [payout, setPayout] = useState(saved.payout || {});
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+  const save = async () => {
+    setSaving(true);
+    setMessage('');
+    try {
+      await saveSupplierProfile({
+        shop_settings: { ...saved, payout, digest, skip_quiet: skipQuiet, exclusive_home: exclusiveHome, exclusive_digest: exclusiveDigest, qr_code: qrCode, packing_images: images },
+      }, setUser);
+      setMessage('Saved. Account settings are updated.');
+    } catch (err) {
+      setMessage(err.response?.data?.message || 'Could not save account settings.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <section className="fd-page fd-account">
+      <div className="fd-page-head">
+        <div><h1>Account settings</h1><p>Your account information, payout details, and settings.</p></div>
+        <button className="fd-dark-btn" disabled={saving} type="button" onClick={save}>{saving ? 'Saving...' : 'Save'}</button>
+      </div>
+      {message && <div className={message.startsWith('Could') ? 'fd-error' : 'fd-success'}>{message}</div>}
+      <div className="fd-tabs under">
+        {['payout', 'notifications', 'orders'].map((item) => (
+          <button className={tab === item ? 'active' : ''} key={item} type="button" onClick={() => setTab(item)}>{item[0].toUpperCase() + item.slice(1)}</button>
+        ))}
+      </div>
+
+      {tab === 'payout' && (
+        <>
+          <div className="fd-section">
+            <h2>Payout information</h2>
+            <p>Add your account information below for payout services.</p>
+            <div className="fd-form-grid">
+              <Field label="Account holder name"><input value={payout.name || user?.name || ''} onChange={(event) => setPayout((current) => ({ ...current, name: event.target.value }))} /></Field>
+              <Field label="Routing number"><input value={payout.routing || ''} onChange={(event) => setPayout((current) => ({ ...current, routing: event.target.value }))} /></Field>
+              <Field label="Account number"><input placeholder="Account number" value={payout.account || ''} onChange={(event) => setPayout((current) => ({ ...current, account: event.target.value }))} /></Field>
+              <Field label="Confirm account number"><input value={payout.confirm || ''} onChange={(event) => setPayout((current) => ({ ...current, confirm: event.target.value }))} /></Field>
+            </div>
+          </div>
+          <div className="fd-section">
+            <h2>Payout options</h2>
+            <p>GreenLeaf will initiate payouts at the time you select.</p>
+            <div className="fd-two-cols">
+              <label className="fd-radio"><input type="radio" name="payout" /> Next-day payout <span>3.0%</span></label>
+              <label className="fd-radio"><input type="radio" name="payout" /> 30-day payout <span>Free</span></label>
+            </div>
+          </div>
+        </>
+      )}
+
+      {tab === 'notifications' && (
+        <>
+          <div className="fd-section">
+            <h2>Order reminders</h2>
+            <p>Choose how you would like to receive reminder emails about open orders.</p>
+            <label className="fd-radio"><input type="radio" checked={!digest} onChange={() => setDigest(false)} /> Individual reminders</label>
+            <label className="fd-radio"><input type="radio" checked={digest} onChange={() => setDigest(true)} /> Daily digest</label>
+            {digest && (
+              <div className="fd-digest">
+                <p>When would you like to receive your daily digest?</p>
+                <select><option>Monday-Friday</option></select>
+                <select><option>8:00 AM</option></select>
+                <select><option>Europe/Paris (GMT +02:00)</option></select>
+                <label><input type="checkbox" checked={skipQuiet} onChange={(event) => setSkipQuiet(event.target.checked)} /> Skip emails on days with no order activity</label>
+              </div>
+            )}
+          </div>
+          <div className="fd-section">
+            <h2>Sales rep email notifications</h2>
+            <label className="fd-radio"><input type="radio" name="sales" /> Always</label>
+            <label className="fd-radio"><input type="radio" name="sales" defaultChecked /> 0% commission orders only</label>
+            <label className="fd-radio"><input type="radio" name="sales" /> Never</label>
+          </div>
+          <div className="fd-section fd-split-lines">
+            <h2>Exclusivity requests</h2>
+            <div><strong>Updates on GreenLeaf Home</strong><Toggle checked={exclusiveHome} onChange={setExclusiveHome} label /></div>
+            <div><strong>Weekly digest</strong><Toggle checked={exclusiveDigest} onChange={setExclusiveDigest} label /></div>
+          </div>
+        </>
+      )}
+
+      {tab === 'orders' && (
+        <>
+          <div className="fd-section">
+            <h2>Product sorting</h2>
+            <p>Specify how the products in an order should be displayed.</p>
+            {['Alphabetically by product name', 'Alphabetically by SKU', 'By category and then alphabetically by SKU', 'By category and then alphabetically by product name'].map((item, index) => (
+              <label className="fd-radio" key={item}><input type="radio" name="sorting" defaultChecked={index === 0} /> {item}</label>
+            ))}
+          </div>
+          <div className="fd-section">
+            <h2>Order acceptance</h2>
+            <label className="fd-radio"><input type="radio" name="acceptance" defaultChecked /> Manually accept</label>
+            <label className="fd-radio"><input type="radio" name="acceptance" /> Automatically accept reorders only</label>
+            <label className="fd-radio"><input type="radio" name="acceptance" /> Automatically accept all orders</label>
+          </div>
+          <div className="fd-section fd-split-lines">
+            <h2>Packing slips</h2>
+            <div><strong>Include product images</strong><Toggle checked={images} onChange={setImages} label /></div>
+            <div><strong>Include a QR code for restaurants to leave a review</strong><Toggle checked={qrCode} onChange={setQrCode} label /></div>
+          </div>
+        </>
+      )}
+
+    </section>
+  );
+}
+
+function TeamView({ user, setUser }) {
+  const [tab, setTab] = useState('members');
+  const profile = user?.fournisseur_profile || {};
+  const displayName = user?.name || profile.company_name || 'Primary admin';
+  const displayEmail = user?.email || profile.fulfillment_email || 'admin@greenleaf.local';
+  const initials = displayName.slice(0, 2).toUpperCase();
+  const [members, setMembers] = useState(Array.isArray(profile.team_members) ? profile.team_members : []);
+  const [draft, setDraft] = useState({ name: '', email: '', role: 'Member', status: 'Invited' });
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+  const questions = [
+    'Which team members should I add to GreenLeaf?',
+    'Can I add my sales representatives?',
+    'What are the different permission options?',
+    "Can I edit or remove a team member's account?",
+    'Who will receive emails?',
+  ];
+  const allMembers = [
+    { name: displayName, email: displayEmail, role: 'Owner', status: 'Active', primary: true },
+    ...members,
+  ];
+  const addMember = () => {
+    if (!draft.name && !draft.email) return;
+    setMembers((current) => [...current, draft]);
+    setDraft({ name: '', email: '', role: 'Member', status: 'Invited' });
+  };
+  const save = async () => {
+    setSaving(true);
+    setMessage('');
+    try {
+      await saveSupplierProfile({ team_members: members }, setUser);
+      setMessage('Saved. Team members are updated.');
+    } catch (err) {
+      setMessage(err.response?.data?.message || 'Could not save team members.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <section className="fd-page fd-team">
+      <div className="fd-page-head compact">
+        <div>
+          <h1>Team</h1>
+          <button className="fd-dark-btn" type="button" onClick={addMember}>Add to team <ChevronDown size={14} /></button>
+        </div>
+      </div>
+      {message && <div className={message.startsWith('Could') ? 'fd-error' : 'fd-success'}>{message}</div>}
+      <div className="fd-section fd-team-add">
+        <Field label="Name"><input value={draft.name} onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))} /></Field>
+        <Field label="Email"><input value={draft.email} onChange={(event) => setDraft((current) => ({ ...current, email: event.target.value }))} /></Field>
+        <Field label="Role"><select value={draft.role} onChange={(event) => setDraft((current) => ({ ...current, role: event.target.value }))}><option>Member</option><option>Sales representative</option><option>Admin</option></select></Field>
+        <button className="fd-light-btn" type="button" onClick={save} disabled={saving}>{saving ? 'Saving...' : 'Save team'}</button>
+      </div>
+
+      <div className="fd-tabs under">
+        <button className={tab === 'members' ? 'active' : ''} type="button" onClick={() => setTab('members')}>Members</button>
+        <button className={tab === 'sales' ? 'active' : ''} type="button" onClick={() => setTab('sales')}>Sales Representatives</button>
+      </div>
+
+      {tab === 'members' ? (
+        <div className="fd-team-table">
+          <div className="fd-team-head">
+            <span>Name</span>
+            <span>Email</span>
+            <span>Role</span>
+            <span>Status</span>
+          </div>
+          {allMembers.map((member, index) => (
+            <div className="fd-team-row" key={`${member.email}-${index}`}>
+              <div className="fd-team-person">
+                <div className="fd-team-avatar">{(member.name || member.email || 'TM').slice(0, 2).toUpperCase()}</div>
+                <strong>{member.name || 'Team member'}</strong>
+                {member.primary && <em>Primary admin</em>}
+              </div>
+              <span>{member.email}</span>
+              <span>{member.role}</span>
+              <b>{member.status}</b>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="fd-team-table">
+          <div className="fd-team-head sales">
+            <span>Name</span>
+            <span>Email</span>
+            <span>GreenLeaf Direct link</span>
+            <span>Customers</span>
+          </div>
+          <div className="fd-no-data">No data available</div>
+        </div>
+      )}
+
+      <div className="fd-faq fd-team-faq">
+        <h2>You may be wondering</h2>
+        {questions.map((question) => (
+          <button key={question} type="button">{question}<ChevronDown size={17} /></button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function OrdersView({ orders, loading, refresh }) {
+  const [acting, setActing] = useState(null);
+  const [error, setError] = useState('');
+
+  const updateStatus = async (order, status) => {
+    setActing(order.id);
+    setError('');
+    try {
+      await axios.patch(`/api/fournisseur/orders/${order.id}/status`, { status });
+      await refresh();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not update this order.');
+    } finally {
+      setActing(null);
+    }
+  };
+
+  return (
+    <section className="fd-page">
+      <div className="fd-page-head"><div><h1>Orders</h1><p>Review, accept, and fulfill restaurant orders.</p></div></div>
+      {error && <div className="fd-error">{error}</div>}
+      <div className="fd-board">
+        <div className="fd-toolbar"><button>Any status</button><button>Any price</button><button>Sort by Date</button></div>
+        {loading ? <div className="fd-empty">Loading orders...</div> : orders.length === 0 ? <div className="fd-empty"><h3>No orders yet</h3><p>New restaurant orders will appear here.</p></div> : (
+          <div className="fd-product-list">
+            {orders.map((order) => (
+              <article key={order.id}>
+                <div className="fd-product-thumb"><ShoppingBag size={18} /></div>
+                <div><strong>Order #{order.id}</strong><span>{order.restaurant?.name || order.restaurant_name || 'Restaurant'}</span></div>
+                <b>{Number(order.total_price || 0).toFixed(2)} MAD</b>
+                <span className="fd-pill">{order.status}</span>
+                <div className="fd-order-actions">
+                  {order.status === 'pending' && (
+                    <>
+                      <button className="fd-light-btn" disabled={acting === order.id} type="button" onClick={() => updateStatus(order, 'confirmed')}>Accept</button>
+                      <button className="fd-light-btn danger" disabled={acting === order.id} type="button" onClick={() => updateStatus(order, 'rejected')}>Reject</button>
+                    </>
+                  )}
+                  {order.status === 'confirmed' && (
+                    <button className="fd-light-btn" disabled={acting === order.id} type="button" onClick={() => updateStatus(order, 'delivered')}>Delivered</button>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function PlaceholderView({ title, icon: Icon }) {
+  return (
+    <section className="fd-page">
+      <div className="fd-empty tall">
+        <Icon size={34} strokeWidth={1.4} />
+        <h3>{title}</h3>
+        <p>This section is ready for the next GreenLeaf workflow.</p>
+      </div>
+    </section>
+  );
+}
+
+function FournisseurApp() {
+  const { lang } = useAppStore();
+  const { user, logout, setUser } = useAuthStore();
+  const navigate = useNavigate();
+  const [view, setView] = useState('home');
+  const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [onboardingStatus, setOnboardingStatus] = useState(null);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+
+  const loadProducts = async () => {
+    setLoadingProducts(true);
+    try {
+      const response = await axios.get('/api/fournisseur/products');
+      setProducts(normalizeProducts(response.data));
+    } catch {
+      setProducts([]);
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
+  const loadOrders = async () => {
+    setLoadingOrders(true);
+    try {
+      const response = await axios.get('/api/fournisseur/orders');
+      setOrders(response.data?.data || response.data || []);
+    } catch {
+      setOrders([]);
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
+  const loadOnboardingStatus = async () => {
+    try {
+      const response = await axios.get('/api/fournisseur/shop-setup/status');
+      setOnboardingStatus(response.data?.status || null);
+      updateStoredUser(setUser, response.data?.user);
+    } catch {
+      setOnboardingStatus(null);
+    }
+  };
+
+  useEffect(() => {
+    loadProducts();
+    loadOrders();
+    loadOnboardingStatus();
+  }, []);
+
+  const onLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const content = useMemo(() => {
+    if (view === 'home') return <HomeView setView={setView} products={products} user={user} onboardingStatus={onboardingStatus} />;
+    if (view === 'products') return <ProductsView products={products} loading={loadingProducts} setView={setView} refresh={async () => { await loadProducts(); await loadOnboardingStatus(); }} user={user} setUser={setUser} onboardingStatus={onboardingStatus} />;
+    if (view === 'new-product') return <NewProductView setView={setView} onSaved={loadProducts} />;
+    if (view === 'shop-preview') return <ShopPreviewView user={user} products={products} setView={setView} />;
+    if (view === 'shop') return <ShopPageView user={user} setView={setView} setUser={setUser} onStatusChange={loadOnboardingStatus} />;
+    if (view === 'shop-settings') return <ShopSettingsView user={user} setView={setView} setUser={setUser} onStatusChange={loadOnboardingStatus} />;
+    if (view === 'shipping') return <ShippingToolsView user={user} setUser={setUser} onStatusChange={loadOnboardingStatus} />;
+    if (view === 'account') return <AccountSettingsView user={user} setUser={setUser} />;
+    if (view === 'team') return <TeamView user={user} setUser={setUser} />;
+    if (view === 'orders') return <OrdersView orders={orders} loading={loadingOrders} refresh={loadOrders} />;
+    if (view === 'messages') return <PlaceholderView title="Messages" icon={MessageSquare} />;
+    if (view === 'customers') return <PlaceholderView title="Customers" icon={Users} />;
+    if (view === 'marketing') return <PlaceholderView title="Marketing" icon={Megaphone} />;
+    if (view === 'analytics') return <PlaceholderView title="Analytics" icon={BarChart3} />;
+    return <HomeView setView={setView} products={products} user={user} onboardingStatus={onboardingStatus} />;
+  }, [view, products, orders, loadingProducts, loadingOrders, user, setUser, onboardingStatus]);
+
+  if (view === 'shop-preview') {
+    return (
+      <div className="fd-preview-shell">
+        {content}
+        <style>{styles}</style>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fd-shell">
+      <Sidebar view={view} setView={setView} user={user} onLogout={onLogout} lang={lang} />
+      <main className="fd-main">{content}</main>
+      <style>{styles}</style>
     </div>
   );
-};
+}
+
+const styles = `
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital,wght@0,400;1,400&family=Inter:wght@400;500;600;700&display=swap');
+* { box-sizing: border-box; }
+.fd-shell { min-height: 100vh; display: grid; grid-template-columns: 210px 1fr; background: var(--page-bg, #f8f7f3); color: var(--page-text, #20211f); font-family: Inter, system-ui, sans-serif; }
+.fd-sidebar { height: 100vh; position: sticky; top: 0; display: flex; flex-direction: column; background: var(--sidebar-bg, var(--card-bg)); border-right: 1px solid var(--sidebar-border, #dfded8); overflow-y: auto; }
+.fd-sidebar-head { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 14px 0 18px; }
+.fd-brand { min-width: 0; display: flex; align-items: center; }
+.fd-brand a { max-width: 132px; overflow: hidden; }
+.fd-brand a > div:last-child { min-width: 0; }
+.fd-bell-btn { width: 34px; height: 34px; border-radius: 999px; border: 1px solid var(--page-border); background: var(--card-bg); color: var(--page-text); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.fd-bell-btn:hover { background: var(--card-hover-bg); }
+.fd-avatar { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #3a713d, #e8be72); background-size: cover; background-position: center; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+.fd-nav { padding: 0 8px; display: flex; flex-direction: column; gap: 2px; }
+.fd-nav button, .fd-subnav button, .fd-side-bottom button, .fd-side-bottom a { min-height: 31px; display: flex; align-items: center; gap: 10px; border: 0; background: transparent; color: #3f423d; text-decoration: none; font: 12px Inter, sans-serif; text-align: left; border-radius: 4px; padding: 0 10px; cursor: pointer; }
+.fd-nav button span { flex: 1; }
+.fd-parent-row svg:last-child { transform: rotate(-90deg); transition: transform .16s ease; }
+.fd-parent-row.open svg:last-child { transform: rotate(0deg); }
+.fd-nav button.active, .fd-nav button:hover, .fd-subnav button.active, .fd-subnav button:hover, .fd-side-bottom button:hover, .fd-side-bottom a:hover { background: #efefeb; }
+.fd-subnav { display: flex; flex-direction: column; gap: 2px; padding-left: 16px; }
+.fd-subnav button { color: #555852; }
+.fd-side-bottom { margin-top: auto; border-top: 1px solid #ecebe6; padding: 10px 8px 14px; display: flex; flex-direction: column; gap: 2px; }
+.fd-main { min-width: 0; height: 100vh; overflow-y: auto; }
+.fd-page { max-width: 980px; padding: 34px 34px 80px; }
+.fd-page h1 { margin: 0; font-size: 30px; line-height: 1.12; letter-spacing: -.03em; }
+.fd-page h2 { margin: 0 0 7px; font-size: 20px; letter-spacing: -.02em; }
+.fd-page h3 { margin: 0; font-size: 17px; }
+.fd-page p, .fd-sub { color: #5f625b; font-size: 13px; line-height: 1.5; }
+.fd-kicker { margin: 0 0 4px; color: #6c6f68; }
+.fd-card, .fd-board, .fd-section { background: var(--card-bg); border: 1px solid var(--page-border); border-radius: 2px; }
+.fd-card { padding: 28px; }
+.fd-upload-card { margin-top: 28px; min-height: 178px; display: flex; justify-content: space-between; align-items: center; }
+.fd-upload-card h3 span { font-size: 11px; padding: 3px 7px; background: #edf3e5; color: #516c35; border-radius: 2px; margin-left: 8px; }
+.fd-home-grid { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.fd-home-grid .fd-card { min-height: 220px; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; }
+.fd-mini-status { margin-top: 20px; padding: 18px 22px; }
+.fd-mini-status div { height: 6px; background: #ecebe6; margin-top: 10px; }
+.fd-mini-status span { display: block; height: 100%; background: #242424; }
+.fd-status-list { list-style: none; padding: 14px 0 0; margin: 0; display: grid; gap: 7px; }
+.fd-status-list li { display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 12px; }
+.fd-status-list li.done { color: var(--page-text); }
+.fd-status-list li span { width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--card-hover-bg); color: inherit; font-size: 11px; }
+.fd-status-note { margin: 14px 0 0; color: var(--text-muted); font-size: 12px; }
+.fd-dark-btn, .fd-light-btn, .fd-muted-btn, .fd-link-btn { min-height: 40px; padding: 0 20px; border-radius: 3px; font-weight: 600; font-size: 13px; cursor: pointer; display: inline-flex; gap: 8px; align-items: center; justify-content: center; }
+.fd-dark-btn { background: var(--gl-green, #2D9B4F); color: white; border: 1px solid var(--gl-green, #2D9B4F); }
+.fd-light-btn { background: var(--card-bg); color: var(--page-text); border: 1px solid var(--page-border); }
+.fd-light-btn.danger { color: #9e281f; border-color: #edc1bb; background: #fff8f7; }
+.fd-muted-btn { background: #efefeb; color: #989a94; border: 1px solid #efefeb; }
+.fd-link-btn { background: transparent; border: 0; text-decoration: underline; padding: 0 4px; min-height: 30px; color: #30312e; }
+.fd-page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 28px; }
+.fd-page-head.compact { margin-bottom: 18px; }
+.fd-page-head.compact .fd-dark-btn { margin-top: 12px; }
+.fd-page-head.sticky { position: sticky; top: 0; z-index: 5; background: #f8f7f3; padding: 0 0 18px; border-bottom: 1px solid #e3e2dd; }
+.fd-actions { display: flex; gap: 12px; align-items: center; }
+.fd-actions.left { justify-content: flex-start; margin-top: 12px; }
+.fd-board { overflow: hidden; }
+.fd-tabs { height: 54px; display: flex; align-items: center; gap: 26px; padding: 0 28px; border-bottom: 1px solid #e4e3dd; }
+.fd-tabs button { border: 0; background: transparent; color: #5f625b; font-size: 13px; cursor: pointer; height: 100%; border-bottom: 2px solid transparent; }
+.fd-tabs button.active { color: #20211f; border-bottom-color: #20211f; }
+.fd-tabs button span { margin-left: 6px; background: #efefeb; border-radius: 3px; padding: 2px 5px; font-size: 11px; }
+.fd-tabs.under { margin-bottom: 22px; padding-left: 0; }
+.fd-toolbar { min-height: 64px; display: flex; align-items: center; gap: 12px; padding: 0 28px; }
+.fd-toolbar label { width: 280px; height: 38px; border: 1px solid #e0dfda; border-radius: 999px; display: flex; align-items: center; gap: 8px; padding: 0 14px; color: #8d8f89; }
+.fd-toolbar input { border: 0; outline: 0; flex: 1; background: transparent; }
+.fd-toolbar button { height: 38px; border: 1px solid var(--page-border); background: var(--card-bg); color: var(--page-text); border-radius: 999px; padding: 0 16px; display: inline-flex; gap: 7px; align-items: center; cursor: pointer; }
+.fd-empty { min-height: 310px; display: flex; align-items: center; justify-content: center; flex-direction: column; text-align: center; padding: 40px; color: #5f625b; }
+.fd-empty.tall { min-height: 560px; }
+.fd-empty h3 { color: #20211f; margin-bottom: 6px; }
+.fd-empty div { display: flex; gap: 12px; margin-top: 16px; }
+.fd-product-list article { min-height: 74px; border-top: 1px solid #ecebe6; padding: 14px 24px; display: grid; grid-template-columns: 48px minmax(200px,1fr) 130px 120px 120px; align-items: center; gap: 14px; }
+.fd-order-actions { display: flex; gap: 8px; align-items: center; justify-content: flex-end; }
+.fd-order-actions .fd-light-btn { min-height: 32px; padding: 0 12px; font-size: 12px; }
+.fd-product-thumb { width: 42px; height: 42px; background: #f3f2ee; border: 1px solid #e0dfda; display: flex; align-items: center; justify-content: center; color: #8a8c86; overflow: hidden; }
+.fd-product-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.fd-product-list strong { display: block; font-size: 14px; }
+.fd-product-list span { font-size: 12px; color: #6a6d66; }
+.fd-pill { text-transform: capitalize; background: #f3f2ee; padding: 6px 10px; border-radius: 999px; display: inline-flex; justify-content: center; }
+.fd-back { border: 0; background: transparent; color: #555851; font-size: 13px; cursor: pointer; margin-bottom: 12px; }
+.fd-section { padding: 28px; margin-bottom: 18px; }
+.fd-section h2 button { float: right; border: 0; background: transparent; text-decoration: underline; cursor: pointer; }
+.fd-field { display: flex; flex-direction: column; gap: 7px; margin-top: 16px; font-size: 13px; font-weight: 500; }
+.fd-field input, .fd-field select, .fd-field textarea, .fd-wide-input { width: 100%; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--input-text); min-height: 38px; padding: 9px 12px; outline: 0; font: 13px Inter, sans-serif; }
+.fd-field textarea { min-height: 150px; resize: vertical; }
+.fd-field em { align-self: flex-end; color: #70736c; font-size: 12px; font-style: normal; }
+.fd-field small { color: #70736c; font-weight: 400; }
+.fd-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; }
+.fd-image-grid { display: grid; grid-template-columns: 240px repeat(4, 1fr); gap: 10px; margin: 18px 0 12px; }
+.fd-feature-upload { min-height: 240px; grid-row: span 2; border: 1px dashed #777a73; background: #fafaf8; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
+.fd-image-slot { min-height: 112px; border: 1px solid #e0dfda; display: flex; align-items: center; justify-content: center; color: #c3c2bc; overflow: hidden; }
+.fd-image-slot img { width: 100%; height: 100%; object-fit: cover; }
+.fd-radio { display: flex; align-items: center; gap: 9px; margin-top: 12px; font-size: 13px; color: #333530; }
+.fd-radio span { margin-left: auto; color: #555851; }
+.fd-zones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.fd-zones button { border: 1px solid var(--page-border); background: var(--card-bg); color: var(--page-text); padding: 8px 12px; border-radius: 999px; cursor: pointer; }
+.fd-zones button.selected { background: var(--gl-green, #2D9B4F); color: #fff; border-color: var(--gl-green, #2D9B4F); }
+.fd-error { background: #f8e7e4; color: #9e281f; border: 1px solid #edc1bb; padding: 12px 14px; margin-bottom: 18px; }
+.fd-success { background: #edf5e8; color: #42692e; border: 1px solid #c7dfb9; padding: 12px 14px; margin-bottom: 18px; }
+.fd-shop-page { max-width: 1040px; }
+.fd-shop-panel { background: var(--card-bg); border: 1px solid var(--page-border); }
+.fd-shop-section { position: relative; padding: 42px 46px; border-top: 1px solid #dfded8; }
+.fd-shop-section:first-child { border-top: 0; }
+.fd-shop-section h2 { margin-bottom: 8px; }
+.fd-shop-section small { display: block; margin-top: 18px; color: #767970; font-size: 12px; }
+.fd-cover-wrap { position: relative; margin-top: 26px; padding-bottom: 42px; }
+.fd-cover-preview { position: relative; height: 190px; border-radius: 14px; overflow: hidden; background: linear-gradient(135deg, #177579 0%, #20a4bd 52%, #e4b85f 100%); background-size: cover; background-position: center; color: #fff; }
+.fd-cover-preview::before { content: ''; position: absolute; inset: 28px 34px; border-radius: 10px; background: linear-gradient(90deg, rgba(255,255,255,.18), rgba(255,255,255,.04)); border: 1px solid rgba(255,255,255,.2); }
+.fd-cover-preview::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 78% 35%, rgba(255,255,255,.24), transparent 24%), linear-gradient(90deg, rgba(0,0,0,.05), rgba(0,0,0,0)); }
+.fd-cover-preview label, .fd-feature-image span, .fd-logo-picker { position: absolute; right: 18px; bottom: 18px; width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--page-border); background: var(--card-bg); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--page-text); z-index: 2; }
+.fd-remove-media, .fd-remove-avatar, .fd-remove-logo { position: absolute; border: 1px solid var(--page-border); background: var(--card-bg); color: var(--page-text); width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; z-index: 4; }
+.fd-remove-media { right: 66px; bottom: 23px; }
+.fd-remove-avatar { left: 92px; bottom: 18px; }
+.fd-remove-logo { left: calc(50% + 32px); top: calc(58% + 18px); }
+.fd-profile-bubble { position: absolute; left: 34px; bottom: 12px; width: 76px; height: 76px; border-radius: 50%; border: 4px solid #fff; background: linear-gradient(135deg, #3a713d, #e8be72); background-size: cover; background-position: center; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; box-shadow: 0 6px 14px rgba(0,0,0,.08); z-index: 3; cursor: pointer; }
+.fd-feature-row { display: grid; grid-template-columns: 300px minmax(240px, 1fr); gap: 70px; align-items: center; }
+.fd-feature-image { position: relative; width: 280px; height: 280px; margin-top: 26px; border-radius: 14px; background: #efefeb; border: 1px solid #deddd7; display: flex; align-items: center; justify-content: center; color: #91948d; overflow: hidden; cursor: pointer; }
+.fd-feature-image img { width: 100%; height: 100%; object-fit: cover; }
+.fd-logo-section { min-height: 340px; }
+.fd-logo-picker { left: 50%; top: 58%; right: auto; bottom: auto; transform: translate(-50%, -50%); box-shadow: 0 8px 18px rgba(0,0,0,.08); background-size: cover; background-position: center; }
+.fd-shop-section textarea { width: 100%; min-height: 150px; resize: vertical; border: 1px solid #deddd7; padding: 14px; font: 14px Inter, sans-serif; margin-top: 16px; }
+.fd-inline-link { border: 0; background: transparent; text-decoration: underline; padding: 0; cursor: pointer; }
+.fd-radio-row { display: flex; gap: 34px; margin: 18px 0; }
+.fd-radio-row label { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.fd-extra-upload { width: min(620px, 100%); height: 300px; border: 1px dashed #d7d6d1; background: #f6f5f1; background-size: cover; background-position: center; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #6b6e67; gap: 12px; cursor: pointer; }
+.fd-tag-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; padding-top: 20px; border-top: 1px solid #ecebe6; }
+.fd-tag-row button { min-height: 36px; border: 1px solid var(--page-border); background: var(--card-bg); color: var(--page-text); padding: 0 14px; border-radius: 999px; cursor: pointer; }
+.fd-tag-row button.selected { background: var(--gl-green, #2D9B4F); color: #fff; border-color: var(--gl-green, #2D9B4F); }
+.fd-preview-shell { min-height: 100vh; background: var(--page-bg); color: var(--page-text); font-family: Inter, system-ui, sans-serif; }
+.fd-public-shop { min-height: 100vh; background: var(--page-bg); color: var(--page-text); }
+.fd-preview-bar { min-height: 38px; padding: 8px 12px; text-align: center; font-size: 11px; color: #555852; border-bottom: 1px solid #ecebe6; }
+.fd-preview-bar button { border: 0; background: transparent; text-decoration: underline; margin-left: 4px; cursor: pointer; color: #20211f; }
+.fd-public-brand { height: 44px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #ecebe6; }
+.fd-public-brand img { max-width: 130px; max-height: 30px; object-fit: contain; }
+.fd-public-cover { position: relative; height: 170px; background: linear-gradient(135deg, #177579 0%, #1ba8c0 55%, #e6b75f 100%); background-size: cover; background-position: center; overflow: hidden; }
+.fd-public-cover::before { content: 'Pre-register your attendance today'; position: absolute; left: 28px; top: 42px; max-width: 500px; color: #fff; font-size: 34px; line-height: 1.02; font-weight: 800; }
+.fd-public-cover::after { content: ''; position: absolute; right: 34px; top: 30px; width: 160px; height: 74px; border: 5px solid rgba(255,255,255,.86); border-radius: 12px; opacity: .8; }
+.fd-public-cover.has-image::before, .fd-public-cover.has-image::after { display: none; }
+.fd-public-cover button { position: absolute; right: 18px; top: 18px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--page-border); background: var(--card-bg); display: flex; align-items: center; justify-content: center; color: var(--page-text); cursor: pointer; }
+.fd-public-main { max-width: 1040px; margin: 0 auto; padding: 0 18px 28px; }
+.fd-public-profile { position: relative; display: flex; gap: 16px; align-items: flex-end; margin-top: -34px; }
+.fd-public-avatar { width: 78px; height: 78px; border-radius: 50%; border: 4px solid #fff; background: linear-gradient(135deg, #3a713d, #e8be72); background-size: cover; background-position: center; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; flex: 0 0 auto; }
+.fd-public-profile h1 { margin: 0 0 4px; font-size: 21px; }
+.fd-public-profile p { margin: 0; color: #5f625b; font-size: 12px; }
+.fd-public-profile button { border: 0; background: transparent; color: #20211f; text-decoration: underline; padding: 5px 0 0; font-size: 12px; cursor: pointer; }
+.fd-public-search { height: 38px; margin: 22px 0; border: 1px solid #e1e0db; border-radius: 999px; display: flex; align-items: center; gap: 9px; padding: 0 14px; color: #8a8c86; }
+.fd-public-search input { border: 0; outline: 0; flex: 1; font-size: 13px; }
+.fd-public-products-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.fd-public-products-head h2 { margin: 0; font-family: 'DM Serif Display', Georgia, serif; font-size: 22px; font-weight: 400; }
+.fd-public-products-head button { min-width: 46px; height: 34px; border-radius: 999px; border: 0; background: #252525; color: #fff; display: flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer; }
+.fd-public-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 18px; }
+.fd-public-grid article { border: 1px solid var(--page-border); background: var(--card-bg); padding: 12px; }
+.fd-public-grid article div { height: 130px; background: #f1f0ec; display: flex; align-items: center; justify-content: center; color: #8a8c86; margin-bottom: 10px; overflow: hidden; }
+.fd-public-grid img { width: 100%; height: 100%; object-fit: cover; }
+.fd-public-grid strong { display: block; font-size: 13px; }
+.fd-public-grid span { color: #62655e; font-size: 12px; }
+.fd-public-empty { min-height: 245px; background: #f6f5f1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: #5f625b; text-align: center; }
+.fd-public-empty strong { color: #20211f; font-size: 13px; }
+.fd-public-empty span, .fd-public-empty button { font-size: 12px; }
+.fd-public-empty button { border: 0; background: transparent; text-decoration: underline; cursor: pointer; color: #20211f; }
+.fd-public-cta { border-top: 1px solid #ecebe6; border-bottom: 1px solid #ecebe6; padding: 38px max(18px, calc((100vw - 1040px) / 2)); }
+.fd-public-cta h2 { margin: 0 0 20px; max-width: 720px; font-family: 'DM Serif Display', Georgia, serif; font-weight: 400; font-size: 25px; }
+.fd-public-cta div { display: flex; gap: 12px; }
+.fd-public-cta button { min-height: 38px; padding: 0 18px; border: 1px solid var(--page-border); background: var(--card-bg); color: var(--page-text); cursor: pointer; }
+.fd-public-footer { max-width: 1040px; margin: 0 auto; padding: 34px 18px 44px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+.fd-public-footer h3 { margin: 0 0 12px; font-size: 13px; }
+.fd-public-footer button { display: block; border: 0; background: transparent; padding: 0; margin: 0 0 10px; font-size: 12px; color: #3f423d; cursor: pointer; }
+.fd-public-footer small { grid-column: 1 / -1; color: #555852; font-size: 11px; }
+.fd-settings .fd-section, .fd-account .fd-section, .fd-shipping .fd-section { max-width: 760px; }
+.fd-connected { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: end; }
+.fd-split-lines > div, .fd-line-toggle { border-top: 1px solid #ecebe6; padding: 18px 0; display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; }
+.fd-split-lines > div:first-of-type { border-top: 0; }
+.fd-split-lines strong { display: block; font-size: 14px; margin-bottom: 4px; }
+.fd-toggle { border: 0; background: transparent; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.fd-toggle span { width: 34px; height: 20px; background: #d8d8d3; border-radius: 999px; position: relative; display: block; }
+.fd-toggle span::after { content: ''; position: absolute; width: 16px; height: 16px; top: 2px; left: 2px; border-radius: 50%; background: #fff; transition: left .18s; }
+.fd-toggle.on span { background: #111; }
+.fd-toggle.on span::after { left: 16px; }
+.fd-toggle em { font-style: normal; font-size: 12px; color: #555851; }
+.fd-shipping-hero { min-height: 300px; background: #eee3d7; margin: -34px -34px 34px; padding: 52px 80px; display: grid; grid-template-columns: 1fr 280px; gap: 50px; align-items: center; }
+.fd-shipping-hero h1 { max-width: 410px; }
+.fd-shipping-hero span { display: block; max-width: 430px; color: #555851; font-size: 14px; line-height: 1.5; margin: 14px 0 24px; }
+.fd-shipping-hero div div { display: flex; gap: 10px; }
+.fd-checkout-card { min-height: 170px; background: var(--card-bg); border-radius: 6px; box-shadow: 0 18px 36px rgba(0,0,0,.12); padding: 28px; display: flex !important; flex-direction: column; gap: 14px !important; }
+.fd-checkout-card span { height: 8px; background: #ecebe6; margin: 0; }
+.fd-zone-create { width: 100%; height: 72px; background: var(--card-bg); border: 1px solid var(--page-border); color: var(--page-text); display: flex; align-items: center; gap: 14px; padding: 0 24px; cursor: pointer; }
+.fd-faq { max-width: 760px; margin: 28px 0; }
+.fd-faq button { width: 100%; min-height: 48px; border: 0; border-top: 1px solid #deddd7; background: transparent; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+.fd-team-table { max-width: 940px; border-bottom: 1px solid #e3e2dd; margin-bottom: 34px; }
+.fd-team-head, .fd-team-row { display: grid; grid-template-columns: 2fr 2fr 1fr 1fr; align-items: center; gap: 16px; min-height: 54px; padding: 0 18px; }
+.fd-team-head { background: #f1f0ec; color: #343631; font-size: 11px; font-weight: 700; }
+.fd-team-head.sales { grid-template-columns: 1.4fr 1.4fr 2fr 1fr; }
+.fd-team-row { border-top: 1px solid #e4e3dd; font-size: 13px; }
+.fd-team-person { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.fd-team-person strong { font-weight: 500; }
+.fd-team-person em { background: #eeeeea; color: #5f625b; font-style: normal; font-size: 11px; padding: 4px 7px; }
+.fd-team-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #3a713d, #e8be72); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+.fd-team-row b { width: max-content; background: #edf3e7; color: #477037; font-size: 11px; padding: 5px 8px; font-weight: 500; }
+.fd-no-data { min-height: 112px; display: flex; align-items: center; justify-content: center; color: #4d504a; font-size: 13px; border-top: 1px solid #e4e3dd; }
+.fd-team-faq { margin-top: 20px; }
+.fd-team-add { max-width: 940px; display: grid; grid-template-columns: 1fr 1fr 180px auto; gap: 12px; align-items: end; }
+.fd-note, .fd-digest { background: #f1f0eb; padding: 18px; color: #565952; font-size: 13px; margin-top: 14px; }
+.fd-digest { display: grid; grid-template-columns: 1fr 140px 1fr; gap: 12px; }
+.fd-digest p, .fd-digest label { grid-column: 1 / -1; }
+.fd-digest select { min-height: 40px; border: 1px solid var(--input-border); padding: 0 12px; background: var(--input-bg); color: var(--input-text); }
+.fd-two-cols { max-width: 520px; }
+@media (max-width: 900px) {
+  .fd-shell { grid-template-columns: 1fr; }
+  .fd-sidebar { position: relative; height: auto; min-height: auto; }
+  .fd-sidebar-head { min-height: 62px; }
+  .fd-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .fd-subnav { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; padding-left: 0; }
+  .fd-side-bottom { margin-top: 10px; }
+  .fd-main { height: auto; }
+  .fd-page { padding: 24px 16px 56px; }
+  .fd-page-head { flex-direction: column; }
+  .fd-home-grid, .fd-shipping-hero, .fd-form-grid, .fd-connected { grid-template-columns: 1fr; }
+  .fd-image-grid { grid-template-columns: repeat(2, 1fr); }
+  .fd-feature-upload { grid-row: auto; min-height: 180px; }
+  .fd-feature-row { grid-template-columns: 1fr; gap: 24px; }
+  .fd-shop-section { padding: 28px 18px; }
+  .fd-team-add { grid-template-columns: 1fr; }
+  .fd-team-head { display: none; }
+  .fd-team-row { grid-template-columns: 1fr; gap: 8px; padding: 14px 8px; }
+  .fd-toolbar { flex-wrap: wrap; padding: 12px; }
+  .fd-toolbar label { width: 100%; }
+  .fd-product-list article { grid-template-columns: 42px 1fr; }
+  .fd-product-list article > b, .fd-product-list article > span, .fd-product-list article > button { grid-column: 2; }
+  .fd-order-actions { grid-column: 2; justify-content: flex-start; flex-wrap: wrap; }
+}
+`;
 
 export default FournisseurApp;
