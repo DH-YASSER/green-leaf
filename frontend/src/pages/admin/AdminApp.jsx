@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import axios from '../../api/axios';
 import { useAuthStore } from '../../store/authStore';
+import NotificationBell from '../../components/NotificationBell';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../../store/appStore';
-import { LogoMark } from '../../components/Logo';
+import Logo from '../../components/Logo';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Users, ShoppingBag, Store, MessageSquare,
-  Settings, LogOut, Globe, Sun, Moon, Bell, TrendingUp,
+  Settings, LogOut, Globe, Sun, Moon, TrendingUp,
   Search, Eye, Check, X, Ban,
   AlertTriangle, ArrowUpRight, ArrowDownRight,
   RefreshCw, Download, Shield, Activity,
@@ -16,43 +17,43 @@ import {
   Package, Zap, Filter, MoreHorizontal,
 } from 'lucide-react';
 
-// ─── THEMES (matching RestaurantApp palette exactly) ──────────────────────
+// â”€â”€â”€ THEMES (matching RestaurantApp palette exactly) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const THEMES = {
   dark: {
-    '--page-bg':               '#0A0E12',
-    '--page-text':             '#E8E8E8',
-    '--text-muted':            'rgba(232,232,232,0.70)',
-    '--text-low':              'rgba(232,232,232,0.40)',
-    '--page-border':           'rgba(255, 255, 255, 0.06)',
-    '--accent-color':          '#4CAF50',
-    '--accent-gold':           '#FFB74D',
-    '--nav-bg':                'rgba(10,14,18,0.98)',
-    '--nav-border':            'rgba(255, 255, 255, 0.06)',
-    '--sidebar-bg':            '#0D2B24',
-    '--sidebar-border':        'rgba(76, 175, 80, 0.10)',
-    '--sidebar-link':          'rgba(232,232,232,0.70)',
-    '--sidebar-link-hover':    '#E8E8E8',
-    '--sidebar-active-bg':     'rgba(76, 175, 80, 0.15)',
-    '--sidebar-active-text':   '#4CAF50',
-    '--btn-primary-bg':        '#4CAF50',
-    '--btn-primary-text':      '#FFFFFF',
+    '--page-bg':               '#151815',
+    '--page-text':             '#F5F2EA',
+    '--text-muted':            'rgba(245,242,234,0.74)',
+    '--text-low':              'rgba(245,242,234,0.48)',
+    '--page-border':           'rgba(245, 242, 234, 0.12)',
+    '--accent-color':          '#81C784',
+    '--accent-gold':           '#E8B86D',
+    '--nav-bg':                'rgba(21,24,21,0.94)',
+    '--nav-border':            'rgba(245, 242, 234, 0.12)',
+    '--sidebar-bg':            '#1D211D',
+    '--sidebar-border':        'rgba(245, 242, 234, 0.12)',
+    '--sidebar-link':          'rgba(245,242,234,0.72)',
+    '--sidebar-link-hover':    '#F5F2EA',
+    '--sidebar-active-bg':     'rgba(245, 242, 234, 0.09)',
+    '--sidebar-active-text':   '#81C784',
+    '--btn-primary-bg':        '#81C784',
+    '--btn-primary-text':      '#111411',
     '--btn-primary-hover':     '0.90',
     '--btn-secondary-bg':      'transparent',
-    '--btn-secondary-text':    '#B0B0B0',
-    '--btn-secondary-border':  'rgba(255, 255, 255, 0.12)',
-    '--btn-icon-border':       'rgba(255, 255, 255, 0.08)',
-    '--btn-icon-text':         '#B0B0B0',
-    '--btn-icon-hover-bg':     'rgba(255, 255, 255, 0.08)',
-    '--card-bg':               '#141B1F',
-    '--card-border':           'rgba(76, 175, 80, 0.08)',
-    '--card-title':            '#E8E8E8',
-    '--card-body':             'rgba(232,232,232,0.70)',
-    '--card-hover-bg':         'rgba(255, 255, 255, 0.04)',
-    '--input-bg':              'rgba(255, 255, 255, 0.04)',
-    '--input-border':          'rgba(76, 175, 80, 0.20)',
-    '--input-text':            '#E8E8E8',
-    '--input-placeholder':     'rgba(232,232,232,0.40)',
-    '--input-focus-border':    '#4CAF50',
+    '--btn-secondary-text':    '#D6D2C8',
+    '--btn-secondary-border':  'rgba(214, 210, 200, 0.32)',
+    '--btn-icon-border':       'rgba(245, 242, 234, 0.12)',
+    '--btn-icon-text':         '#D6D2C8',
+    '--btn-icon-hover-bg':     'rgba(245, 242, 234, 0.09)',
+    '--card-bg':               '#20251F',
+    '--card-border':           'rgba(245, 242, 234, 0.12)',
+    '--card-title':            '#F5F2EA',
+    '--card-body':             'rgba(245,242,234,0.74)',
+    '--card-hover-bg':         'rgba(245, 242, 234, 0.07)',
+    '--input-bg':              'rgba(245, 242, 234, 0.04)',
+    '--input-border':          'rgba(245, 242, 234, 0.14)',
+    '--input-text':            '#F5F2EA',
+    '--input-placeholder':     'rgba(214, 210, 200, 0.52)',
+    '--input-focus-border':    '#81C784',
     '--status-pending-bg':     'rgba(255, 152, 0, 0.12)',
     '--status-pending-text':   'rgba(255, 152, 0, 0.90)',
     '--status-success-bg':     'rgba(76, 175, 80, 0.12)',
@@ -61,18 +62,18 @@ const THEMES = {
     '--status-failed-text':    'rgba(244, 67, 54, 0.90)',
     '--status-info-bg':        'rgba(33, 150, 243, 0.12)',
     '--status-info-text':      'rgba(33, 150, 243, 0.90)',
-    '--bg':          '#0A0E12',
-    '--bg2':         '#141B1F',
-    '--text':        '#E8E8E8',
-    '--textMid':     'rgba(232,232,232,0.70)',
-    '--textLow':     'rgba(232,232,232,0.40)',
-    '--sulu':        '#4CAF50',
-    '--suluLo':      'rgba(76, 175, 80, 0.10)',
-    '--suluMd':      'rgba(76, 175, 80, 0.20)',
-    '--silver':      '#B0B0B0',
-    '--silverLo':    'rgba(255, 255, 255, 0.08)',
-    '--border':      'rgba(255, 255, 255, 0.06)',
-    '--border2':     'rgba(255, 255, 255, 0.10)',
+    '--bg':          '#151815',
+    '--bg2':         '#20251F',
+    '--text':        '#F5F2EA',
+    '--textMid':     'rgba(245,242,234,0.74)',
+    '--textLow':     'rgba(245,242,234,0.48)',
+    '--sulu':        '#81C784',
+    '--suluLo':      'rgba(129, 199, 132, 0.10)',
+    '--suluMd':      'rgba(129, 199, 132, 0.22)',
+    '--silver':      '#D6D2C8',
+    '--silverLo':    'rgba(214, 210, 200, 0.12)',
+    '--border':      'rgba(245, 242, 234, 0.12)',
+    '--border2':     'rgba(245, 242, 234, 0.18)',
     '--danger':      'rgba(244, 67, 54, 0.90)',
     '--dangerLo':    'rgba(244, 67, 54, 0.10)',
     '--amber':       'rgba(255, 152, 0, 0.90)',
@@ -144,60 +145,61 @@ const THEMES = {
   },
 };
 
-// ─── TRANSLATIONS ─────────────────────────────────────────────────────────
+// â”€â”€â”€ TRANSLATIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const T = {
   fr: {
     nav: {
       overview: 'Vue d\'ensemble', users: 'Utilisateurs', suppliers: 'Fournisseurs',
-      orders: 'Commandes', analytics: 'Analytiques', settings: 'Paramètres',
+      orders: 'Commandes', products: 'Produits', categories: 'Categories',
+      analytics: 'Analytiques', security: 'Securite', settings: 'Paramأ¨tres',
     },
-    topbar: { title: 'Admin Console', logout: 'Déconnexion' },
+    topbar: { title: 'Admin Console', logout: 'Dأ©connexion' },
     confirm: { title: 'Confirmer l\'action', cancel: 'Annuler', confirm: 'Confirmer' },
-    errors: { loadFailed: 'Échec du chargement.', actionFailed: 'Action échouée.', retry: 'Réessayer' },
-    pagination: { prev: '← Précédent', next: 'Suivant →', of: 'sur', rows: 'lignes' },
+    errors: { loadFailed: 'أ‰chec du chargement.', actionFailed: 'Action أ©chouأ©e.', retry: 'Rأ©essayer' },
+    pagination: { prev: 'â†گ Prأ©cأ©dent', next: 'Suivant â†’', of: 'sur', rows: 'lignes' },
     overview: {
       eyebrow: 'Tableau de bord', title: 'Vue d\'ensemble',
       stats: [
         { label: 'Utilisateurs actifs', key: 'activeUsers' },
-        { label: 'Fournisseurs vérifiés', key: 'verifiedSuppliers' },
+        { label: 'Fournisseurs vأ©rifiأ©s', key: 'verifiedSuppliers' },
         { label: 'Commandes totales', key: 'totalOrders' },
         { label: 'Volume total (MAD)', key: 'totalVolume' },
       ],
-      activity: 'Activité récente', actSub: 'Dernières actions système',
-      alerts: 'Alertes', alertSub: 'Éléments nécessitant une action',
-      breakdown: 'Répartition des statuts', bkSub: 'Commandes par statut',
+      activity: 'Activitأ© rأ©cente', actSub: 'Derniأ¨res actions systأ¨me',
+      alerts: 'Alertes', alertSub: 'أ‰lأ©ments nأ©cessitant une action',
+      breakdown: 'Rأ©partition des statuts', bkSub: 'Commandes par statut',
       topSup: 'Top fournisseurs', topSupSub: 'Par volume de commandes',
-      noAlerts: 'Aucune alerte', noData: 'Aucune donnée',
+      noAlerts: 'Aucune alerte', noData: 'Aucune donnأ©e',
     },
     users: {
       eyebrow: 'Gestion', title: 'Utilisateurs',
       filters: ['Tous', 'Actifs', 'Suspendus', 'En attente'],
       filterVals: ['all', 'active', 'suspended', 'pending'],
-      cols: ['Nom', 'Email', 'Rôle', 'Statut', 'Inscrit', 'Actions'],
-      ban: 'Suspendre', unban: 'Réactiver',
+      cols: ['Nom', 'Email', 'Rأ´le', 'Statut', 'Inscrit', 'Actions'],
+      ban: 'Suspendre', unban: 'Rأ©activer',
       noData: 'Aucun utilisateur',
       confirmBan: 'Suspendre cet utilisateur ? Il ne pourra plus se connecter.',
-      confirmUnban: 'Réactiver cet utilisateur ?',
+      confirmUnban: 'Rأ©activer cet utilisateur ?',
     },
     suppliers: {
       eyebrow: 'Gestion', title: 'Fournisseurs',
-      filters: ['Tous', 'Vérifiés', 'En attente', 'Suspendus'],
+      filters: ['Tous', 'Vأ©rifiأ©s', 'En attente', 'Suspendus'],
       filterVals: ['all', 'verified', 'pending', 'suspended'],
-      cols: ['Fournisseur', 'Email', 'Région', 'Statut', 'Commandes', 'Actions'],
-      approve: 'Approuver', reject: 'Rejeter', suspend: 'Suspendre', reactivate: 'Réactiver',
+      cols: ['Fournisseur', 'Email', 'Rأ©gion', 'Statut', 'Commandes', 'Actions'],
+      approve: 'Approuver', reject: 'Rejeter', suspend: 'Suspendre', reactivate: 'Rأ©activer',
       noData: 'Aucun fournisseur',
       confirmApprove: 'Approuver ce fournisseur ?',
-      confirmReject: 'Rejeter ce fournisseur ? Cette action est définitive.',
+      confirmReject: 'Rejeter ce fournisseur ? Cette action est dأ©finitive.',
       confirmSuspend: 'Suspendre ce fournisseur ?',
-      confirmReactivate: 'Réactiver ce fournisseur ?',
+      confirmReactivate: 'Rأ©activer ce fournisseur ?',
     },
     orders: {
       eyebrow: 'Surveillance', title: 'Toutes les Commandes',
-      filters: ['Toutes', 'En attente', 'Confirmées', 'Livrées', 'Annulées'],
+      filters: ['Toutes', 'En attente', 'Confirmأ©es', 'Livrأ©es', 'Annulأ©es'],
       filterVals: ['all', 'pending', 'confirmed', 'delivered', 'cancelled'],
       cols: ['#', 'Restaurant', 'Fournisseur', 'Date', 'Total', 'Statut', 'Action'],
       noData: 'Aucune commande',
-      forceDeliver: 'Marquer livrée', forceCancel: 'Annuler',
+      forceDeliver: 'Marquer livrأ©e', forceCancel: 'Annuler',
       confirmDeliver: 'Forcer la livraison de cette commande ?',
       confirmCancel: 'Annuler cette commande ?',
     },
@@ -205,29 +207,30 @@ const T = {
       eyebrow: 'Analytiques', title: 'Rapport de performance',
       revTitle: 'Volume par statut', orderTrend: 'Tendance des commandes',
       topRestaurants: 'Top restaurants', byVolume: 'par volume',
-      noData: 'Aucune donnée disponible',
+      noData: 'Aucune donnأ©e disponible',
     },
     settings: {
-      eyebrow: 'Configuration', title: 'Paramètres système',
-      sections: ['Général', 'Sécurité', 'Notifications', 'Maintenance'],
+      eyebrow: 'Configuration', title: 'Paramأ¨tres systأ¨me',
+      sections: ['Gأ©nأ©ral', 'Sأ©curitأ©', 'Notifications', 'Maintenance'],
       secIds: ['general', 'security', 'notifs', 'maintenance'],
-      save: 'Enregistrer', saving: 'Enregistrement...', saved: '✓ Enregistré',
+      save: 'Enregistrer', saving: 'Enregistrement...', saved: 'âœ“ Enregistrأ©',
       validation: {
         emailInvalid: 'Adresse email invalide.',
-        timeoutRange: 'Le timeout doit être entre 5 et 1440 minutes.',
-        uploadRange: 'La taille max doit être entre 1 et 100 MB.',
+        timeoutRange: 'Le timeout doit أھtre entre 5 et 1440 minutes.',
+        uploadRange: 'La taille max doit أھtre entre 1 et 100 MB.',
       },
     },
   },
   en: {
     nav: {
       overview: 'Overview', users: 'Users', suppliers: 'Suppliers',
-      orders: 'Orders', analytics: 'Analytics', settings: 'Settings',
+      orders: 'Orders', products: 'Products', categories: 'Categories',
+      analytics: 'Analytics', security: 'Security', settings: 'Settings',
     },
     topbar: { title: 'Admin Console', logout: 'Logout' },
     confirm: { title: 'Confirm action', cancel: 'Cancel', confirm: 'Confirm' },
     errors: { loadFailed: 'Failed to load. Please retry.', actionFailed: 'Action failed. Please retry.', retry: 'Retry' },
-    pagination: { prev: '← Previous', next: 'Next →', of: 'of', rows: 'rows' },
+    pagination: { prev: 'â†گ Previous', next: 'Next â†’', of: 'of', rows: 'rows' },
     overview: {
       eyebrow: 'Dashboard', title: 'Overview',
       stats: [
@@ -284,7 +287,7 @@ const T = {
       eyebrow: 'Configuration', title: 'System Settings',
       sections: ['General', 'Security', 'Notifications', 'Maintenance'],
       secIds: ['general', 'security', 'notifs', 'maintenance'],
-      save: 'Save', saving: 'Saving...', saved: '✓ Saved',
+      save: 'Save', saving: 'Saving...', saved: 'âœ“ Saved',
       validation: {
         emailInvalid: 'Invalid email address.',
         timeoutRange: 'Timeout must be between 5 and 1440 minutes.',
@@ -294,7 +297,7 @@ const T = {
   },
 };
 
-// ─── GLOBAL STYLES ────────────────────────────────────────────────────────
+// â”€â”€â”€ GLOBAL STYLES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const GS = ({ theme }) => {
   const t = THEMES[theme] || THEMES.dark;
   const isDark = theme === 'dark';
@@ -349,55 +352,55 @@ const GS = ({ theme }) => {
       .a-fu { animation: fadeUp 0.28s ease forwards; }
       @keyframes pulse { 0%,100%{ opacity:1; } 50%{ opacity:0.3; } }
 
-      /* ── APP SHELL ── */
+      /* â”€â”€ APP SHELL â”€â”€ */
       .a-app {
         ${Object.entries(localVars).map(([k, v]) => `${k}: ${v};`).join('\n        ')}
-        display: flex; height: 100vh; padding: 16px; gap: 12px;
-        background: var(--page-bg); overflow: hidden; transition: background 0.3s;
+        display: grid; grid-template-columns: 210px minmax(0, 1fr);
+        height: 100vh; background: var(--page-bg); overflow: hidden; transition: background 0.3s;
       }
       body { background: var(--page-bg); color: var(--text-1); transition: background 0.3s, color 0.3s; }
 
-      /* ── SIDEBAR ── */
+      /* â”€â”€ SIDEBAR â”€â”€ */
       .a-sidebar {
-        width: 240px; min-width: 240px; background: var(--sidebar-bg);
+        width: 210px; min-width: 210px; background: var(--sidebar-bg);
         border-right: 1px solid var(--sidebar-border);
         display: flex; flex-direction: column; height: 100%;
-        border-radius: 16px; overflow: hidden; flex-shrink: 0;
+        overflow: hidden; flex-shrink: 0;
         transition: background 0.3s, border-color 0.3s;
       }
-      .a-logo-row { display: flex; align-items: center; gap: 10px; padding: 22px 20px 18px; }
-      .a-logo-text { font-size: 16px; font-weight: 700; color: var(--text-1); letter-spacing: -0.3px; }
+      .a-logo-row { min-height: 72px; display: flex; align-items: center; gap: 10px; padding: 0 14px 0 18px; }
       .a-nav-badge { margin-left: auto; background: var(--danger-bg); color: var(--danger-text); font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 99px; }
-      .a-nav-section { padding: 0 12px; display: flex; flex-direction: column; gap: 2px; }
+      .a-nav-section { padding: 0 8px; display: flex; flex-direction: column; gap: 2px; }
       .a-nav-item {
-        display: flex; align-items: center; gap: 12px; padding: 10px 12px;
-        border-radius: 10px; font-size: 14px; font-weight: 400;
+        min-height: 31px; display: flex; align-items: center; gap: 10px; padding: 0 10px;
+        border-radius: 4px; font-size: 12px; font-weight: 400;
         color: var(--sidebar-link); cursor: pointer; border: none; background: none;
         width: 100%; text-align: left; text-decoration: none;
         transition: background 0.15s, color 0.15s; white-space: nowrap;
       }
       .a-nav-item:hover { background: var(--sidebar-active-bg); color: var(--sidebar-link-hover); }
-      .a-nav-item.active { background: var(--btn-primary-bg); color: var(--btn-primary-text); font-weight: 500; }
-      .a-nav-item.active svg { color: var(--btn-primary-text); }
-      .a-nav-divider { height: 1px; background: var(--sidebar-border); margin: 10px 12px; }
+      .a-nav-item.active { background: var(--sidebar-active-bg); color: var(--sidebar-active-text); font-weight: 600; }
+      .a-nav-item.active svg { color: var(--sidebar-active-text); }
+      .a-nav-divider { height: 1px; background: var(--sidebar-border); margin: 12px 8px; }
       .a-nav-bottom { margin-top: auto; padding: 12px 12px 16px; }
 
-      /* ── MAIN ── */
+      /* â”€â”€ MAIN â”€â”€ */
       .a-main {
-        flex: 1; background: var(--surface); border-radius: 16px;
+        min-width: 0; background: var(--page-bg);
         display: flex; flex-direction: column; overflow: hidden; min-width: 0;
         transition: background 0.2s;
       }
 
-      /* ── TOPBAR ── */
+      /* â”€â”€ TOPBAR â”€â”€ */
       .a-topbar {
         display: flex; align-items: center; justify-content: space-between;
-        padding: 18px 28px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+        min-height: 72px; padding: 0 34px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+        background: var(--page-bg);
       }
-      .a-topbar-title { font-size: 22px; font-weight: 700; color: var(--text-1); letter-spacing: -0.4px; }
+      .a-topbar-title { font-size: 25px; font-weight: 700; color: var(--text-1); letter-spacing: -0.4px; }
       .a-topbar-right { display: flex; align-items: center; gap: 10px; }
       .a-icon-btn {
-        width: 36px; height: 36px; border: 1.5px solid var(--border-strong); border-radius: 10px;
+        width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 999px;
         display: flex; align-items: center; justify-content: center;
         background: var(--surface); cursor: pointer; color: var(--text-2); transition: all 0.15s; position: relative;
       }
@@ -407,58 +410,100 @@ const GS = ({ theme }) => {
         border-radius: 50%; background: var(--danger-text); border: 2px solid var(--surface);
       }
 
-      /* ── STAT CARD ── */
+      /* â”€â”€ STAT CARD â”€â”€ */
       .a-stat-card {
-        background: var(--surface); border: 1.5px solid var(--border-strong); border-radius: 14px;
-        padding: 20px 22px; position: relative; overflow: hidden; transition: border-color 0.2s;
+        background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+        padding: 22px 22px; position: relative; overflow: hidden; transition: border-color 0.2s;
       }
       .a-stat-card:hover { border-color: var(--accent); }
       .a-stat-accent { position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: var(--accent); opacity: 0.6; }
 
-      /* ── PANEL / CARD ── */
+      /* â”€â”€ PANEL / CARD â”€â”€ */
       .a-card {
-        background: var(--surface); border: 1.5px solid var(--border-strong); border-radius: 14px; overflow: hidden;
+        background: var(--surface); border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
       }
       .a-card-head {
-        padding: 16px 20px; border-bottom: 1px solid var(--border);
+        padding: 18px 22px; border-bottom: 1px solid var(--border);
         display: flex; align-items: center; justify-content: space-between;
       }
       .a-card-title { font-size: 14px; font-weight: 600; color: var(--text-1); }
       .a-card-sub { font-size: 12px; color: var(--text-2); margin-top: 2px; }
 
-      /* ── TABLE ── */
+      /* â”€â”€ TABLE â”€â”€ */
       .a-table { width: 100%; border-collapse: collapse; }
       .a-table thead th {
-        padding: 11px 16px; text-align: left; font-size: 12px; font-weight: 500;
-        color: var(--text-2); border-bottom: 1.5px solid var(--border); background: var(--surface); white-space: nowrap;
+        padding: 13px 18px; text-align: left; font-size: 11px; font-weight: 700;
+        color: var(--text-2); border-bottom: 1px solid var(--border); background: var(--card-hover-bg); white-space: nowrap;
       }
       .a-table tbody td {
-        padding: 13px 16px; border-bottom: 1px solid var(--border);
+        padding: 15px 18px; border-bottom: 1px solid var(--border);
         font-size: 13px; color: var(--text-1); vertical-align: middle;
       }
       .a-table tbody tr:last-child td { border-bottom: none; }
       .a-table tbody tr { transition: background 0.1s; }
       .a-table tbody tr:hover { background: var(--hover); }
+      .a-table tbody tr.selected { background: var(--subtle); }
 
-      /* ── FILTER TABS ── */
+      /* â”€â”€ SUPPLIER REVIEW â”€â”€ */
+      .a-review-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 360px;
+        gap: 16px;
+        align-items: start;
+      }
+      .a-review-panel {
+        position: sticky;
+        top: 16px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        min-height: 320px;
+      }
+      .a-review-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+      .a-review-head span { display: block; color: var(--text-3); text-transform: uppercase; letter-spacing: .08em; font-size: 10px; margin-bottom: 4px; }
+      .a-review-head h3 { margin: 0; color: var(--text-1); font-size: 18px; line-height: 1.2; }
+      .a-review-head p { margin: 5px 0 0; color: var(--text-2); font-size: 12px; }
+      .a-review-score { border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+      .a-review-score strong { color: var(--accent); font-size: 24px; display: block; }
+      .a-review-score span { color: var(--text-2); font-size: 12px; }
+      .a-review-score div { height: 6px; background: var(--hover); border-radius: 999px; margin-top: 12px; overflow: hidden; }
+      .a-review-score i { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
+      .a-review-facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .a-review-facts div { border: 1px solid var(--border); border-radius: 10px; padding: 10px; color: var(--text-2); }
+      .a-review-facts b { display: block; color: var(--text-1); font-size: 17px; margin-top: 5px; }
+      .a-review-facts span { display: block; color: var(--text-3); font-size: 10px; margin-top: 2px; }
+      .a-review-checklist { display: flex; flex-direction: column; gap: 8px; }
+      .a-review-checklist div { display: flex; align-items: center; gap: 8px; color: var(--warn-text); font-size: 13px; }
+      .a-review-checklist div.done { color: var(--success-text); }
+      .a-review-notes { border-top: 1px solid var(--border); padding-top: 14px; }
+      .a-review-notes h4 { margin: 0 0 7px; color: var(--text-1); font-size: 13px; }
+      .a-review-notes p { color: var(--text-2); font-size: 12px; line-height: 1.5; margin: 0 0 8px; }
+      .a-review-notes small { color: var(--text-3); font-size: 11px; }
+      .a-review-actions { display: flex; flex-wrap: wrap; gap: 8px; border-top: 1px solid var(--border); padding-top: 14px; }
+
+      /* â”€â”€ FILTER TABS â”€â”€ */
       .a-filter-tab {
-        padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;
+        padding: 8px 14px; border-radius: 4px; font-size: 12px; font-weight: 500;
         border: none; background: none; cursor: pointer; color: var(--text-2);
         transition: all 0.15s; white-space: nowrap;
       }
-      .a-filter-tab.on { background: var(--accent); color: var(--accent-text); }
+      .a-filter-tab.on { background: var(--sidebar-active-bg); color: var(--sidebar-active-text); }
       .a-filter-tab:hover:not(.on) { background: var(--hover); color: var(--text-1); }
 
-      /* ── BUTTONS ── */
+      /* â”€â”€ BUTTONS â”€â”€ */
       .a-btn {
-        display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 9px;
+        display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 3px;
         font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
         cursor: pointer; border: none; transition: all 0.15s; white-space: nowrap;
       }
       .a-btn:disabled { opacity: 0.4; cursor: not-allowed; }
       .a-btn-primary { background: var(--accent); color: var(--accent-text); }
       .a-btn-primary:hover:not(:disabled) { opacity: 0.88; }
-      .a-btn-ghost { background: var(--surface); color: var(--text-2); border: 1.5px solid var(--border-strong); }
+      .a-btn-ghost { background: var(--surface); color: var(--text-2); border: 1px solid var(--border); }
       .a-btn-ghost:hover:not(:disabled) { background: var(--hover); color: var(--text-1); }
       .a-btn-danger { background: var(--danger-bg); color: var(--danger-text); border: 1px solid var(--danger-text); }
       .a-btn-danger:hover:not(:disabled) { opacity: 0.85; }
@@ -468,11 +513,11 @@ const GS = ({ theme }) => {
       .a-btn-warn:hover:not(:disabled) { opacity: 0.85; }
       .a-btn-sm { padding: 5px 12px; font-size: 12px; border-radius: 7px; }
 
-      /* ── SEARCH ── */
+      /* â”€â”€ SEARCH â”€â”€ */
       .a-search {
         display: flex; align-items: center; gap: 8px;
         background: var(--input-bg); border: 1.5px solid var(--border-strong);
-        border-radius: 10px; padding: 7px 14px; min-width: 220px;
+        border-radius: 999px; padding: 7px 14px; min-width: 220px;
         transition: border-color 0.15s;
       }
       .a-search:focus-within { border-color: var(--accent); }
@@ -482,9 +527,9 @@ const GS = ({ theme }) => {
       }
       .a-search input::placeholder { color: var(--text-3); }
 
-      /* ── BADGES ── */
+      /* â”€â”€ BADGES â”€â”€ */
       .a-badge {
-        display: inline-block; padding: 3px 10px; border-radius: 8px;
+        display: inline-block; padding: 4px 9px; border-radius: 3px;
         font-size: 12px; font-weight: 500; border: 1px solid transparent;
       }
       .a-badge-active    { background: var(--success-bg); color: var(--success-text); border-color: var(--success-text); }
@@ -499,7 +544,12 @@ const GS = ({ theme }) => {
       .a-badge-restaurant{ background: var(--warn-bg);    color: var(--warn-text);    border-color: var(--warn-text); }
       .a-badge-supplier  { background: var(--success-bg); color: var(--success-text); border-color: var(--success-text); }
 
-      /* ── MODAL ── */
+      @media (max-width: 1100px) {
+        .a-review-grid { grid-template-columns: 1fr; }
+        .a-review-panel { position: static; }
+      }
+
+      /* â”€â”€ MODAL â”€â”€ */
       .a-modal-overlay {
         position: fixed; inset: 0; background: rgba(0,0,0,0.45); backdrop-filter: blur(4px);
         display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 24px;
@@ -512,7 +562,7 @@ const GS = ({ theme }) => {
       .a-modal-body { padding: 24px; }
       .a-modal-foot { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
 
-      /* ── TOGGLE ── */
+      /* â”€â”€ TOGGLE â”€â”€ */
       .a-toggle {
         width: 44px; height: 24px; border-radius: 99px; position: relative;
         background: var(--border-strong); transition: background 0.2s; border: none; cursor: pointer; padding: 0; flex-shrink: 0;
@@ -524,35 +574,35 @@ const GS = ({ theme }) => {
       }
       .a-toggle.on .a-toggle-knob { transform: translateX(20px); }
 
-      /* ── PAGINATION ── */
+      /* â”€â”€ PAGINATION â”€â”€ */
       .a-pagination { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-top: 1px solid var(--border); }
 
-      /* ── ALERT / ERROR ── */
+      /* â”€â”€ ALERT / ERROR â”€â”€ */
       .a-error-banner {
         display: flex; align-items: center; gap: 10px; padding: 12px 16px;
         background: var(--danger-bg); border: 1.5px solid var(--danger-text); border-radius: 10px;
       }
 
-      /* ── EMPTY ── */
+      /* â”€â”€ EMPTY â”€â”€ */
       .a-empty {
         display: flex; flex-direction: column; align-items: center; justify-content: center;
-        padding: 56px 20px; text-align: center; color: var(--text-3); gap: 12px;
+        padding: 56px 20px; text-align: center; color: var(--text-3); gap: 16px;
       }
 
-      /* ── AVATAR ── */
+      /* â”€â”€ AVATAR â”€â”€ */
       .a-avatar {
         border-radius: 50%; object-fit: cover; flex-shrink: 0;
         display: flex; align-items: center; justify-content: center; font-weight: 600; overflow: hidden;
       }
 
-      /* ── SETTINGS ROWS ── */
+      /* â”€â”€ SETTINGS ROWS â”€â”€ */
       .a-settings-row {
         display: flex; align-items: center; justify-content: space-between;
         padding: 16px 20px; border-bottom: 1px solid var(--border); gap: 16px;
       }
       .a-settings-row:last-child { border-bottom: none; }
 
-      /* ── LABEL / INPUT ── */
+      /* â”€â”€ LABEL / INPUT â”€â”€ */
       .a-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-2); margin-bottom: 5px; }
       .a-input {
         width: 100%; padding: 9px 12px; border: 1.5px solid var(--border-strong); border-radius: 9px;
@@ -563,7 +613,7 @@ const GS = ({ theme }) => {
       .a-input::placeholder { color: var(--text-3); }
       .a-input.error { border-color: var(--danger-text); }
 
-      /* ── SEG BUTTONS ── */
+      /* â”€â”€ SEG BUTTONS â”€â”€ */
       .a-seg-btn {
         padding: 8px 16px; font-size: 13px; font-weight: 500; background: none;
         border: 1.5px solid var(--border-strong); border-right: none;
@@ -574,20 +624,20 @@ const GS = ({ theme }) => {
       .a-seg-btn:hover { background: var(--hover); color: var(--text-1); }
       .a-seg-btn.on { background: var(--subtle); color: var(--accent); border-color: var(--accent); }
 
-      /* ── DONUT ── */
+      /* â”€â”€ DONUT â”€â”€ */
       .a-donut-legend { display: flex; flex-direction: column; gap: 8px; }
       .a-donut-leg-item { display: flex; align-items: center; gap: 8px; }
       .a-donut-leg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-      /* ── ALERT ITEMS ── */
+      /* â”€â”€ ALERT ITEMS â”€â”€ */
       .a-alert-item {
-        display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px;
+        display: flex; align-items: flex-start; gap: 16px; padding: 14px 16px;
         border-bottom: 1px solid var(--border); transition: background 0.12s; cursor: pointer;
       }
       .a-alert-item:last-child { border-bottom: none; }
       .a-alert-item:hover { background: var(--hover); }
 
-      /* ── SPARKBARS ── */
+      /* â”€â”€ SPARKBARS â”€â”€ */
       .a-sparkbar-wrap { display: flex; align-items: flex-end; gap: 3px; height: 40px; padding: 0 2px; }
 
       @media print {
@@ -597,9 +647,10 @@ const GS = ({ theme }) => {
   );
 };
 
-// ─── HELPERS ──────────────────────────────────────────────────────────────
+// â”€â”€â”€ HELPERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const fmt = n => Number(n || 0).toLocaleString('fr-MA');
-const fmtDate = s => s ? new Date(s).toLocaleDateString('fr-MA', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+const fmtDate = s => s ? new Date(s).toLocaleDateString('fr-MA', { day: '2-digit', month: 'short', year: 'numeric' }) : 'â€”';
+const orderTotal = o => Number(o?.total_amount ?? o?.total_price ?? o?.total ?? 0);
 
 const AV_COLORS = [
   { bg: '#fef3c7', color: '#92400e' }, { bg: '#dbeafe', color: '#1e40af' },
@@ -615,11 +666,11 @@ const StatusBadge = ({ status }) => {
     delivered: 'a-badge-delivered', completed: 'a-badge-delivered', cancelled: 'a-badge-cancelled',
     rejected: 'a-badge-rejected', admin: 'a-badge-admin', restaurant: 'a-badge-restaurant', supplier: 'a-badge-supplier',
   };
-  return <span className={`a-badge ${map[status] || 'a-badge-pending'}`}>{status || '—'}</span>;
+  return <span className={`a-badge ${map[status] || 'a-badge-pending'}`}>{status || 'â€”'}</span>;
 };
 
 const Loader = () => (
-  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 0', gap: 12 }}>
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 0', gap: 16 }}>
     <svg className="spin" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth={2}>
       <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
     </svg>
@@ -646,7 +697,7 @@ const ErrorBanner = ({ message, onRetry }) => (
   </div>
 );
 
-// ─── HOOKS ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ HOOKS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const useDebounce = (value, delay = 220) => {
   const [d, setD] = useState(value);
   useEffect(() => { const t = setTimeout(() => setD(value), delay); return () => clearTimeout(t); }, [value, delay]);
@@ -661,7 +712,19 @@ const usePagination = (items, pageSize = 25) => {
   return { slice, page, totalPages, setPage, total: items.length, pageSize };
 };
 
-// ─── CONFIRM MODAL ────────────────────────────────────────────────────────
+const adminExport = async (type) => {
+  const response = await axios.get(`/api/admin/exports/${type}`, { responseType: 'blob' });
+  const url = URL.createObjectURL(new Blob([response.data], { type: 'text/csv;charset=utf-8;' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `greenleaf-${type}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+};
+
+// â”€â”€â”€ CONFIRM MODAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const ConfirmModal = ({ message, onConfirm, onCancel, t }) => (
   <div className="a-modal-overlay" onClick={onCancel}>
     <div className="a-modal" onClick={e => e.stopPropagation()}>
@@ -680,13 +743,13 @@ const ConfirmModal = ({ message, onConfirm, onCancel, t }) => (
   </div>
 );
 
-// ─── PAGINATION BAR ───────────────────────────────────────────────────────
+// â”€â”€â”€ PAGINATION BAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const PaginationBar = ({ page, totalPages, total, pageSize, setPage, t }) => {
   if (totalPages <= 1) return null;
   return (
     <div className="a-pagination">
       <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
-        {page * pageSize + 1}–{Math.min((page + 1) * pageSize, total)} {t.pagination.of} {total}
+        {page * pageSize + 1}â€“{Math.min((page + 1) * pageSize, total)} {t.pagination.of} {total}
       </span>
       <div style={{ display: 'flex', gap: 6 }}>
         <button className="a-btn a-btn-ghost a-btn-sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>{t.pagination.prev}</button>
@@ -696,7 +759,7 @@ const PaginationBar = ({ page, totalPages, total, pageSize, setPage, t }) => {
   );
 };
 
-// ─── MINI DONUT ───────────────────────────────────────────────────────────
+// â”€â”€â”€ MINI DONUT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const Donut = ({ data }) => {
   const total = data.reduce((a, d) => a + d.value, 0) || 1;
   let cumulative = 0;
@@ -756,22 +819,24 @@ const SparkBars = ({ data }) => {
   );
 };
 
-// ═══════════════════════════════════════════════════════════════════════════
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
 // SIDEBAR
-// ═══════════════════════════════════════════════════════════════════════════
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
 const Sidebar = ({ view, setView, t, onLogout, alertCount }) => {
   const nav = [
     { id: 'overview', icon: LayoutDashboard, label: t.nav.overview },
     { id: 'users', icon: Users, label: t.nav.users },
     { id: 'suppliers', icon: Store, label: t.nav.suppliers },
     { id: 'orders', icon: ShoppingBag, label: t.nav.orders },
+    { id: 'products', icon: Package, label: t.nav.products },
+    { id: 'categories', icon: ClipboardList, label: t.nav.categories },
     { id: 'analytics', icon: BarChart2, label: t.nav.analytics },
+    { id: 'security', icon: Shield, label: t.nav.security },
   ];
   return (
     <div className="a-sidebar">
       <div className="a-logo-row">
-        <LogoMark size={28} />
-        <span className="a-logo-text">Green<span style={{ color: 'var(--accent)' }}>Leaf</span></span>
+        <Logo size={28} textColor="var(--text-1)" leafColor="var(--accent)" subtextColor="var(--text-3)" />
       </div>
 
       <div className="a-nav-section">
@@ -795,53 +860,24 @@ const Sidebar = ({ view, setView, t, onLogout, alertCount }) => {
         </button>
       </div>
 
-      <div className="a-nav-bottom" style={{ display: 'flex', justifyContent: 'center', padding: '12px 12px 16px' }}>
-        <button onClick={onLogout} style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'flex-start',
-          width: '45px', height: '45px', border: 'none', borderRadius: '50%',
-          cursor: 'pointer', position: 'relative', overflow: 'hidden',
-          transition: 'width 0.3s, border-radius 0.3s',
-          boxShadow: '2px 2px 10px rgba(0,0,0,0.2)',
-          backgroundColor: 'rgba(200, 50, 50, 0.75)',
-        }}
-          onMouseEnter={e => {
-            e.currentTarget.style.width = '130px';
-            e.currentTarget.style.borderRadius = '40px';
-            e.currentTarget.querySelector('.lo-sign').style.width = '30%';
-            e.currentTarget.querySelector('.lo-sign').style.paddingLeft = '20px';
-            e.currentTarget.querySelector('.lo-text').style.opacity = '1';
-            e.currentTarget.querySelector('.lo-text').style.width = '70%';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.width = '45px';
-            e.currentTarget.style.borderRadius = '50%';
-            e.currentTarget.querySelector('.lo-sign').style.width = '100%';
-            e.currentTarget.querySelector('.lo-sign').style.paddingLeft = '0px';
-            e.currentTarget.querySelector('.lo-text').style.opacity = '0';
-            e.currentTarget.querySelector('.lo-text').style.width = '0%';
-          }}
-          onMouseDown={e => e.currentTarget.style.transform = 'translate(2px,2px)'}
-          onMouseUp={e => e.currentTarget.style.transform = 'translate(0,0)'}
-        >
-          <div className="lo-sign" style={{ width: '100%', transition: '0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <LogOut size={17} color="white" strokeWidth={2.2} />
-          </div>
-          <div className="lo-text" style={{ position: 'absolute', right: 0, width: '0%', opacity: 0, color: 'white', fontSize: '0.9em', fontWeight: 600, transition: '0.3s', whiteSpace: 'nowrap', overflow: 'hidden' }}>
-            {t.topbar.logout}
-          </div>
+      <div className="a-nav-bottom">
+        <button className="a-nav-item" onClick={onLogout}>
+          <LogOut size={17} strokeWidth={1.8} />
+          <span>{t.topbar.logout}</span>
         </button>
       </div>
     </div>
   );
 };
 
-// ═══════════════════════════════════════════════════════════════════════════
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
 // TOPBAR
-// ═══════════════════════════════════════════════════════════════════════════
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
 const TopBar = ({ view, theme, toggleTheme, lang, toggleLang, t, alertCount, onAlerts }) => {
   const titles = {
     overview: t.nav.overview, users: t.nav.users, suppliers: t.nav.suppliers,
-    orders: t.nav.orders, analytics: t.nav.analytics, settings: t.nav.settings,
+    orders: t.nav.orders, products: t.nav.products, categories: t.nav.categories,
+    analytics: t.nav.analytics, security: t.nav.security, settings: t.nav.settings,
   };
   return (
     <div className="a-topbar">
@@ -852,10 +888,7 @@ const TopBar = ({ view, theme, toggleTheme, lang, toggleLang, t, alertCount, onA
         </span>
       </div>
       <div className="a-topbar-right">
-        <button className="a-icon-btn" onClick={onAlerts} title="Alerts">
-          <Bell size={15} />
-          {alertCount > 0 && <span className="a-dot" />}
-        </button>
+        <NotificationBell buttonClassName="a-icon-btn" iconSize={15} panelStyle={{ color: '#20231f' }} />
         <button className="a-icon-btn" onClick={toggleTheme} title="Toggle theme">
           {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
         </button>
@@ -876,9 +909,9 @@ const TopBar = ({ view, theme, toggleTheme, lang, toggleLang, t, alertCount, onA
   );
 };
 
-// ═══════════════════════════════════════════════════════════════════════════
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
 // OVERVIEW
-// ═══════════════════════════════════════════════════════════════════════════
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
 const Overview = ({ t, onAlertCountChange }) => {
   const to = t.overview;
   const [data, setData] = useState({ activeUsers: 0, verifiedSuppliers: 0, totalOrders: 0, totalVolume: 0 });
@@ -902,7 +935,7 @@ const Overview = ({ t, onAlertCountChange }) => {
         activeUsers: usrs.filter(u => u.status === 'active').length || usrs.length,
         verifiedSuppliers: usrs.filter(u => u.role === 'supplier' && u.verified).length,
         totalOrders: ords.length,
-        totalVolume: ords.filter(o => !['cancelled', 'rejected'].includes(o.status)).reduce((a, o) => a + (o.total_amount || 0), 0),
+        totalVolume: ords.filter(o => !['cancelled', 'rejected'].includes(o.status)).reduce((a, o) => a + orderTotal(o), 0),
       });
     } catch (e) {
       setError(t.errors.loadFailed);
@@ -916,7 +949,7 @@ const Overview = ({ t, onAlertCountChange }) => {
   const alertItems = useMemo(() => [
     ...orders.filter(o => o.status === 'pending').slice(0, 3).map(o => ({
       type: 'order', color: 'rgba(255,152,0,0.9)', icon: ShoppingBag,
-      msg: `Order #${o.id?.slice(0, 8) || '—'} pending confirmation`,
+      msg: `Order #${String(o.id || '').slice(0, 8) || '-'} pending confirmation`,
       time: fmtDate(o.created_at),
     })),
     ...users.filter(u => u.status === 'pending').slice(0, 2).map(u => ({
@@ -941,7 +974,7 @@ const Overview = ({ t, onAlertCountChange }) => {
     orders.reduce((acc, o) => {
       const name = o.supplier_name || o.supplier || 'Unknown';
       if (!acc[name]) acc[name] = { name, count: 0, volume: 0 };
-      acc[name].count++; acc[name].volume += (o.total_amount || 0);
+      acc[name].count++; acc[name].volume += orderTotal(o);
       return acc;
     }, {})
   ).sort((a, b) => b.volume - a.volume).slice(0, 5), [orders]);
@@ -955,7 +988,7 @@ const Overview = ({ t, onAlertCountChange }) => {
     orders.forEach(o => {
       if (!o.created_at) return;
       const dow = new Date(o.created_at).getDay();
-      days[dow].value += (o.total_amount || 0);
+      days[dow].value += orderTotal(o);
     });
     return days;
   }, [orders]);
@@ -970,7 +1003,7 @@ const Overview = ({ t, onAlertCountChange }) => {
   if (loading) return <Loader />;
 
   return (
-    <div className="a-fu" style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 20, flex: 1, overflowY: 'auto' }}>
+    <div className="a-fu" style={{ padding: '34px', display: 'flex', flexDirection: 'column', gap: 20, flex: 1, overflowY: 'auto' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div>
           <div style={{ fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>{to.eyebrow}</div>
@@ -978,14 +1011,14 @@ const Overview = ({ t, onAlertCountChange }) => {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="a-btn a-btn-ghost" onClick={load}><RefreshCw size={13} /></button>
-          <button className="a-btn a-btn-ghost"><Download size={13} /> Export</button>
+          <button className="a-btn a-btn-ghost" onClick={() => adminExport('users')}><Download size={13} /> Export</button>
         </div>
       </div>
 
       {error && <ErrorBanner message={error} onRetry={load} />}
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
         {STATS.map((s, i) => (
           <div key={i} className="a-stat-card">
             <div className="a-stat-accent" />
@@ -1003,7 +1036,7 @@ const Overview = ({ t, onAlertCountChange }) => {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
         {/* Alerts */}
         <div className="a-card">
           <div className="a-card-head">
@@ -1103,12 +1136,12 @@ const Overview = ({ t, onAlertCountChange }) => {
             const colMap = { pending: 'rgba(255,152,0,0.9)', confirmed: 'rgba(33,150,243,0.9)', delivered: 'var(--accent)', cancelled: 'rgba(244,67,54,0.9)' };
             const col = colMap[o.status] || 'var(--text-3)';
             return (
-              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 16px', borderBottom: '1px solid var(--border)', borderRight: i % 3 !== 2 ? '1px solid var(--border)' : undefined }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 16, padding: '12px 16px', borderBottom: '1px solid var(--border)', borderRight: i % 3 !== 2 ? '1px solid var(--border)' : undefined }}>
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: col, flexShrink: 0, marginTop: 5, animation: o.status === 'pending' ? 'pulse 2s infinite' : undefined }} />
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-1)', marginBottom: 2 }}>Order #{o.id?.slice(0, 8) || '—'}</div>
+                  <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-1)', marginBottom: 2 }}>Order #{String(o.id || '').slice(0, 8) || '-'}</div>
                   <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {o.restaurant_name || 'Restaurant'} → {o.supplier_name || 'Supplier'}
+                    {o.restaurant_name || 'Restaurant'} â†’ {o.supplier_name || 'Supplier'}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <StatusBadge status={o.status} />
@@ -1124,9 +1157,9 @@ const Overview = ({ t, onAlertCountChange }) => {
   );
 };
 
-// ═══════════════════════════════════════════════════════════════════════════
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
 // USERS VIEW
-// ═══════════════════════════════════════════════════════════════════════════
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
 const UsersView = ({ t }) => {
   const tu = t.users;
   const [users, setUsers] = useState([]);
@@ -1169,7 +1202,7 @@ const UsersView = ({ t }) => {
 
   if (loading) return <Loader />;
   return (
-    <div className="a-fu" style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 18, flex: 1, overflowY: 'auto' }}>
+    <div className="a-fu" style={{ padding: '34px', display: 'flex', flexDirection: 'column', gap: 18, flex: 1, overflowY: 'auto' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div>
           <div style={{ fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>{tu.eyebrow}</div>
@@ -1181,7 +1214,7 @@ const UsersView = ({ t }) => {
             <input placeholder="Search users..." value={searchRaw} onChange={e => setSearchRaw(e.target.value)} />
           </div>
           <button className="a-btn a-btn-ghost" onClick={load}><RefreshCw size={13} /></button>
-          <button className="a-btn a-btn-ghost"><Download size={13} /> Export</button>
+          <button className="a-btn a-btn-ghost" onClick={() => adminExport('orders')}><Download size={13} /> Export</button>
         </div>
       </div>
 
@@ -1211,7 +1244,7 @@ const UsersView = ({ t }) => {
                           {(u.name || u.email || '?')[0].toUpperCase()}
                         </div>
                         <div>
-                          <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-1)' }}>{u.name || '—'}</div>
+                          <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-1)' }}>{u.name || 'â€”'}</div>
                         </div>
                       </div>
                     </td>
@@ -1240,9 +1273,9 @@ const UsersView = ({ t }) => {
   );
 };
 
-// ═══════════════════════════════════════════════════════════════════════════
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
 // SUPPLIERS VIEW
-// ═══════════════════════════════════════════════════════════════════════════
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
 const SuppliersView = ({ t }) => {
   const ts = t.suppliers;
   const [suppliers, setSuppliers] = useState([]);
@@ -1254,6 +1287,7 @@ const SuppliersView = ({ t }) => {
   const [acting, setActing] = useState(null);
   const [actionError, setActionError] = useState(null);
   const [confirm, setConfirm] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true); setError(null);
@@ -1270,11 +1304,13 @@ const SuppliersView = ({ t }) => {
     if (!confirm) return;
     const { id, action } = confirm; setConfirm(null); setActing(id); setActionError(null);
     try {
-      await axios.patch(`/api/admin/suppliers/${id}`, { action });
+      const response = await axios.patch(`/api/admin/suppliers/${id}`, { action });
+      const updated = response.data?.supplier;
       setSuppliers(p => p.map(s => s.id === id ? {
         ...s,
-        verified: action === 'approve',
-        status: action === 'approve' ? 'verified' : action === 'suspend' ? 'suspended' : 'rejected',
+        ...(updated || {}),
+        verified: updated?.is_verified ?? updated?.verified ?? (action === 'approve'),
+        status: updated?.status || (action === 'approve' ? 'verified' : action === 'suspend' ? 'suspended' : action === 'reactivate' ? 'pending' : 'rejected'),
       } : s));
     } catch (e) { setActionError(t.errors.actionFailed); }
     finally { setActing(null); }
@@ -1286,10 +1322,26 @@ const SuppliersView = ({ t }) => {
     [suppliers, filter, search]
   );
   const pagination = usePagination(filtered);
+  const selectedSupplier = useMemo(
+    () => filtered.find(s => s.id === selectedId) || filtered[0] || null,
+    [filtered, selectedId]
+  );
+  const readiness = (supplier) => {
+    if (!supplier) return [];
+    return [
+      { label: 'Profile basics', done: Boolean(supplier.profile?.company_name && supplier.profile?.description) },
+      { label: 'Shop images', done: Boolean(supplier.has_cover || supplier.has_profile_photo || supplier.has_feature_image) },
+      { label: 'At least 2 products', done: Number(supplier.products_count || 0) >= 2 },
+      { label: 'Order settings', done: Boolean(supplier.minimum_order || supplier.lead_time_days) },
+      { label: 'Business documents', done: Boolean(supplier.has_documents) },
+    ];
+  };
+  const readyItems = readiness(selectedSupplier);
+  const readyCount = readyItems.filter(item => item.done).length;
 
   if (loading) return <Loader />;
   return (
-    <div className="a-fu" style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 18, flex: 1, overflowY: 'auto' }}>
+    <div className="a-fu" style={{ padding: '34px', display: 'flex', flexDirection: 'column', gap: 18, flex: 1, overflowY: 'auto' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div>
           <div style={{ fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>{ts.eyebrow}</div>
@@ -1314,6 +1366,7 @@ const SuppliersView = ({ t }) => {
         <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--text-3)', alignSelf: 'center' }}>{filtered.length} suppliers</span>
       </div>
 
+      <div className="a-review-grid">
       <div className="a-card">
         <table className="a-table">
           <thead><tr>{ts.cols.map(c => <th key={c}>{c}</th>)}</tr></thead>
@@ -1321,34 +1374,23 @@ const SuppliersView = ({ t }) => {
             {pagination.slice.length === 0
               ? <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px 0' }}><Empty icon={Store} label={ts.noData} /></td></tr>
               : pagination.slice.map(s => (
-                <tr key={s.id}>
+                <tr key={s.id} className={selectedSupplier?.id === s.id ? 'selected' : ''} onClick={() => setSelectedId(s.id)}>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <div style={{ width: 32, height: 32, background: 'var(--warn-bg)', border: '1px solid var(--warn-text)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         <Store size={14} color="var(--warn-text)" strokeWidth={1.5} />
                       </div>
-                      <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-1)' }}>{s.business_name || s.name || '—'}</span>
+                      <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-1)' }}>{s.business_name || s.name || 'â€”'}</span>
                     </div>
                   </td>
                   <td><span style={{ fontSize: 13, color: 'var(--text-2)' }}>{s.email}</span></td>
-                  <td><span style={{ fontSize: 12, color: 'var(--text-3)' }}>{s.region || '—'}</span></td>
+                  <td><span style={{ fontSize: 12, color: 'var(--text-3)' }}>{s.region || 'â€”'}</span></td>
                   <td><StatusBadge status={s.verified ? 'verified' : s.status || 'pending'} /></td>
                   <td><span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-1)' }}>{s.order_count || 0}</span></td>
                   <td>
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      {!s.verified && s.status !== 'suspended' && (
-                        <>
-                          <button className="a-btn a-btn-success a-btn-sm" disabled={acting === s.id} onClick={() => setConfirm({ id: s.id, action: 'approve', message: ts.confirmApprove })}><Check size={12} />{ts.approve}</button>
-                          <button className="a-btn a-btn-danger a-btn-sm" disabled={acting === s.id} onClick={() => setConfirm({ id: s.id, action: 'reject', message: ts.confirmReject })}><X size={12} />{ts.reject}</button>
-                        </>
-                      )}
-                      {s.verified && s.status !== 'suspended' && (
-                        <button className="a-btn a-btn-warn a-btn-sm" disabled={acting === s.id} onClick={() => setConfirm({ id: s.id, action: 'suspend', message: ts.confirmSuspend })}><Ban size={12} />{ts.suspend}</button>
-                      )}
-                      {s.status === 'suspended' && (
-                        <button className="a-btn a-btn-success a-btn-sm" disabled={acting === s.id} onClick={() => setConfirm({ id: s.id, action: 'reactivate', message: ts.confirmReactivate })}><UserCheck size={12} />{ts.reactivate}</button>
-                      )}
-                    </div>
+                    <button className="a-btn a-btn-ghost a-btn-sm" type="button" onClick={(event) => { event.stopPropagation(); setSelectedId(s.id); }}>
+                      <Eye size={12} /> Review
+                    </button>
                   </td>
                 </tr>
               ))
@@ -1357,14 +1399,73 @@ const SuppliersView = ({ t }) => {
         </table>
         <PaginationBar {...pagination} t={t} />
       </div>
+      <aside className="a-review-panel">
+        {selectedSupplier ? (
+          <>
+            <div className="a-review-head">
+              <div>
+                <span>Supplier review</span>
+                <h3>{selectedSupplier.business_name || selectedSupplier.name || 'Supplier'}</h3>
+                <p>{selectedSupplier.email}</p>
+              </div>
+              <StatusBadge status={selectedSupplier.verified ? 'verified' : selectedSupplier.status || 'pending'} />
+            </div>
+
+            <div className="a-review-score">
+              <strong>{readyCount}/{readyItems.length}</strong>
+              <span>Readiness checks complete</span>
+              <div><i style={{ width: `${(readyCount / Math.max(readyItems.length, 1)) * 100}%` }} /></div>
+            </div>
+
+            <div className="a-review-facts">
+              <div><Package size={14} /><b>{selectedSupplier.products_count || 0}</b><span>Products</span></div>
+              <div><ShoppingBag size={14} /><b>{selectedSupplier.order_count || 0}</b><span>Orders</span></div>
+              <div><Activity size={14} /><b>{selectedSupplier.lead_time_days || 'â€”'}</b><span>Lead days</span></div>
+            </div>
+
+            <div className="a-review-checklist">
+              {readyItems.map(item => (
+                <div key={item.label} className={item.done ? 'done' : ''}>
+                  {item.done ? <Check size={14} /> : <AlertCircle size={14} />}
+                  <span>{item.label}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="a-review-notes">
+              <h4>Profile notes</h4>
+              <p>{selectedSupplier.profile?.description || 'No brand story yet.'}</p>
+              <small>Submitted: {selectedSupplier.review_submitted_at ? fmtDate(selectedSupplier.review_submitted_at) : 'Not submitted yet'}</small>
+            </div>
+
+            <div className="a-review-actions">
+              {!selectedSupplier.verified && selectedSupplier.status !== 'suspended' && (
+                <>
+                  <button className="a-btn a-btn-success" disabled={acting === selectedSupplier.id} onClick={() => setConfirm({ id: selectedSupplier.id, action: 'approve', message: ts.confirmApprove })}><Check size={13} />{ts.approve}</button>
+                  <button className="a-btn a-btn-danger" disabled={acting === selectedSupplier.id} onClick={() => setConfirm({ id: selectedSupplier.id, action: 'reject', message: ts.confirmReject })}><X size={13} />{ts.reject}</button>
+                </>
+              )}
+              {selectedSupplier.verified && selectedSupplier.status !== 'suspended' && (
+                <button className="a-btn a-btn-warn" disabled={acting === selectedSupplier.id} onClick={() => setConfirm({ id: selectedSupplier.id, action: 'suspend', message: ts.confirmSuspend })}><Ban size={13} />{ts.suspend}</button>
+              )}
+              {selectedSupplier.status === 'suspended' && (
+                <button className="a-btn a-btn-success" disabled={acting === selectedSupplier.id} onClick={() => setConfirm({ id: selectedSupplier.id, action: 'reactivate', message: ts.confirmReactivate })}><UserCheck size={13} />{ts.reactivate}</button>
+              )}
+            </div>
+          </>
+        ) : (
+          <Empty icon={ClipboardList} label="Select a supplier" />
+        )}
+      </aside>
+      </div>
       {confirm && <ConfirmModal message={confirm.message} onConfirm={executeAction} onCancel={() => setConfirm(null)} t={t} />}
     </div>
   );
 };
 
-// ═══════════════════════════════════════════════════════════════════════════
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
 // ORDERS VIEW
-// ═══════════════════════════════════════════════════════════════════════════
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
 const OrdersView = ({ t }) => {
   const to = t.orders;
   const [orders, setOrders] = useState([]);
@@ -1407,7 +1508,7 @@ const OrdersView = ({ t }) => {
 
   if (loading) return <Loader />;
   return (
-    <div className="a-fu" style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 18, flex: 1, overflowY: 'auto' }}>
+    <div className="a-fu" style={{ padding: '34px', display: 'flex', flexDirection: 'column', gap: 18, flex: 1, overflowY: 'auto' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div>
           <div style={{ fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>{to.eyebrow}</div>
@@ -1441,11 +1542,11 @@ const OrdersView = ({ t }) => {
               ? <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px 0' }}><Empty icon={ShoppingBag} label={to.noData} /></td></tr>
               : pagination.slice.map((o, i) => (
                 <tr key={o.id}>
-                  <td><span style={{ fontSize: 12, color: 'var(--text-3)', fontWeight: 500 }}>#{o.id?.slice(0, 8) || String(i + 1).padStart(4, '0')}</span></td>
-                  <td><span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-1)' }}>{o.restaurant_name || o.restaurant || '—'}</span></td>
-                  <td><span style={{ fontSize: 13, color: 'var(--text-2)' }}>{o.supplier_name || o.supplier || '—'}</span></td>
+                  <td><span style={{ fontSize: 12, color: 'var(--text-3)', fontWeight: 500 }}>#{o.id ? String(o.id).slice(0, 8) : String(i + 1).padStart(4, '0')}</span></td>
+                  <td><span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-1)' }}>{o.restaurant_name || o.restaurant || 'â€”'}</span></td>
+                  <td><span style={{ fontSize: 13, color: 'var(--text-2)' }}>{o.supplier_name || o.supplier || 'â€”'}</span></td>
                   <td><span style={{ fontSize: 12, color: 'var(--text-3)' }}>{fmtDate(o.created_at)}</span></td>
-                  <td><span style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent)' }}>{fmt(o.total_amount)} MAD</span></td>
+                  <td><span style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent)' }}>{fmt(orderTotal(o))} MAD</span></td>
                   <td><StatusBadge status={o.status || 'pending'} /></td>
                   <td>
                     {['pending', 'confirmed'].includes(o.status) && (
@@ -1467,9 +1568,154 @@ const OrdersView = ({ t }) => {
   );
 };
 
-// ═══════════════════════════════════════════════════════════════════════════
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
+const ProductsView = ({ t }) => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filter, setFilter] = useState('all');
+  const [searchRaw, setSearchRaw] = useState('');
+  const search = useDebounce(searchRaw);
+  const [acting, setActing] = useState(null);
+  const [actionError, setActionError] = useState(null);
+  const [confirm, setConfirm] = useState(null);
+  const load = useCallback(async () => {
+    setLoading(true); setError(null);
+    try {
+      const params = {};
+      if (search) params.search = search;
+      if (filter !== 'all') params.is_active = filter === 'active' ? 1 : 0;
+      const r = await axios.get('/api/admin/products', { params });
+      setProducts(r.data || []);
+    } catch (e) { setError(t.errors.loadFailed); }
+    finally { setLoading(false); }
+  }, [filter, search, t]);
+  useEffect(() => { load(); }, [load]);
+  const executeAction = async () => {
+    if (!confirm) return;
+    const { id, action } = confirm; setConfirm(null); setActing(id); setActionError(null);
+    try {
+      const response = await axios.patch(`/api/admin/products/${id}`, { action });
+      setProducts(p => action === 'delete' ? p.filter(item => item.id !== id) : p.map(item => item.id === id ? (response.data?.product || item) : item));
+    } catch (e) { setActionError(t.errors.actionFailed); }
+    finally { setActing(null); }
+  };
+  const pagination = usePagination(products);
+  if (loading) return <Loader />;
+  return (
+    <div className="a-fu" style={{ padding: '34px', display: 'flex', flexDirection: 'column', gap: 18, flex: 1, overflowY: 'auto' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+        <div><div style={{ fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Moderation</div><div style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-0.4px' }}>{t.nav.products}</div></div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <div className="a-search"><Search size={14} color="var(--text-3)" /><input placeholder="Search products..." value={searchRaw} onChange={e => setSearchRaw(e.target.value)} /></div>
+          <button className="a-btn a-btn-ghost" onClick={load}><RefreshCw size={13} /></button>
+          <button className="a-btn a-btn-ghost" onClick={() => adminExport('products')}><Download size={13} /> Export</button>
+        </div>
+      </div>
+      {error && <ErrorBanner message={error} onRetry={load} />}
+      {actionError && <ErrorBanner message={actionError} />}
+      <div style={{ display: 'flex', gap: 6 }}>
+        {[['all', 'All'], ['active', 'Active'], ['inactive', 'Hidden']].map(([id, label]) => <button key={id} className={`a-filter-tab${filter === id ? ' on' : ''}`} onClick={() => setFilter(id)}>{label}</button>)}
+        <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--text-3)', alignSelf: 'center' }}>{products.length} products</span>
+      </div>
+      <div className="a-card">
+        <table className="a-table">
+          <thead><tr>{['Product', 'Supplier', 'Category', 'Price', 'Stock', 'Status', 'Actions'].map(c => <th key={c}>{c}</th>)}</tr></thead>
+          <tbody>
+            {pagination.slice.length === 0 ? <tr><td colSpan={7} style={{ textAlign: 'center', padding: '40px 0' }}><Empty icon={Package} label="No products found" /></td></tr> : pagination.slice.map(product => (
+              <tr key={product.id}>
+                <td><div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><div style={{ width: 42, height: 42, borderRadius: 8, background: 'var(--hover)', border: '1px solid var(--border)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{product.images?.[0]?.url ? <img src={product.images[0].url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Package size={16} color="var(--text-3)" />}</div><div><div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>{product.name || 'Untitled product'}</div><div style={{ fontSize: 11, color: 'var(--text-3)' }}>{product.unit || 'unit'}</div></div></div></td>
+                <td><span style={{ fontSize: 13, color: 'var(--text-2)' }}>{product.supplier?.name || '-'}</span></td>
+                <td><span style={{ fontSize: 12, color: 'var(--text-3)' }}>{product.category?.name || '-'}</span></td>
+                <td><span style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent)' }}>{fmt(product.price)} MAD</span></td>
+                <td><span style={{ fontSize: 13, color: 'var(--text-2)' }}>{product.stock ?? '-'}</span></td>
+                <td><StatusBadge status={product.is_active ? 'active' : 'suspended'} /></td>
+                <td><div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{product.is_active ? <button className="a-btn a-btn-warn a-btn-sm" disabled={acting === product.id} onClick={() => setConfirm({ id: product.id, action: 'deactivate', message: 'Hide this product from buyers?' })}><Ban size={12} />Hide</button> : <button className="a-btn a-btn-success a-btn-sm" disabled={acting === product.id} onClick={() => setConfirm({ id: product.id, action: 'activate', message: 'Publish this product again?' })}><Check size={12} />Publish</button>}<button className="a-btn a-btn-danger a-btn-sm" disabled={acting === product.id} onClick={() => setConfirm({ id: product.id, action: 'delete', message: 'Delete this product permanently?' })}><X size={12} />Delete</button></div></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <PaginationBar {...pagination} t={t} />
+      </div>
+      {confirm && <ConfirmModal message={confirm.message} onConfirm={executeAction} onCancel={() => setConfirm(null)} t={t} />}
+    </div>
+  );
+};
+
+const CategoriesView = ({ t }) => {
+  const [categories, setCategories] = useState([]);
+  const [name, setName] = useState('');
+  const [editing, setEditing] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+  const [actionError, setActionError] = useState(null);
+  const load = useCallback(async () => {
+    setLoading(true); setError(null);
+    try { const r = await axios.get('/api/admin/categories'); setCategories(r.data || []); }
+    catch (e) { setError(t.errors.loadFailed); }
+    finally { setLoading(false); }
+  }, [t]);
+  useEffect(() => { load(); }, [load]);
+  const submit = async (event) => {
+    event.preventDefault();
+    if (!name.trim()) return;
+    setSaving(true); setActionError(null);
+    try {
+      const response = editing ? await axios.put(`/api/admin/categories/${editing.id}`, { name: name.trim() }) : await axios.post('/api/admin/categories', { name: name.trim() });
+      setCategories(p => editing ? p.map(item => item.id === editing.id ? response.data : item) : [...p, response.data].sort((a, b) => a.name.localeCompare(b.name)));
+      setName(''); setEditing(null);
+    } catch (e) { setActionError(e.response?.data?.message || t.errors.actionFailed); }
+    finally { setSaving(false); }
+  };
+  const remove = async (category) => {
+    setActionError(null);
+    try { await axios.delete(`/api/admin/categories/${category.id}`); setCategories(p => p.filter(item => item.id !== category.id)); }
+    catch (e) { setActionError(e.response?.data?.message || t.errors.actionFailed); }
+  };
+  if (loading) return <Loader />;
+  return (
+    <div className="a-fu" style={{ padding: '34px', display: 'flex', flexDirection: 'column', gap: 18, flex: 1, overflowY: 'auto' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}><div><div style={{ fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Catalog</div><div style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-0.4px' }}>{t.nav.categories}</div></div><button className="a-btn a-btn-ghost" onClick={load}><RefreshCw size={13} /></button></div>
+      {error && <ErrorBanner message={error} onRetry={load} />}
+      {actionError && <ErrorBanner message={actionError} />}
+      <form className="a-card" style={{ padding: 18, maxWidth: 680, display: 'flex', gap: 10, alignItems: 'flex-end' }} onSubmit={submit}>
+        <div style={{ flex: 1 }}><label style={{ display: 'block', fontSize: 12, color: 'var(--text-3)', marginBottom: 6 }}>Category name</label><input className="a-input" value={name} onChange={e => setName(e.target.value)} placeholder="Fresh vegetables" /></div>
+        {editing && <button type="button" className="a-btn a-btn-ghost" onClick={() => { setEditing(null); setName(''); }}>Cancel</button>}
+        <button className="a-btn a-btn-primary" disabled={saving}>{editing ? 'Save category' : 'Add category'}</button>
+      </form>
+      <div className="a-card"><table className="a-table"><thead><tr>{['Name', 'Slug', 'Products', 'Actions'].map(c => <th key={c}>{c}</th>)}</tr></thead><tbody>{categories.length === 0 ? <tr><td colSpan={4} style={{ textAlign: 'center', padding: '40px 0' }}><Empty icon={ClipboardList} label="No categories yet" /></td></tr> : categories.map(category => <tr key={category.id}><td><span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>{category.name}</span></td><td><span style={{ fontSize: 12, color: 'var(--text-3)' }}>{category.slug}</span></td><td><span style={{ fontSize: 13, color: 'var(--text-2)' }}>{category.products_count || 0}</span></td><td><div style={{ display: 'flex', gap: 6 }}><button className="a-btn a-btn-ghost a-btn-sm" onClick={() => { setEditing(category); setName(category.name); }}><Eye size={12} />Edit</button><button className="a-btn a-btn-danger a-btn-sm" disabled={(category.products_count || 0) > 0} onClick={() => remove(category)}><X size={12} />Delete</button></div></td></tr>)}</tbody></table></div>
+    </div>
+  );
+};
+
+const SecurityView = ({ t }) => {
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchRaw, setSearchRaw] = useState('');
+  const search = useDebounce(searchRaw);
+  const load = useCallback(async () => {
+    setLoading(true); setError(null);
+    try { const r = await axios.get('/api/admin/logs', { params: search ? { action: search } : {} }); setLogs(r.data?.data || r.data || []); }
+    catch (e) { setError(t.errors.loadFailed); }
+    finally { setLoading(false); }
+  }, [search, t]);
+  useEffect(() => { load(); }, [load]);
+  const risky = logs.filter(log => /delete|ban|suspend|reject|cancel/i.test(log.action || '')).length;
+  if (loading) return <Loader />;
+  return (
+    <div className="a-fu" style={{ padding: '34px', display: 'flex', flexDirection: 'column', gap: 18, flex: 1, overflowY: 'auto' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}><div><div style={{ fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>Audit</div><div style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-0.4px' }}>{t.nav.security}</div></div><div style={{ display: 'flex', gap: 8 }}><div className="a-search"><Search size={14} color="var(--text-3)" /><input placeholder="Filter actions..." value={searchRaw} onChange={e => setSearchRaw(e.target.value)} /></div><button className="a-btn a-btn-ghost" onClick={load}><RefreshCw size={13} /></button><button className="a-btn a-btn-ghost" onClick={() => adminExport('logs')}><Download size={13} /> Export</button></div></div>
+      {error && <ErrorBanner message={error} onRetry={load} />}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>{[{ label: 'Logged actions', value: logs.length, icon: Activity, color: 'var(--accent)' }, { label: 'Sensitive actions', value: risky, icon: Shield, color: risky ? 'var(--warn-text)' : 'var(--success-text)' }, { label: 'Exports available', value: 5, icon: Download, color: 'var(--text-1)' }].map(item => <div key={item.label} className="a-card" style={{ padding: 18, display: 'flex', alignItems: 'center', gap: 12 }}><div style={{ width: 38, height: 38, borderRadius: 10, background: 'var(--hover)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><item.icon size={16} color={item.color} /></div><div><div style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)' }}>{item.value}</div><div style={{ fontSize: 12, color: 'var(--text-3)' }}>{item.label}</div></div></div>)}</div>
+      <div className="a-card"><table className="a-table"><thead><tr>{['Admin', 'Action', 'Target', 'Date'].map(c => <th key={c}>{c}</th>)}</tr></thead><tbody>{logs.length === 0 ? <tr><td colSpan={4} style={{ textAlign: 'center', padding: '40px 0' }}><Empty icon={Shield} label="No audit events yet" /></td></tr> : logs.map(log => <tr key={log.id}><td><span style={{ fontSize: 13, color: 'var(--text-2)' }}>{log.admin?.email || log.admin?.name || `Admin #${log.admin_id || '-'}`}</span></td><td><StatusBadge status={log.action || 'action'} /></td><td><span style={{ fontSize: 12, color: 'var(--text-3)' }}>{log.target_type || 'system'} #{log.target_id ?? '-'}</span></td><td><span style={{ fontSize: 12, color: 'var(--text-3)' }}>{fmtDate(log.created_at)}</span></td></tr>)}</tbody></table></div>
+    </div>
+  );
+};
+
 // ANALYTICS VIEW  (new feature)
-// ═══════════════════════════════════════════════════════════════════════════
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
 const AnalyticsView = ({ t }) => {
   const ta = t.analytics;
   const [orders, setOrders] = useState([]);
@@ -1494,17 +1740,17 @@ const AnalyticsView = ({ t }) => {
   useEffect(() => { load(); }, [load]);
 
   const volumeByStatus = useMemo(() => [
-    { label: 'Pending', value: orders.filter(o => o.status === 'pending').reduce((a, o) => a + (o.total_amount || 0), 0), color: 'rgba(255,152,0,0.85)' },
-    { label: 'Confirmed', value: orders.filter(o => o.status === 'confirmed').reduce((a, o) => a + (o.total_amount || 0), 0), color: 'rgba(33,150,243,0.85)' },
-    { label: 'Delivered', value: orders.filter(o => ['delivered', 'completed'].includes(o.status)).reduce((a, o) => a + (o.total_amount || 0), 0), color: 'var(--accent)' },
-    { label: 'Cancelled', value: orders.filter(o => ['cancelled', 'rejected'].includes(o.status)).reduce((a, o) => a + (o.total_amount || 0), 0), color: 'rgba(244,67,54,0.85)' },
+    { label: 'Pending', value: orders.filter(o => o.status === 'pending').reduce((a, o) => a + orderTotal(o), 0), color: 'rgba(255,152,0,0.85)' },
+    { label: 'Confirmed', value: orders.filter(o => o.status === 'confirmed').reduce((a, o) => a + orderTotal(o), 0), color: 'rgba(33,150,243,0.85)' },
+    { label: 'Delivered', value: orders.filter(o => ['delivered', 'completed'].includes(o.status)).reduce((a, o) => a + orderTotal(o), 0), color: 'var(--accent)' },
+    { label: 'Cancelled', value: orders.filter(o => ['cancelled', 'rejected'].includes(o.status)).reduce((a, o) => a + orderTotal(o), 0), color: 'rgba(244,67,54,0.85)' },
   ], [orders]);
 
   const topRestaurants = useMemo(() => Object.values(
     orders.reduce((acc, o) => {
       const name = o.restaurant_name || o.restaurant || 'Unknown';
       if (!acc[name]) acc[name] = { name, count: 0, volume: 0 };
-      acc[name].count++; acc[name].volume += (o.total_amount || 0);
+      acc[name].count++; acc[name].volume += orderTotal(o);
       return acc;
     }, {})
   ).sort((a, b) => b.volume - a.volume).slice(0, 8), [orders]);
@@ -1523,7 +1769,7 @@ const AnalyticsView = ({ t }) => {
 
   if (loading) return <Loader />;
   return (
-    <div className="a-fu" style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 20, flex: 1, overflowY: 'auto' }}>
+    <div className="a-fu" style={{ padding: '34px', display: 'flex', flexDirection: 'column', gap: 20, flex: 1, overflowY: 'auto' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div>
           <div style={{ fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>{ta.eyebrow}</div>
@@ -1543,11 +1789,11 @@ const AnalyticsView = ({ t }) => {
       {error && <ErrorBanner message={error} onRetry={load} />}
 
       {/* Summary metrics row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
         {[
-          { label: 'Completion rate', value: orders.length ? `${Math.round(orders.filter(o => ['delivered','completed'].includes(o.status)).length / orders.length * 100)}%` : '—', icon: CheckCircle2 || Check, color: 'var(--success-text)' },
-          { label: 'Cancellation rate', value: orders.length ? `${Math.round(orders.filter(o => ['cancelled','rejected'].includes(o.status)).length / orders.length * 100)}%` : '—', icon: X, color: 'var(--danger-text)' },
-          { label: 'Avg order value', value: orders.length ? `${fmt(orders.reduce((a,o)=>a+(o.total_amount||0),0)/orders.length)} MAD` : '—', icon: TrendingUp, color: 'var(--accent)' },
+          { label: 'Completion rate', value: orders.length ? `${Math.round(orders.filter(o => ['delivered','completed'].includes(o.status)).length / orders.length * 100)}%` : 'â€”', icon: Check, color: 'var(--success-text)' },
+          { label: 'Cancellation rate', value: orders.length ? `${Math.round(orders.filter(o => ['cancelled','rejected'].includes(o.status)).length / orders.length * 100)}%` : 'â€”', icon: X, color: 'var(--danger-text)' },
+          { label: 'Avg order value', value: orders.length ? `${fmt(orders.reduce((a,o)=>a+orderTotal(o),0)/orders.length)} MAD` : 'â€”', icon: TrendingUp, color: 'var(--accent)' },
         ].map((m, i) => (
           <div key={i} className="a-card" style={{ padding: '18px 20px' }}>
             <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 8 }}>{m.label}</div>
@@ -1556,7 +1802,7 @@ const AnalyticsView = ({ t }) => {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         {/* Volume by status */}
         <div className="a-card">
           <div className="a-card-head">
@@ -1595,7 +1841,7 @@ const AnalyticsView = ({ t }) => {
                 const maxR = topRestaurants[0].volume || 1;
                 const ac = avColor(r.name);
                 return (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 16px', borderBottom: '1px solid var(--border)' }}>
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '11px 16px', borderBottom: '1px solid var(--border)' }}>
                     <div className="a-avatar" style={{ width: 30, height: 30, background: ac.bg, color: ac.color, fontSize: 12, flexShrink: 0 }}>
                       {r.name[0]}
                     </div>
@@ -1638,33 +1884,43 @@ const AnalyticsView = ({ t }) => {
   );
 };
 
-// ═══════════════════════════════════════════════════════════════════════════
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
 // SETTINGS VIEW
-// ═══════════════════════════════════════════════════════════════════════════
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
 const SettingsView = ({ t, theme, toggleTheme, lang, toggleLang }) => {
   const ts = t.settings;
   const [sec, setSec] = useState('general');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState('');
+  const [loadingCfg, setLoadingCfg] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
   const [cfg, setCfg] = useState({
-    platform_name: 'GreenLeaf Market',
+    platform_name: 'GreenLeaf',
     support_email: 'support@greenleaf.ma',
-    default_region: 'Casablanca-Settat',
+    session_timeout_minutes: 120,
+    max_upload_mb: 8,
+    supplier_auto_submit: false,
     maintenance_mode: false,
-    registration_open: true,
-    supplier_auto_approve: false,
-    order_notifications: true,
-    user_notifications: true,
-    system_notifications: false,
-    session_timeout: 30,
-    max_upload_mb: 10,
+    buyer_orders_enabled: true,
+    notifications_enabled: true,
   });
+
+  const loadSettings = useCallback(async () => {
+    setLoadingCfg(true); setLoadError(null);
+    try {
+      const response = await axios.get('/api/admin/settings');
+      setCfg(prev => ({ ...prev, ...(response.data || {}) }));
+    } catch (e) { setLoadError(t.errors.loadFailed); }
+    finally { setLoadingCfg(false); }
+  }, [t]);
+
+  useEffect(() => { loadSettings(); }, [loadSettings]);
 
   const validate = () => {
     const errs = {};
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cfg.support_email)) errs.support_email = ts.validation.emailInvalid;
-    if (cfg.session_timeout < 5 || cfg.session_timeout > 1440) errs.session_timeout = ts.validation.timeoutRange;
+    if (cfg.session_timeout_minutes < 5 || cfg.session_timeout_minutes > 1440) errs.session_timeout_minutes = ts.validation.timeoutRange;
     if (cfg.max_upload_mb < 1 || cfg.max_upload_mb > 100) errs.max_upload_mb = ts.validation.uploadRange;
     setValidationErrors(errs);
     return Object.keys(errs).length === 0;
@@ -1674,7 +1930,8 @@ const SettingsView = ({ t, theme, toggleTheme, lang, toggleLang }) => {
     if (!validate()) return;
     setSaving(true);
     try {
-      await axios.put('/api/admin/settings', cfg);
+      const response = await axios.put('/api/admin/settings', cfg);
+      setCfg(prev => ({ ...prev, ...(response.data || {}) }));
       setSaved(ts.saved);
       setTimeout(() => setSaved(''), 2400);
     } catch (e) { }
@@ -1699,7 +1956,7 @@ const SettingsView = ({ t, theme, toggleTheme, lang, toggleLang }) => {
   );
 
   return (
-    <div className="a-fu" style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 20, flex: 1, overflowY: 'auto' }}>
+    <div className="a-fu" style={{ padding: '34px', display: 'flex', flexDirection: 'column', gap: 20, flex: 1, overflowY: 'auto' }}>
       <div>
         <div style={{ fontSize: 11, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>{ts.eyebrow}</div>
         <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-0.4px' }}>{ts.title}</div>
@@ -1711,7 +1968,9 @@ const SettingsView = ({ t, theme, toggleTheme, lang, toggleLang }) => {
         ))}
       </div>
 
-      {/* Appearance — always visible */}
+      {loadError && <ErrorBanner message={loadError} onRetry={loadSettings} />}
+
+      {/* Appearance â€” always visible */}
       <div className="a-card" style={{ maxWidth: 640 }}>
         <div className="a-card-head"><div className="a-card-title">Appearance</div></div>
         <Row label="Theme" sub="Interface color scheme">
@@ -1755,24 +2014,21 @@ const SettingsView = ({ t, theme, toggleTheme, lang, toggleLang }) => {
             <Row label="Support email" sub="Contact address for users" k="support_email">
               <input className={`a-input${validationErrors.support_email ? ' error' : ''}`} style={{ width: 220 }} type="email" value={cfg.support_email} onChange={e => setCfg(p => ({ ...p, support_email: e.target.value }))} />
             </Row>
-            <Row label="Default region">
-              <input className="a-input" style={{ width: 200 }} value={cfg.default_region} onChange={e => setCfg(p => ({ ...p, default_region: e.target.value }))} />
+            <Row label="Buyer ordering" sub="Allow restaurants to place orders">
+              <Toggle k="buyer_orders_enabled" />
             </Row>
-            <Row label="Open registrations" sub="Allow new users to sign up">
-              <Toggle k="registration_open" />
-            </Row>
-            <Row label="Auto-approve suppliers" sub="Skip manual review for new suppliers">
-              <Toggle k="supplier_auto_approve" />
+            <Row label="Supplier auto-submit" sub="Send complete supplier profiles to review automatically">
+              <Toggle k="supplier_auto_submit" />
             </Row>
           </>
         )}
 
         {sec === 'security' && (
           <>
-            <Row label="Session timeout (min)" sub="Auto-logout after inactivity — 5 to 1440 min" k="session_timeout">
-              <input className={`a-input${validationErrors.session_timeout ? ' error' : ''}`} style={{ width: 100 }} type="number" min={5} max={1440} value={cfg.session_timeout} onChange={e => setCfg(p => ({ ...p, session_timeout: +e.target.value }))} />
+            <Row label="Session timeout (min)" sub="Auto-logout after inactivity - 5 to 1440 min" k="session_timeout_minutes">
+              <input className={`a-input${validationErrors.session_timeout_minutes ? ' error' : ''}`} style={{ width: 100 }} type="number" min={5} max={1440} value={cfg.session_timeout_minutes} onChange={e => setCfg(p => ({ ...p, session_timeout_minutes: +e.target.value }))} />
             </Row>
-            <Row label="Max upload size (MB)" sub="File upload limit — 1 to 100 MB" k="max_upload_mb">
+            <Row label="Max upload size (MB)" sub="File upload limit - 1 to 100 MB" k="max_upload_mb">
               <input className={`a-input${validationErrors.max_upload_mb ? ' error' : ''}`} style={{ width: 100 }} type="number" min={1} max={100} value={cfg.max_upload_mb} onChange={e => setCfg(p => ({ ...p, max_upload_mb: +e.target.value }))} />
             </Row>
           </>
@@ -1780,9 +2036,16 @@ const SettingsView = ({ t, theme, toggleTheme, lang, toggleLang }) => {
 
         {sec === 'notifs' && (
           <>
-            <Row label="Order notifications" sub="Alerts for new orders"><Toggle k="order_notifications" /></Row>
-            <Row label="User notifications" sub="Alerts for new registrations"><Toggle k="user_notifications" /></Row>
-            <Row label="System notifications" sub="Technical and maintenance alerts"><Toggle k="system_notifications" /></Row>
+            <Row label="Platform notifications" sub="Database notifications and admin alerts"><Toggle k="notifications_enabled" /></Row>
+            <Row label="Export users" sub="Download restaurants, suppliers, and admins">
+              <button className="a-btn a-btn-ghost" onClick={() => adminExport('users')}><Download size={13} /> Users CSV</button>
+            </Row>
+            <Row label="Export suppliers" sub="Download supplier status and review data">
+              <button className="a-btn a-btn-ghost" onClick={() => adminExport('suppliers')}><Download size={13} /> Suppliers CSV</button>
+            </Row>
+            <Row label="Export orders" sub="Download all order activity">
+              <button className="a-btn a-btn-ghost" onClick={() => adminExport('orders')}><Download size={13} /> Orders CSV</button>
+            </Row>
           </>
         )}
 
@@ -1803,10 +2066,10 @@ const SettingsView = ({ t, theme, toggleTheme, lang, toggleLang }) => {
           </>
         )}
 
-        <div style={{ padding: '14px 20px', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12 }}>
+        <div style={{ padding: '14px 20px', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 16 }}>
           {saved && <span style={{ fontSize: 13, color: 'var(--success-text)', fontWeight: 500 }}>{saved}</span>}
-          <button className="a-btn a-btn-primary" onClick={save} disabled={saving}>
-            {saving ? ts.saving : ts.save}
+          <button className="a-btn a-btn-primary" onClick={save} disabled={saving || loadingCfg}>
+            {saving ? ts.saving : loadingCfg ? 'Loading...' : ts.save}
           </button>
         </div>
       </div>
@@ -1814,9 +2077,9 @@ const SettingsView = ({ t, theme, toggleTheme, lang, toggleLang }) => {
   );
 };
 
-// ═══════════════════════════════════════════════════════════════════════════
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
 // ROOT
-// ═══════════════════════════════════════════════════════════════════════════
+// â•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گâ•گ
 const AdminApp = () => {
   const { theme, lang, toggleTheme, toggleLang } = useAppStore();
   const { logout } = useAuthStore();
@@ -1850,7 +2113,10 @@ const AdminApp = () => {
             {view === 'users'      && <UsersView t={t} />}
             {view === 'suppliers'  && <SuppliersView t={t} />}
             {view === 'orders'     && <OrdersView t={t} />}
+            {view === 'products'   && <ProductsView t={t} />}
+            {view === 'categories' && <CategoriesView t={t} />}
             {view === 'analytics'  && <AnalyticsView t={t} />}
+            {view === 'security'   && <SecurityView t={t} />}
             {view === 'settings'   && <SettingsView t={t} theme={theme} toggleTheme={toggleTheme} lang={lang} toggleLang={toggleLang} />}
           </motion.div>
         </AnimatePresence>
@@ -1860,3 +2126,4 @@ const AdminApp = () => {
 };
 
 export default AdminApp;
+
